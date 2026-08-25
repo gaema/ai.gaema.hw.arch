@@ -15,7 +15,7 @@ export default {
 
   headline: [
     ["Architecture", "Blackwell"],
-    ["Die", "GB202, TSMC 4NP"],
+    ["Die", "GB202, TSMC 4N"],
     ["Transistors", "92.2 B"],
     ["Die area", "~750 mm²"],
     ["SMs enabled", "188 of 192"],
@@ -26,7 +26,9 @@ export default {
     ["Memory", "96 GB GDDR7 ECC"],
     ["Memory bus", "512-bit"],
     ["Memory bandwidth", "1,792 GB/s"],
-    ["Memory controllers", "8 × 64-bit"],
+    ["Memory controllers", "16 × 32-bit"],
+    ["GPCs enabled", "12 of 12"],
+    ["TPCs enabled", "94 of 96"],
     ["L2 cache", "128 MB (full GB202)"],
     ["Board power", "600 W"],
     ["Host interface", "PCIe 5.0 ×16"],
@@ -46,7 +48,7 @@ export default {
   },
 
   dieMap: dieMap({
-    activeSMs: 188, mem: "96 GB", bw: "1,792 GB/s",
+    activeSMs: 188, gpcs: 12, tpcs: 94, mem: "96 GB", bw: "1,792 GB/s",
     l2: "128 MB", l2Note: "the full GB202 complement — this card is the one that gets all of it.",
   }),
 

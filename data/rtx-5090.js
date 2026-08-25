@@ -15,7 +15,7 @@ export default {
 
   headline: [
     ["Architecture", "Blackwell"],
-    ["Die", "GB202, TSMC 4NP"],
+    ["Die", "GB202, TSMC 4N"],
     ["SMs enabled", "170 of 192"],
     ["CUDA cores", "21,760"],
     ["Tensor Cores", "680 (5th gen)"],
@@ -25,7 +25,9 @@ export default {
     ["Memory", "32 GB GDDR7"],
     ["Memory bus", "512-bit"],
     ["Memory bandwidth", "1,792 GB/s"],
-    ["Memory controllers", "8 × 64-bit"],
+    ["Memory controllers", "16 × 32-bit"],
+    ["GPCs enabled", "11 of 12"],
+    ["TPCs enabled", "85 of 96"],
     ["L2 cache", "96 MB (of the die's 128 MB)"],
     ["Board power", "575 W"],
     ["Host interface", "PCIe 5.0 ×16"],
@@ -45,7 +47,7 @@ export default {
   },
 
   dieMap: dieMap({
-    activeSMs: 170, mem: "32 GB", bw: "1,792 GB/s",
+    activeSMs: 170, gpcs: 11, tpcs: 85, mem: "32 GB", bw: "1,792 GB/s",
     l2: "96 MB", l2Note: "cut down from the die's full 128 MB — the same harvest that takes the SM count to 170.",
   }),
 

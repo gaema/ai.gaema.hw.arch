@@ -137,10 +137,10 @@ export function dieMap(opts) {
         { w: 4, kind: "fixed", label: "NVENC / NVDEC + display", path: "nvenc",
           detail: "Video encode and decode blocks, and the display engine." },
       ]),
-      ...memBand(1, 4, 12, "GDDR7", (i) => `64-bit ctrl ${i}`,
-        `One of the eight 64-bit memory controllers that make the 512-bit GDDR7 interface — ${opts.mem} at ${opts.bw}. Four are drawn on each edge.`,
-        [["This block", "1 of 8 · 64-bit"], ["Its share of bandwidth", "224 GB/s"],
-         ["Whole memory subsystem", `512-bit, ${opts.bw}`], ["DRAM on the board", `${opts.mem} GDDR7`]], "mem"),
+      ...memBand(1, 4, 12, "GDDR7", (i) => `2 × 32-bit ctrl`,
+        `Two of the SIXTEEN 32-bit memory controllers that make the 512-bit GDDR7 interface. NVIDIA's whitepapers say it verbatim — "sixteen 32-bit memory controllers (512-bit total)" — so this is 16 × 32, not 8 × 64.`,
+        [["This block", "2 of 16 · 32-bit each"], ["Its share of bandwidth", "224 GB/s"],
+         ["Whole memory subsystem", `sixteen 32-bit controllers, 512-bit, ${opts.bw}`], ["DRAM on the board", `${opts.mem} GDDR7`]], "mem"),
       ...band(2, [{ w: 12, kind: "cache", label: `L2 cache — ${opts.l2}`, sub: "shared across every GPC · sliced per memory partition", path: "l2",
         detail: `${opts.l2} of L2, ${opts.l2Note} Blackwell's L2 is partitioned into slices attached to the memory controllers, so it is physically split along both memory edges rather than being the single central band drawn here.`,
         specs: [["Capacity", opts.l2], ["On the full die", "128 MB"], ["Physically", "sliced per memory partition"]] }]),
@@ -154,12 +154,23 @@ export function dieMap(opts) {
       ...field({
         y0: 4, perRow: 12, rows: 8, w: 1,
         make: (i, c, r) => {
-          const darkTPCs = (192 - opts.activeSMs) / 2;
-          if (i >= 96 - darkTPCs) {
+          // NVIDIA publishes the GPC and TPC totals, not just the SM count, and
+          // they do not always agree with "N TPCs somewhere": the RTX 5090 is
+          // 11 GPCs of 12, so a WHOLE GPC is dark and the rest of the deficit is
+          // individual TPCs inside the surviving ones. Draw that structure.
+          const darkCols = 12 - opts.gpcs;                  // whole GPCs fused off
+          const darkExtra = opts.gpcs * 8 - opts.tpcs;      // stragglers inside the rest
+          const colDark = c >= opts.gpcs;
+          const enabledIdx = r * opts.gpcs + c;
+          const extraDark = !colDark && enabledIdx >= opts.gpcs * 8 - darkExtra;
+          if (colDark || extraDark) {
             return {
-              kind: "off", label: "TPC", sub: "dark",
-              detail: `One of the ${darkTPCs} texture processing clusters fused off to take the die's 192 SMs down to this card's ${opts.activeSMs} — ${192 - opts.activeSMs} SMs, and a TPC is an SM pair. Unlike the Blackhole pages, where a product-spec count disables two known columns, this is per-die binning and NVIDIA publishes no pattern for it — so the ${darkTPCs} greyed here are the COUNT at an arbitrary place, not a known position.`,
-              specs: [["SMs lost", String(192 - opts.activeSMs)], ["TPCs dark", String(darkTPCs)], ["Position", "not published"]],
+              kind: "off", label: "TPC", sub: colDark ? "GPC dark" : "dark",
+              detail: colDark
+                ? `Part of an entire graphics processing cluster fused off. This card runs ${opts.gpcs} of the die's 12 GPCs, so one whole column of 8 TPCs is dark — that much IS published. WHICH GPC is not, so the column drawn dark stands for the fact that one is, not for its position.`
+                : `One of ${darkExtra} texture processing clusters fused off inside an otherwise-live GPC. This card runs ${opts.gpcs} GPCs and ${opts.tpcs} of 96 TPCs — ${opts.activeSMs} of 192 SMs — so beyond the whole GPCs there are ${darkExtra} single TPCs missing. Their positions are not published.`,
+              specs: [["GPCs enabled", `${opts.gpcs} of 12`], ["TPCs enabled", `${opts.tpcs} of 96`],
+                      ["SMs enabled", `${opts.activeSMs} of 192`], ["Position", "not published"]],
             };
           }
           return {
@@ -173,12 +184,12 @@ export function dieMap(opts) {
       ...band(12, [{ w: 12, kind: "link", label: "GPC ⇄ L2 crossbar", sub: "the same crossbar, reaching the other memory edge",
         detail: "The TPC field is drawn between two runs of the same crossbar because the L2 slices sit on both memory edges — the two bands are one interconnect, not two.",
         specs: [["Connects", "12 GPCs"], ["To", "the L2 slices, one per memory partition"]] }]),
-      ...memBand(13, 4, 12, "GDDR7", (i) => `64-bit ctrl ${4 + i}`,
-        `One of the eight 64-bit memory controllers that make the 512-bit GDDR7 interface — ${opts.mem} at ${opts.bw}. Four are drawn on each edge.`,
-        [["This block", "1 of 8 · 64-bit"], ["Its share of bandwidth", "224 GB/s"],
-         ["Whole memory subsystem", `512-bit, ${opts.bw}`], ["DRAM on the board", `${opts.mem} GDDR7`]], "mem"),
+      ...memBand(13, 4, 12, "GDDR7", (i) => `2 × 32-bit ctrl`,
+        `Two of the SIXTEEN 32-bit memory controllers that make the 512-bit GDDR7 interface. NVIDIA's whitepapers say it verbatim — "sixteen 32-bit memory controllers (512-bit total)" — so this is 16 × 32, not 8 × 64.`,
+        [["This block", "2 of 16 · 32-bit each"], ["Its share of bandwidth", "224 GB/s"],
+         ["Whole memory subsystem", `sixteen 32-bit controllers, 512-bit, ${opts.bw}`], ["DRAM on the board", `${opts.mem} GDDR7`]], "mem"),
     ],
-    note: `The full 192-SM die is drawn, with the ${(192 - opts.activeSMs) / 2} TPCs this card does not get greyed out at the end of the array. That marks HOW MANY are dark, not which: NVIDIA does not publish the harvest pattern, so their position here carries no claim. ${MAP_NOTE}`,
+    note: `The full 12-GPC die is drawn, with this card's ${(192 - opts.activeSMs) / 2} dark TPCs greyed out — ${12 - opts.gpcs} whole GPC${opts.gpcs === 12 ? "s" : ""} plus ${opts.gpcs * 8 - opts.tpcs} single TPCs. NVIDIA publishes the GPC, TPC and SM totals, so the SHAPE of the harvest is real; it does not publish which units, so the positions drawn carry no claim. ${MAP_NOTE}`,
     source: "NVIDIA's RTX Blackwell architecture whitepaper and published GB202 die analysis",
   };
 }
