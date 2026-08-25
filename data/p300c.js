@@ -11,13 +11,13 @@ export default {
   arch: "Blackhole",
   die: "2 × Blackhole ASIC",
   tagline:
-    "Two Blackhole ASICs on one board — 240 Tensix tiles and 64 GB of GDDR6 inside a 550 W limit — joined by two Ethernet channels, not by a shared NOC. Each die fuses off a different one of its two PCIe tiles, so the pair are mirror images rather than copies.",
+    "Two Blackhole ASICs on one liquid-cooled board — 240 Tensix tiles and 64 GB of GDDR6 at 600 W — joined by two Ethernet channels, not by a shared NOC. Each die fuses off a different one of its two PCIe tiles, so the pair are mirror images rather than copies. The p300c is not sold on its own: it is the card inside TT-QuietBox 2, and the separately-sold dual-ASIC boards are the p300a and p300b.",
 
   headline: [
     ["Architecture", "Blackhole"],
     ["ASICs on card", "2"],
     ["Tensix tiles", "240 (120 per ASIC)"],
-    ["Baby RISC-V per tile", "5 (RV32IM, 1 GHz)"],
+    ["Baby RISC-V per tile", "5 (RV32IM, 1.35 GHz)"],
     ["SRAM per tile", "1.5 MB"],
     ["SRAM on card", "360 MB"],
     ["Big RISC-V cores", "32 (16 per ASIC)"],
@@ -25,8 +25,9 @@ export default {
     ["PCIe harvest", "mirrored — (11,0) off on the left die, (2,0) off on the right"],
     ["Memory", "64 GB GDDR6 (32 GB per ASIC)"],
     ["Memory bandwidth", "512 GB/s per ASIC"],
-    ["Board power limit", "550 W"],
-    ["Cooling", "passive"],
+    ["Board power", "600 W TBP"],
+    ["Cooling", "liquid"],
+    ["Availability", "not sold separately — ships in TT-QuietBox 2"],
     ["Host interface", "PCIe 5.0 ×16"],
   ],
 
@@ -39,7 +40,7 @@ export default {
     "Last-level cache": "none — 1.5 MB software-managed SRAM per tile",
     "Memory": "64 GB GDDR6",
     "Bandwidth": "512 GB/s per ASIC",
-    "Board power": "550 W (board limit)",
+    "Board power": "600 W TBP",
     "Host link": "PCIe 5.0 ×16",
   },
 
@@ -47,7 +48,7 @@ export default {
 
   root: {
     id: "card", label: "Blackhole p300c", kind: "compute",
-    note: "two Blackhole ASICs on one passively cooled board, behind a single PCIe 5.0 ×16 edge connector — but each die keeps its OWN live PCIe interface, so they do not share one. How the board fans two endpoints onto one connector is not in the published descriptors, so it is not drawn",
+    note: "two Blackhole ASICs on one liquid-cooled board, behind a single PCIe 5.0 ×16 edge connector — but each die keeps its OWN live PCIe interface, so they do not share one. How the board fans two endpoints onto one connector is not in the published descriptors, so it is not drawn",
     cols: 2,
     children: [
       {

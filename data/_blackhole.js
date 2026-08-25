@@ -15,12 +15,12 @@ export const tensix = {
   children: [
     {
       id: "baby", label: "Baby RISC-V ×5", kind: "sched", span: 2,
-      note: "32-bit in-order single-issue RV32IM cores, one instruction per cycle at 1 GHz — they issue work to the compute complex rather than doing the maths themselves",
+      note: "32-bit in-order single-issue RV32IM cores, one instruction per cycle at 1.35 GHz — they issue work to the compute complex rather than doing the maths themselves",
       specs: [
         ["Per tile", "5"],
         ["ISA", "RV32IM, 32-bit"],
         ["Issue", "in-order, single-issue"],
-        ["Clock", "1 GHz"],
+        ["Clock", "1.35 GHz"],
       ],
     },
     {
@@ -88,16 +88,20 @@ const QSFP = {
 // `sifive,x280` -- four cores per cluster, 16 on the die.
 const L2CPU_Y = { 3: 0, 9: 1, 5: 2, 7: 3 };
 
-// The default configuration disables two Tensix columns to make 120 of 140.
-// This is a product-spec COUNT applied by firmware, not a per-die defect map.
+// Two Tensix columns are disabled to make 120 of 140. WHICH two varies per die
+// -- the public tt-umd P150 example carries harvest_mask 192 (columns 4 and 13)
+// while other parts read different pairs, so this is per-die binning and there
+// is no fixed "default" position. An earlier revision of this file claimed the
+// stock configuration always took a specific pair; that was wrong.
 //
-// WHERE those two land is not "the last two columns by x": the disable mask is
-// indexed on the die's OUTSIDE-IN pairing order,
+// What IS structural is the SHAPE. The mask is indexed on the die's outside-in
+// pairing order
 //   {1, 16, 2, 15, 3, 14, 4, 13, 5, 12, 6, 11, 7, 10}
-// so the two highest indices are 7 and 10 -- the INNERMOST Tensix column on
-// each side of the x = 8 management spine, one per half, not two neighbours at
-// one edge. Drawn at x = 15/16 until 2026-08-25, which was the right count in
-// the wrong place: it read the ordering as ascending x.
+// whose entries pair up as (index 2k, 2k+1), and every such pair sums to 17:
+// {1,16} {2,15} {3,14} {4,13} {5,12} {6,11} {7,10}. So a two-column harvest is
+// always a MIRRORED pair, symmetric about the die's centre line -- one column
+// in each half, never two neighbours at one edge. 7 and 10 is one real such
+// pair (the innermost); it stands for the shape, not for a known position.
 const HARVESTED_TENSIX_X = [7, 10];
 
 function lookups() {
@@ -176,8 +180,8 @@ export function dieTiles(pathPrefix, opts = {}) {
           sub: opts.cages ? (port ? `ch ${ch} · QSFP${port}` : `ch ${ch} · idle`) : `ch ${ch}`,
           detail: opts.cages
             ? (port
-              ? `Ethernet channel ${ch}, wired on the board to QSFP-DD cage ${port} — the cage itself is a board part, drawn below the die. Each Ethernet tile runs its own RISC-V core, so the link is programmable rather than a fixed-function PHY.`
-              : `Ethernet channel ${ch}. No board connector is wired to this channel on this card, so its ERISC sits idle.`)
+              ? `Ethernet channel ${ch}, 400 GbE bidirectional, wired on the board to QSFP-DD cage ${port} — the cage pairs two such tiles for 800 GbE and is itself a board part, drawn below the die. Each Ethernet tile runs its own RISC-V core, so the link is programmable rather than a fixed-function PHY.`
+              : `Ethernet channel ${ch}, 400 GbE bidirectional. No board connector is cabled to this channel on this card — 8 of the 12 usable channels reach a cage — so it can neither send nor receive, though its RISC-V core and L1 remain usable.`)
             : `Ethernet channel ${ch}. Each Ethernet tile runs its own RISC-V core, so the link is programmable rather than a fixed-function PHY. Which channels leave this board, and through what connector, is not something the published board definitions cover for this SKU — so no cage is claimed here.`,
           path: p("eth") });
       } else if (y >= 2) {
@@ -189,8 +193,8 @@ export function dieTiles(pathPrefix, opts = {}) {
         const off = HARVESTED_TENSIX_X.includes(x);
         tiles.push(off
           ? { ...base, kind: "off", label: "Tensix", sub: "router on",
-              detail: `Compute disabled, NOC alive — tile (${x}, ${y}). This is one of the 20 Tensix tiles that take the SKU from 140 to 120 — its five RISC-V cores and its compute complex are off, but its two NOC routers keep switching packets, which is why the mesh still runs through this column. It has to: harvesting takes whole columns, and a column that stopped routing would cut the die in half. What is lost here is a place to put work, not a path. The two disabled columns are the innermost on EACH side of the management spine, because the mask is indexed on the die's outside-in pairing order {1,16,2,15,3,14,4,13,5,12,6,11,7,10} rather than on ascending x — so its two highest indices are x = 7 and x = 10, one per half.`,
-              specs: [["Compute", "disabled"], ["NOC routers", "2 — still routing"], ["Columns disabled", "2 of 14 — x = 7 and x = 10"], ["Tiles", "20 of 140"], ["Mechanism", "product-spec column count"]] }
+              detail: `Compute disabled — one of the 20 Tensix tiles that take this SKU from 140 to 120. Its five RISC-V cores and compute complex are off. Its two NOC routers are almost certainly not: harvesting takes whole columns, and a column that stopped routing would cut the die in half, so the mesh is drawn running through. Tenstorrent does not state this in so many words, so treat it as the only reading the topology allows rather than a quoted fact. WHICH two columns go dark varies per die — this is binning, and published examples differ. What does not vary is the shape: the disable mask is indexed on the die's outside-in pairing order {1,16,2,15,3,14,4,13,5,12,6,11,7,10}, whose pairs each sum to 17, so the two columns are always MIRRORED about the die's centre — one in each half. The pair drawn here is real but stands for that shape, not for a known position.`,
+              specs: [["Compute", "disabled"], ["NOC routers", "2 — inferred still routing"], ["Columns disabled", "2 of 14, a mirrored pair"], ["Tiles", "20 of 140"], ["Which pair", "varies per die"]] }
           : { ...base, kind: "compute", label: "Tensix",
               detail: "One Tensix tile: five baby RISC-V cores, a matrix engine, a vector engine and 1.5 MB of software-managed SRAM, behind two NOC routers.",
               specs: [["Baby RISC-V", "5"], ["L1 SRAM", "1.5 MB"], ["NOC routers", "2"]],
@@ -212,10 +216,10 @@ export function dieTiles(pathPrefix, opts = {}) {
 }
 
 const GRID_LEDE =
-  "Blackhole is addressed as a 17 × 12 grid of tiles in NOC0 (x, y) coordinates, and a tile's type follows from where it sits. Columns x = 0 and x = 9 are GDDR6; row y = 1 is Ethernet; row y = 0 is routers plus the ARC and the PCIe tiles. Column x = 8 is the management column that bisects the die — mostly plain routers, with the ARC at the bottom, the security core above it, and just four L2CPU clusters at y = 3, 5, 7 and 9. Everything else — 14 columns × 10 rows — is Tensix, of which two are disabled in the default configuration to make the 120 this SKU ships — one on each side of the spine, at x = 7 and x = 10, because the disable mask is indexed outside-in rather than by ascending x.";
+  "Blackhole is addressed as a 17 × 12 grid of tiles in NOC0 (x, y) coordinates, and a tile's type follows from where it sits. Columns x = 0 and x = 9 are GDDR6; row y = 1 is Ethernet; row y = 0 is routers plus the ARC and the PCIe tiles. Column x = 8 is the management column that bisects the die — mostly plain routers, with the ARC at the bottom, the security core above it, and just four L2CPU clusters at y = 3, 5, 7 and 9. Everything else — 14 columns × 10 rows — is Tensix, of which two columns are disabled to make the 120 this SKU ships. Which two varies per die, but never their shape: the disable mask is indexed on an outside-in pairing order whose pairs each sum to 17, so the two are always mirrored about the die's centre — one column in each half.";
 
 const MESH_NOTE =
-  "The lines between tiles are the NOC — this die has no bus and no cache hierarchy, so the mesh IS the memory system. Every tile carries two NOC routers, links to its four orthogonal neighbours, and the dashed stubs at the borders are the wrap: the mesh closes into a torus, so an edge tile is not a dead end. The links run straight THROUGH the two disabled Tensix columns, and that is not a drawing convenience — harvesting turns off a tile's compute, not its routers, so a disabled column still carries traffic. It could not be otherwise: a column that stopped routing would sever the die.";
+  "The lines between tiles are the NOC — this die has no bus and no cache hierarchy, so the mesh IS the memory system. Every tile carries two NOC routers, links to its four orthogonal neighbours, and the dashed stubs at the borders are the wrap: the mesh closes into a torus, so an edge tile is not a dead end. The links run straight THROUGH the two disabled Tensix columns: harvesting turns off a tile's compute, and a column that stopped routing would sever the die, so the routers must survive. Tenstorrent does not say so explicitly — it is the only reading the topology allows, not a quoted fact. The two planes are not the same route: NoC 0 travels rightwards as needed, turns at most once, then downwards; NoC 1 goes upwards then leftwards.";
 
 const COORD_NOTE =
   "Drawn in NOC0 coordinates with Y = 11 at the top and Y = 0 at the bottom, the vendor's own convention, so a tile's label cross-references the SoC descriptor directly. Positions are real; the cells are drawn at uniform size, so a Tensix tile and a GDDR tile are not the same area on silicon.";
@@ -402,8 +406,8 @@ export function asic(activeTensix) {
       },
       {
         id: "eth", label: "Ethernet", kind: "link", span: 2,
-        specs: [["Tiles on die", "14"], ["Usable", "12 — 2 are harvested"], ["Wired on a p150a", "8, to 4 QSFP-DD cages"]],
-        note: "chip-to-chip scale-out over standard Ethernet rather than a proprietary link. Each Ethernet tile runs its own RISC-V core (an ERISC) — the link is programmable, not a fixed-function PHY",
+        specs: [["Tiles on die", "14"], ["Usable", "12 — 2 are harvested"], ["Per tile", "400 GbE bidirectional"], ["Per QSFP-DD port", "800 GbE — a tile pair"], ["Cabled on a p150a", "8 of the 12"]],
+        note: "chip-to-chip scale-out over standard Ethernet rather than a proprietary link. Each tile carries 400 GbE bidirectional and runs its own RISC-V core (an ERISC), so the link is programmable rather than a fixed-function PHY; a QSFP-DD port pairs two tiles for 800 GbE. Only 8 of the 12 usable tiles are cabled on a p150a — the other four keep their RISC-V and L1 but cannot send or receive",
       },
       { id: "pcie", label: "PCIe 5.0 ×16", kind: "io" },
       { id: "arc", label: "Management complex", kind: "sched", note: "power, telemetry, boot" },
