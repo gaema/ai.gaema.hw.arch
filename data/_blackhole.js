@@ -98,8 +98,18 @@ function lookups() {
   return { gddrAt, ethAt, qsfpAt };
 }
 
-export function dieMap(pathPrefix) {
+// One die's worth of tiles.
+//
+// `opts.dx` shifts the whole die right, so two of them fit on one grid.
+// `opts.pcieHarvested` is the PCIe core this SKU fuses off -- NOT cosmetic:
+// UMD asserts it. A P150 and a P300 LEFT chip must have (11,0) harvested; a
+// P300 RIGHT chip must have (2,0) harvested. So the two dies of a p300c are
+// mirror images of each other in their host interface, and every Blackhole
+// card here has exactly ONE live PCIe tile, not two.
+export function dieTiles(pathPrefix, opts = {}) {
   const { gddrAt, ethAt, qsfpAt } = lookups();
+  const dx = opts.dx || 0;
+  const harv = opts.pcieHarvested;
   const tiles = [];
   const p = (id) => (pathPrefix ? pathPrefix + "/" + id : null);
 
@@ -109,16 +119,20 @@ export function dieMap(pathPrefix) {
       // NOC0 puts Y=0 at the BOTTOM, so the grid row is flipped to draw the
       // die the way the vendor's own coordinates read. The label keeps the
       // true (x, y) so it cross-references tt-metal directly.
-      const base = { x, y: 11 - y, sub: `${x},${y}` };
+      const base = { x: x + dx, y: 11 - y, sub: `${x},${y}` };
 
       if (x === 8 && y === 0) {
         tiles.push({ ...base, kind: "sched", label: "ARC",
           detail: "The management complex — power, telemetry, boot and reset for the whole die.",
           path: p("arc") });
       } else if ((x === 2 || x === 11) && y === 0) {
-        tiles.push({ ...base, kind: "io", label: "PCIe",
-          detail: "PCIe 5.0 host interface. Two PCIe tiles sit on the bottom router row.",
-          path: p("pcie") });
+        const off = harv && harv[0] === x && harv[1] === y;
+        tiles.push(off
+          ? { ...base, kind: "off", label: "PCIe",
+              detail: `PCIe core (${x},${y}) — harvested on this SKU. The die has two PCIe tiles and exactly one of them is fused off, so a card's host interface is a single tile, not two.` }
+          : { ...base, kind: "io", label: "PCIe", sub: `live · ${x},${y}`,
+              detail: `The live PCIe 5.0 host interface, at (${x},${y}). Its twin on the other side of the bottom row is harvested.`,
+              path: p("pcie") });
       } else if (x === 8 && y === 2) {
         tiles.push({ ...base, kind: "sched", label: "Security",
           detail: "The security core, in the same column as the ARC and the L2CPU clusters. Multicast writes to Tensix skip this whole column.",
@@ -158,29 +172,80 @@ export function dieMap(pathPrefix) {
     }
   }
 
-  // Every tile has two NOC routers, so the interconnect is the grid itself:
-  // ties to the four orthogonal neighbours, and the edges wrap -- the mesh is
-  // a torus, which is why an edge tile is not a dead end.
+  // The QSFP-DD cages, each wired to two specific Ethernet tiles.
   const arcs = Object.entries(QSFP).map(([port, chans]) => {
     const [a, b] = chans.map((ch) => ETH[ch]);
     return {
-      from: [a[0], 11 - a[1]], to: [b[0], 11 - b[1]],
+      from: [a[0] + dx, 11 - a[1]], to: [b[0] + dx, 11 - b[1]],
       color: "var(--k-link-ink)", dip: 1.6,
       label: `QSFP-DD cage ${port} — Ethernet channels ${chans.join(" and ")}`,
     };
   });
 
+  return { tiles, arcs };
+}
+
+const GRID_LEDE =
+  "Blackhole is addressed as a 17 × 12 grid of tiles in NOC0 (x, y) coordinates, and a tile's type follows from where it sits. Columns x = 0 and x = 9 are GDDR6; row y = 1 is Ethernet; row y = 0 is routers plus the ARC and the PCIe tiles. Column x = 8 is the management column that bisects the die — mostly plain routers, with the ARC at the bottom, the security core above it, and just four L2CPU clusters at y = 3, 5, 7 and 9. Everything else — 14 columns × 10 rows — is Tensix.";
+
+const MESH_NOTE =
+  "The lines between tiles are the NOC — this die has no bus and no cache hierarchy, so the mesh IS the memory system. Every tile carries two NOC routers, links to its four orthogonal neighbours, and the dashed stubs at the borders are the wrap: the mesh closes into a torus, so an edge tile is not a dead end. The four curved runs on each die are the QSFP-DD cages, each wired to two specific Ethernet tiles.";
+
+const COORD_NOTE =
+  "Drawn in NOC0 coordinates with Y = 11 at the top and Y = 0 at the bottom, the vendor's own convention, so a tile's label cross-references the SoC descriptor directly. Positions are real; the cells are drawn at uniform size, so a Tensix tile and a GDDR tile are not the same area on silicon.";
+
+const SOURCE =
+  "the public tt-metal SoC descriptor blackhole_140_arch.yaml, the P150 board definition in board.cpp, the PCIe-harvest assertions in UMD's soc_descriptor.cpp, and p300_mesh_graph_descriptor.textproto";
+
+// A single-ASIC card. P150 fuses off PCIe core (11,0), so (2,0) is the live one.
+export function dieMap(pathPrefix) {
+  const { tiles, arcs } = dieTiles(pathPrefix, { pcieHarvested: [11, 0] });
   return {
     title: "Die map — the real NOC grid",
     cols: 17, rows: 12, cell: 54, cellH: 40,
-    tiles,
-    mesh: { torus: true },
-    arcs,
-    lede: "Blackhole is addressed as a 17 × 12 grid of tiles in NOC0 (x, y) coordinates, and a tile's type follows from where it sits. Columns x = 0 and x = 9 are GDDR6; row y = 1 is Ethernet; row y = 0 is routers plus the ARC and the two PCIe tiles. Column x = 8 is the management column that bisects the die — mostly plain routers, with the ARC at the bottom, the security core above it, and just four L2CPU clusters at y = 3, 5, 7 and 9. Everything else — 14 columns × 10 rows — is Tensix.",
+    tiles, arcs, mesh: { torus: true },
+    lede: GRID_LEDE,
     hint: "Hover a tile for what sits there. Every tile here opens its block in the hierarchy below.",
-    interconnect: "The lines between tiles are the NOC — this die has no bus and no cache hierarchy, so the mesh IS the memory system. Every tile carries two NOC routers, links to its four orthogonal neighbours, and the dashed stubs at the borders are the wrap: the mesh closes into a torus, so an edge tile is not a dead end. The four curved runs are the QSFP-DD cages, each wired to two specific Ethernet tiles.",
-    note: "Drawn in NOC0 coordinates with Y = 11 at the top and Y = 0 at the bottom, the vendor's own convention, so a tile's label cross-references the SoC descriptor directly. Positions are real; the cells are drawn at uniform size, so a Tensix tile and a GDDR tile are not the same area on silicon.",
-    source: "the public tt-metal SoC descriptor blackhole_140_arch.yaml, and the P150 board definition in board.cpp",
+    interconnect: MESH_NOTE,
+    note: COORD_NOTE,
+    source: SOURCE,
+  };
+}
+
+// The p300c: two ASICs on one board, drawn together, because the whole point of
+// the card is the pair. They are NOT interchangeable copies -- UMD asserts that
+// the left chip has PCIe (11,0) harvested and the right chip has (2,0)
+// harvested, so their host interfaces are mirror images. The gutter between
+// them carries the die-to-die link.
+export function dualDieMap() {
+  const GAP = 1, RIGHT = 17 + GAP;
+  const left = dieTiles("asic0", { pcieHarvested: [11, 0] });
+  const right = dieTiles("asic1", { dx: RIGHT, pcieHarvested: [2, 0] });
+
+  const tiles = [
+    ...left.tiles,
+    ...right.tiles,
+    {
+      x: 17, y: 0, w: 1, h: 12, kind: "link",
+      label: "die ⇄ die", sub: "2 × ETH",
+      detail: "The on-board link between the two ASICs: two Ethernet channels, the same fabric that runs card to card, routed on the PCB instead of through a cage. tt-metal's mesh graph for this board declares the pair as a 1 × 2 device topology with a channel count of 2 — it fixes the number of links, not which channels carry them on a given board, so no specific Ethernet tile is claimed here.",
+      specs: [["Channels", "2"], ["Device topology", "1 × 2"], ["Fabric", "Ethernet, same as card-to-card"]],
+      path: "link",
+    },
+  ];
+
+  return {
+    title: "Die map — both ASICs, and the link between them",
+    cols: 17 + GAP + 17, rows: 12, cell: 44, cellH: 38,
+    tiles,
+    arcs: [...left.arcs, ...right.arcs],
+    // Two closed meshes, one per die — never tied across the gutter.
+    mesh: { torus: true, regions: [{ x0: 0, x1: 16 }, { x0: RIGHT, x1: RIGHT + 16 }] },
+    lede: GRID_LEDE + " Both of the card's ASICs are drawn — ASIC 0 on the left, ASIC 1 on the right — because they are not interchangeable: each fuses off a DIFFERENT one of the two PCIe tiles, so their host interfaces mirror each other.",
+    hint: "Hover a tile for what sits there. Tiles on the left die open ASIC 0's branch of the hierarchy, tiles on the right open ASIC 1's.",
+    interconnect: MESH_NOTE + " The two dies do NOT share a NOC: each mesh is closed, and the only path between them is the die-to-die column in the middle — two Ethernet channels.",
+    note: COORD_NOTE + " Each die is its own 17 × 12 coordinate space, so both grids run x = 0…16 independently; the gutter is drawn, not addressed.",
+    source: SOURCE,
   };
 }
 
@@ -195,7 +260,8 @@ export function asic(activeTensix) {
       ["Big RISC-V cores", "16 (SiFive X280)"],
       ["GDDR6 channels", "8"],
       ["GDDR6 capacity", "32 GB"],
-      ["Ethernet tiles", "14 on the die"],
+      ["Ethernet tiles", "14 on the die, 12 usable"],
+      ["PCIe tiles", "2 on the die, 1 live"],
     ],
     cols: 4,
     children: [
@@ -217,7 +283,7 @@ export function asic(activeTensix) {
       },
       {
         id: "eth", label: "Ethernet", kind: "link", span: 2,
-        specs: [["Tiles on die", "14"], ["Wired on this card", "8, to 4 QSFP-DD cages"]],
+        specs: [["Tiles on die", "14"], ["Usable", "12 — 2 are harvested"], ["Wired on a p150a", "8, to 4 QSFP-DD cages"]],
         note: "chip-to-chip scale-out over standard Ethernet rather than a proprietary link. Each Ethernet tile runs its own RISC-V core (an ERISC) — the link is programmable, not a fixed-function PHY",
       },
       { id: "pcie", label: "PCIe 5.0 ×16", kind: "io" },

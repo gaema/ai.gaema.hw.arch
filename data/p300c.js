@@ -1,7 +1,7 @@
 // Tenstorrent Blackhole p300c -- two Blackhole ASICs on one card.
 // Every figure here is from a published vendor or press source; see `sources`.
 
-import { asic, dieMap } from "./_blackhole.js";
+import { asic, dualDieMap } from "./_blackhole.js";
 
 export default {
   id: "p300c",
@@ -11,7 +11,7 @@ export default {
   arch: "Blackhole",
   die: "2 × Blackhole ASIC",
   tagline:
-    "Two Blackhole ASICs on one board: 240 Tensix tiles and 64 GB of GDDR6, inside a 550 W board limit.",
+    "Two Blackhole ASICs on one board — 240 Tensix tiles and 64 GB of GDDR6 inside a 550 W limit — joined by two Ethernet channels, not by a shared NOC. Each die fuses off a different one of its two PCIe tiles, so the pair are mirror images rather than copies.",
 
   headline: [
     ["Architecture", "Blackhole"],
@@ -21,6 +21,8 @@ export default {
     ["SRAM per tile", "1.5 MB"],
     ["SRAM on card", "360 MB"],
     ["Big RISC-V cores", "32 (16 per ASIC)"],
+    ["Die-to-die link", "2 Ethernet channels"],
+    ["PCIe harvest", "mirrored — (11,0) off on the left die, (2,0) off on the right"],
     ["Memory", "64 GB GDDR6 (32 GB per ASIC)"],
     ["Memory bandwidth", "512 GB/s per ASIC"],
     ["Board power limit", "550 W"],
@@ -41,23 +43,25 @@ export default {
     "Host link": "PCIe 5.0 ×16",
   },
 
-  dieMap: {
-    ...dieMap("asic0"),
-    title: "Die map — the real NOC grid, per ASIC",
-    note: "One die is drawn. The p300c carries two identical Blackhole ASICs, so the map applies to each; the tiles link into ASIC 0's branch of the hierarchy. Grid positions are real NOC coordinates, but the cells are drawn at uniform size — a Tensix tile and a GDDR tile are not the same area on silicon.",
-  },
+  dieMap: dualDieMap(),
 
   root: {
     id: "card", label: "Blackhole p300c", kind: "compute",
     note: "two Blackhole ASICs on one passively cooled board, sharing a PCIe 5.0 ×16 edge",
     cols: 2,
     children: [
-      { ...asic(120), id: "asic0", label: "Blackhole ASIC 0" },
-      { ...asic(120), id: "asic1", label: "Blackhole ASIC 1" },
+      {
+        ...asic(120), id: "asic0", label: "Blackhole ASIC 0", count: "the left chip",
+        note: "PCIe core (11,0) is fused off here, so this die's live host interface is (2,0) — the mirror of ASIC 1",
+      },
+      {
+        ...asic(120), id: "asic1", label: "Blackhole ASIC 1", count: "the right chip",
+        note: "PCIe core (2,0) is fused off here, so this die's live host interface is (11,0) — the mirror of ASIC 0",
+      },
       {
         id: "link", label: "On-board die-to-die link", kind: "link", span: 2,
-        specs: [["Links", "2 Ethernet channels"], ["Fabric", "the same one used between cards"]],
-        note: "the two ASICs are joined on the board over two of the Ethernet channels — the same fabric that runs card to card, just routed on the PCB instead of through a cage",
+        specs: [["Channels", "2"], ["Device topology", "1 × 2"], ["Fabric", "Ethernet, the same one used between cards"]],
+        note: "the two ASICs are joined over two Ethernet channels — the same fabric that runs card to card, routed on the PCB instead of through a cage. The two dies do NOT share a NOC; each mesh is closed and this link is the only path between them",
       },
       { id: "slot", label: "PCIe 5.0 ×16 edge", kind: "io", span: 2 },
     ],

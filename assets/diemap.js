@@ -47,27 +47,38 @@ function drawInterconnect(svg, grid, cells, map) {
 
   if (map.mesh) {
     const g = svgEl("g", { class: "ic-mesh" });
-    for (let y = 0; y < map.rows; y++) {
-      for (let x = 0; x < map.cols; x++) {
-        const a = box(x, y);
-        if (!a) continue;
-        const r = box(x + 1, y);
-        if (r) g.append(svgEl("line", { x1: a.l + a.w, y1: a.cy, x2: r.l, y2: r.cy }));
-        const d = box(x, y + 1);
-        if (d) g.append(svgEl("line", { x1: a.cx, y1: a.t + a.h, x2: d.cx, y2: d.t }));
+    // A card can carry more than one die, and separate dies do NOT share a
+    // NOC. Each region is one closed mesh: links stay inside it and the wrap
+    // closes on the region's own edges, never across the gutter between dies.
+    const regions = map.mesh.regions || [{ x0: 0, x1: map.cols - 1 }];
+    for (const rg of regions) {
+      const y0 = rg.y0 || 0, y1 = rg.y1 == null ? map.rows - 1 : rg.y1;
+      for (let y = y0; y <= y1; y++) {
+        for (let x = rg.x0; x <= rg.x1; x++) {
+          const a = box(x, y);
+          if (!a) continue;
+          if (x < rg.x1) {
+            const r = box(x + 1, y);
+            if (r) g.append(svgEl("line", { x1: a.l + a.w, y1: a.cy, x2: r.l, y2: r.cy }));
+          }
+          if (y < y1) {
+            const d = box(x, y + 1);
+            if (d) g.append(svgEl("line", { x1: a.cx, y1: a.t + a.h, x2: d.cx, y2: d.t }));
+          }
+        }
       }
-    }
-    if (map.mesh.torus) {
-      const s = 7;
-      for (let y = 0; y < map.rows; y++) {
-        const a = box(0, y), b = box(map.cols - 1, y);
-        if (a) g.append(svgEl("line", { class: "wrap", x1: a.l - s, y1: a.cy, x2: a.l, y2: a.cy }));
-        if (b) g.append(svgEl("line", { class: "wrap", x1: b.l + b.w, y1: b.cy, x2: b.l + b.w + s, y2: b.cy }));
-      }
-      for (let x = 0; x < map.cols; x++) {
-        const a = box(x, 0), b = box(x, map.rows - 1);
-        if (a) g.append(svgEl("line", { class: "wrap", x1: a.cx, y1: a.t - s, x2: a.cx, y2: a.t }));
-        if (b) g.append(svgEl("line", { class: "wrap", x1: b.cx, y1: b.t + b.h, x2: b.cx, y2: b.t + b.h + s }));
+      if (map.mesh.torus) {
+        const s = 7;
+        for (let y = y0; y <= y1; y++) {
+          const a = box(rg.x0, y), b = box(rg.x1, y);
+          if (a) g.append(svgEl("line", { class: "wrap", x1: a.l - s, y1: a.cy, x2: a.l, y2: a.cy }));
+          if (b) g.append(svgEl("line", { class: "wrap", x1: b.l + b.w, y1: b.cy, x2: b.l + b.w + s, y2: b.cy }));
+        }
+        for (let x = rg.x0; x <= rg.x1; x++) {
+          const a = box(x, y0), b = box(x, y1);
+          if (a) g.append(svgEl("line", { class: "wrap", x1: a.cx, y1: a.t - s, x2: a.cx, y2: a.t }));
+          if (b) g.append(svgEl("line", { class: "wrap", x1: b.cx, y1: b.t + b.h, x2: b.cx, y2: b.t + b.h + s }));
+        }
       }
     }
     svg.append(g);
@@ -112,6 +123,9 @@ export function renderDieMap(sku, onOpenPath) {
   const tiles = map.tiles;
 
   host.textContent = "";
+  // A multi-die map is wider than the reading column; let it break out so both
+  // dies are visible at once instead of behind a scrollbar.
+  host.classList.toggle("wide", map.cols > 20);
 
   const head = el("div", "stage-head");
   head.append(el("h2", null, map.title || "Die map"));

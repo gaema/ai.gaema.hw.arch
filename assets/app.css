@@ -207,6 +207,13 @@ h2.section-h {
   margin: 22px 0 0;
 }
 
+/* A two-die map does not fit the reading column. Break it out to the viewport
+   so both dies are on screen together; prose inside stays measured. */
+.diemap.wide {
+  width: min(96vw, 2000px);
+  margin-left: calc(50% - min(48vw, 1000px));
+}
+
 .map-lede { margin: 0 0 12px; color: var(--ink-mid); font-size: 13px; max-width: 78ch; }
 
 .filters { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
