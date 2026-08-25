@@ -309,6 +309,20 @@ h2.section-h {
 
 .dtile.is-link .d-label { letter-spacing: 0.05em; }
 
+/* Disabled silicon: harvested Tensix columns, dark TPCs, a fused-off PCIe tile.
+   Must read as "present but switched off" at a glance and never be mistaken for
+   a live block, so it loses its colour, gets a dashed edge and a struck label. */
+.dtile.is-off {
+  border-style: dashed;
+  opacity: 0.5;
+  filter: grayscale(1);
+}
+
+.dtile.is-off .d-label {
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
+}
+
 .dtile.opens { cursor: pointer; border-width: 2px; }
 .dtile.opens:hover, .dtile.opens:focus-visible { filter: brightness(1.08); outline: 2px solid var(--tile-ink); outline-offset: 1px; }
 .dtile.dimmed { opacity: 0.18; }

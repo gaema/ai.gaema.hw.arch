@@ -181,7 +181,7 @@ export default {
       ...band(11, [{ w: 16, kind: "fixed", label: "Geometry + rasterizers", sub: "one front end per shader engine",
         detail: "The fixed-function graphics front end of each shader engine — geometry setup and rasterization." }]),
     ],
-    note: MAP_NOTE,
+    note: "Nothing on this die is drawn as disabled, and that is the fact rather than an omission: the R9700 takes all 64 of Navi 48's compute units, so unlike the Blackwell and Blackhole parts here it is a full die with no harvest to mark. " + MAP_NOTE,
     source: "AMD's RDNA 4 architecture material (Hot Chips 2025) and the R9700 datasheet",
   },
 

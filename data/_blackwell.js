@@ -115,7 +115,7 @@ export function dieMap(opts) {
   return {
     title: "Die map — GB202",
     cols: 12, rows: 14, cell: 62, cellH: 40,
-    lede: "Each column below is one graphics processing cluster, each cell one texture processing cluster — an SM pair. Twelve GPCs of eight TPCs is the full GB202: 96 TPCs, 192 SMs, 24,576 CUDA cores.",
+    lede: `Each column below is one graphics processing cluster, each cell one texture processing cluster — an SM pair. Twelve GPCs of eight TPCs is the full GB202: 96 TPCs, 192 SMs, 24,576 CUDA cores. This card gets ${opts.activeSMs} of those SMs, so ${(192 - opts.activeSMs) / 2} TPCs are drawn dark.`,
     hint: "Hover a block for detail. Every TPC opens at its own place in the hierarchy below.",
     interconnect: "Drawn as the two crossbar bands the TPC field sits between. The L2 is sliced per memory partition, so a GPC's traffic can land in any slice — the crossbar is what makes 96 or 128 MB spread along both memory edges behave as one shared cache. No NVLink on either of these cards: off-card, the only path is PCIe 5.0 ×16.",
     tiles: [
@@ -136,14 +136,28 @@ export function dieMap(opts) {
       ...band(3, [{ w: 12, kind: "link", label: "GPC ⇄ L2 crossbar", sub: "every GPC reaches every L2 slice",
         detail: "The crossbar between the GPCs and the L2 slices. Because the L2 is sliced per memory partition, a GPC's traffic can land in any slice, so this crossbar — not a bus — is what makes the L2 look like one shared cache to all twelve GPCs.",
         specs: [["Connects", "12 GPCs"], ["To", "the L2 slices, one per memory partition"]] }]),
+      // A TPC is an SM pair, so a card short of the die's 192 SMs is short of
+      // whole TPCs: 170 SMs is 11 TPCs dark, 188 is 2. NVIDIA does not publish
+      // WHICH, so the count is drawn at the end of the array and each such tile
+      // says the position is not the claim.
       ...field({
         y0: 4, perRow: 12, rows: 8, w: 1,
-        make: (i, c, r) => ({
-          kind: "compute", label: "TPC", sub: `G${c}·${r}`,
-          path: `gpc${c}/tpc${r}`,
-          detail: `Texture processing cluster ${r} of GPC ${c}. Two SMs — 256 CUDA cores, 8 fifth-generation Tensor Cores and 2 RT cores.`,
-          specs: [["SMs", "2"], ["CUDA cores", "256"], ["Tensor Cores", "8"]],
-        }),
+        make: (i, c, r) => {
+          const darkTPCs = (192 - opts.activeSMs) / 2;
+          if (i >= 96 - darkTPCs) {
+            return {
+              kind: "off", label: "TPC", sub: "dark",
+              detail: `One of the ${darkTPCs} texture processing clusters fused off to take the die's 192 SMs down to this card's ${opts.activeSMs} — ${192 - opts.activeSMs} SMs, and a TPC is an SM pair. NVIDIA does not publish which are disabled, so the ${darkTPCs} greyed here stand for the COUNT, not for a known position.`,
+              specs: [["SMs lost", String(192 - opts.activeSMs)], ["TPCs dark", String(darkTPCs)], ["Position", "not published"]],
+            };
+          }
+          return {
+            kind: "compute", label: "TPC", sub: `G${c}·${r}`,
+            path: `gpc${c}/tpc${r}`,
+            detail: `Texture processing cluster ${r} of GPC ${c}. Two SMs — 256 CUDA cores, 8 fifth-generation Tensor Cores and 2 RT cores.`,
+            specs: [["SMs", "2"], ["CUDA cores", "256"], ["Tensor Cores", "8"]],
+          };
+        },
       }),
       ...band(12, [{ w: 12, kind: "link", label: "GPC ⇄ L2 crossbar", sub: "the same crossbar, reaching the other memory edge",
         detail: "The TPC field is drawn between two runs of the same crossbar because the L2 slices sit on both memory edges — the two bands are one interconnect, not two.",
@@ -152,7 +166,7 @@ export function dieMap(opts) {
         `One of the eight 64-bit memory controllers that make the 512-bit GDDR7 interface — ${opts.mem} at ${opts.bw}. Four are drawn on each edge.`,
         [["Controllers", "8 × 64-bit"], ["Capacity", opts.mem], ["Bus", "512-bit"], ["Bandwidth", opts.bw]], "mem"),
     ],
-    note: `The full 192-SM die is drawn. This card enables ${opts.activeSMs} of them, and NVIDIA does not publish which are fused off — so no particular TPC here is marked as harvested. ${MAP_NOTE}`,
+    note: `The full 192-SM die is drawn, with the ${(192 - opts.activeSMs) / 2} TPCs this card does not get greyed out at the end of the array. That marks HOW MANY are dark, not which: NVIDIA does not publish the harvest pattern, so their position here carries no claim. ${MAP_NOTE}`,
     source: "NVIDIA's RTX Blackwell architecture whitepaper and published GB202 die analysis",
   };
 }

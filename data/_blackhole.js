@@ -88,6 +88,10 @@ const QSFP = {
 // `sifive,x280` -- four cores per cluster, 16 on the die.
 const L2CPU_Y = { 3: 0, 9: 1, 5: 2, 7: 3 };
 
+// Two Tensix columns are fused off on a 120-of-140 part. The position is NOT
+// published, so these two stand in for the count -- see the tile detail.
+const HARVESTED_TENSIX_X = [15, 16];
+
 function lookups() {
   const gddrAt = {}, ethAt = {}, qsfpAt = {};
   for (const [ch, pts] of Object.entries(GDDR)) for (const [x, y] of pts) gddrAt[`${x},${y}`] = +ch;
@@ -164,10 +168,19 @@ export function dieTiles(pathPrefix, opts = {}) {
             : `Ethernet channel ${ch}. This channel has no board connector on this card, so its ERISC sits idle.`,
           path: p("eth") });
       } else if (y >= 2) {
-        tiles.push({ ...base, kind: "compute", label: "Tensix",
-          detail: "One Tensix tile: five baby RISC-V cores, a matrix engine, a vector engine and 1.5 MB of software-managed SRAM, behind two NOC routers.",
-          specs: [["Baby RISC-V", "5"], ["L1 SRAM", "1.5 MB"], ["NOC routers", "2"]],
-          path: p("tensix") });
+        // Blackhole harvests whole Tensix COLUMNS -- UMD tests the mask as
+        // `tensix_harvesting_mask & (1 << x)`. A P150/P300 ships 120 of 140,
+        // i.e. two of the fourteen columns fused off. WHICH two is a per-part
+        // property with no published table, so the count is drawn at a fixed
+        // place and every such tile says the position is not the claim.
+        const off = HARVESTED_TENSIX_X.includes(x);
+        tiles.push(off
+          ? { ...base, kind: "off", label: "Tensix",
+              detail: "Harvested — one of the 20 Tensix tiles fused off to make 120 of 140. Blackhole harvests whole columns, so two of the fourteen Tensix columns are disabled. WHICH two is a per-part property and is not published: the two columns greyed here stand for the COUNT, not for a known position." }
+          : { ...base, kind: "compute", label: "Tensix",
+              detail: "One Tensix tile: five baby RISC-V cores, a matrix engine, a vector engine and 1.5 MB of software-managed SRAM, behind two NOC routers.",
+              specs: [["Baby RISC-V", "5"], ["L1 SRAM", "1.5 MB"], ["NOC routers", "2"]],
+              path: p("tensix") });
       } else {
         tiles.push({ ...base, kind: "io", label: "Rtr",
           detail: "A router-only tile on the bottom edge: it switches NOC traffic but carries no compute." });
@@ -193,7 +206,7 @@ export function dieTiles(pathPrefix, opts = {}) {
 }
 
 const GRID_LEDE =
-  "Blackhole is addressed as a 17 × 12 grid of tiles in NOC0 (x, y) coordinates, and a tile's type follows from where it sits. Columns x = 0 and x = 9 are GDDR6; row y = 1 is Ethernet; row y = 0 is routers plus the ARC and the PCIe tiles. Column x = 8 is the management column that bisects the die — mostly plain routers, with the ARC at the bottom, the security core above it, and just four L2CPU clusters at y = 3, 5, 7 and 9. Everything else — 14 columns × 10 rows — is Tensix.";
+  "Blackhole is addressed as a 17 × 12 grid of tiles in NOC0 (x, y) coordinates, and a tile's type follows from where it sits. Columns x = 0 and x = 9 are GDDR6; row y = 1 is Ethernet; row y = 0 is routers plus the ARC and the PCIe tiles. Column x = 8 is the management column that bisects the die — mostly plain routers, with the ARC at the bottom, the security core above it, and just four L2CPU clusters at y = 3, 5, 7 and 9. Everything else — 14 columns × 10 rows — is Tensix, of which two columns are fused off to make the 120 this SKU ships.";
 
 const MESH_NOTE =
   "The lines between tiles are the NOC — this die has no bus and no cache hierarchy, so the mesh IS the memory system. Every tile carries two NOC routers, links to its four orthogonal neighbours, and the dashed stubs at the borders are the wrap: the mesh closes into a torus, so an edge tile is not a dead end. The four curved runs on each die are the QSFP-DD cages, each wired to two specific Ethernet tiles.";

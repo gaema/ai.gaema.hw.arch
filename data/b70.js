@@ -150,7 +150,7 @@ export default {
       ...band(10, [{ w: 16, kind: "fixed", label: "Geometry + rasterizers · 32 ray tracing units", sub: "4 per render slice",
         detail: "The fixed-function front end of each render slice, plus its four ray tracing units — 32 across the die." }]),
     ],
-    note: MAP_NOTE,
+    note: "Nothing here is drawn as disabled: the B70 is the full 32 Xe-core configuration of the die — the cut-down part in this family is the B65 — so there is no harvest to mark, unlike the Blackwell and Blackhole pages. " + MAP_NOTE,
     source: "Intel's Xe2 architecture material and the Arc Pro B70 product specifications",
   },
 

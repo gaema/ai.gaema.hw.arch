@@ -194,6 +194,7 @@ export function renderDieMap(sku, onOpenPath) {
     if (t.path) n.type = "button";
     n.dataset.kind = t.kind;
     if (t.kind === "link") n.classList.add("is-link");
+    if (t.kind === "off") n.classList.add("is-off");
     paint(n, t.kind);
     n.style.gridColumn = `${t.x + 1} / span ${t.w || 1}`;
     n.style.gridRow = `${t.y + 1} / span ${t.h || 1}`;
