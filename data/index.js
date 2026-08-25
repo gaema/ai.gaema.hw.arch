@@ -56,5 +56,5 @@ export const KINDS = {
   fixed: "Fixed function",
   io: "I/O + interconnect",
   link: "Interconnect / fabric",
-  off: "Harvested",
+  off: "Disabled",
 };

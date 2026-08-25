@@ -314,14 +314,19 @@ h2.section-h {
    a live block, so it loses its colour, gets a dashed edge and a struck label. */
 .dtile.is-off {
   border-style: dashed;
-  opacity: 0.5;
+  opacity: 0.62;
   filter: grayscale(1);
 }
 
+/* Only the LABEL is struck: on a harvested Tensix the compute is off but the
+   NOC routers keep switching, and the sub-label says so — it must stay
+   readable rather than reading as more dead text. */
 .dtile.is-off .d-label {
   text-decoration: line-through;
   text-decoration-thickness: 1px;
 }
+
+.dtile.is-off .d-sub { color: var(--ink-mid); text-decoration: none; }
 
 .dtile.opens { cursor: pointer; border-width: 2px; }
 .dtile.opens:hover, .dtile.opens:focus-visible { filter: brightness(1.08); outline: 2px solid var(--tile-ink); outline-offset: 1px; }
