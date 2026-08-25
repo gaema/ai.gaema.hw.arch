@@ -47,7 +47,7 @@ export default {
 
   root: {
     id: "card", label: "Blackhole p300c", kind: "compute",
-    note: "two Blackhole ASICs on one passively cooled board, sharing a PCIe 5.0 ×16 edge",
+    note: "two Blackhole ASICs on one passively cooled board, behind a single PCIe 5.0 ×16 edge connector — but each die keeps its OWN live PCIe interface, so they do not share one. How the board fans two endpoints onto one connector is not in the published descriptors, so it is not drawn",
     cols: 2,
     children: [
       {
@@ -63,7 +63,10 @@ export default {
         specs: [["Channels", "2"], ["Device topology", "1 × 2"], ["Fabric", "Ethernet, the same one used between cards"]],
         note: "the two ASICs are joined over two Ethernet channels — the same fabric that runs card to card, routed on the PCB instead of through a cage. The two dies do NOT share a NOC; each mesh is closed and this link is the only path between them",
       },
-      { id: "slot", label: "PCIe 5.0 ×16 edge", kind: "io", span: 2 },
+      {
+        id: "slot", label: "PCIe 5.0 ×16 edge", kind: "io", span: 2,
+        note: "the card's edge connector — a board part. Each ASIC has its own live PCIe tile, so the card carries two endpoints behind one connector; the board-level fan-out is not published and is not claimed here",
+      },
     ],
   },
 

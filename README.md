@@ -68,6 +68,18 @@ python3 -m http.server 8080
   gets the same treatment: named as read-from-hardware, at the point of use.
   No performance measurement of ours appears here, and nothing about the
   machine a reading came from.
+- **Keep the die and the board apart, and never let an attribute cross.** A
+  QSFP-DD cage and a PCIe edge connector are parts of the CARD: they are drawn
+  outside the die block, in their own row, with runs to the die tiles they are
+  wired to — not as arcs between two on-die tiles, which would imply the cage is
+  on the die. The same rule applies to figures: a memory-controller block is one
+  on-die controller, so it carries its own width and its share of bandwidth,
+  while the capacity and the aggregate rate are labelled as the subsystem and
+  the DRAM on the board. Every spec key names its own scope for this reason
+  (`This block`, `Whole memory subsystem`, `DRAM on the board`).
+- **A page describes ONE product.** Sibling variants — Max-Q, Server Edition,
+  the cut-down part in the same family — are named as separate products or left
+  out, never folded into this card's figures.
 - **Say whether a map is real or logical.** Tenstorrent publishes a SoC
   descriptor giving every tile's NOC coordinate, so the Blackhole map is the
   actual 17 × 12 grid in the vendor's own coordinates (Y = 0 at the bottom). The

@@ -163,17 +163,22 @@ export function dieTiles(pathPrefix, opts = {}) {
       } else if (k in gddrAt) {
         const ch = gddrAt[k];
         tiles.push({ ...base, kind: "memory", label: "GDDR6", sub: `ch ${ch} · ${x},${y}`,
-          detail: `One of three NOC tiles serving GDDR6 channel ${ch}. The two memory columns sit at x = 0 and x = 9, so every Tensix column is at most a few hops from a bank.`,
-          specs: [["Channels", "8"], ["Capacity", "32 GB"], ["Bandwidth", "512 GB/s"]],
+          detail: `One of three NOC tiles serving GDDR6 channel ${ch}. It is an on-die port onto that channel, not the memory itself — the DRAM is packages on the board. The two memory columns sit at x = 0 and x = 9, so every Tensix column is at most a few hops from a bank.`,
+          specs: [["This tile", `1 of 3 NOC ports on channel ${ch}`], ["Its channel", "64 GB/s"],
+                  ["Whole memory subsystem", "8 channels, 512 GB/s"], ["DRAM on the board", "32 GB GDDR6"]],
           path: p("gddr") });
       } else if (y === 1) {
         const ch = ethAt[k];
-        const port = qsfpAt[k];
+        // Cage assignments come from the P150 board definition, so they are
+        // only claimed on a board that definition describes.
+        const port = opts.cages ? qsfpAt[k] : undefined;
         tiles.push({ ...base, kind: "link", label: "ETH",
-          sub: port ? `ch ${ch} · QSFP${port}` : `ch ${ch} · idle`,
-          detail: port
-            ? `Ethernet channel ${ch}, wired to QSFP-DD cage ${port} on the board. Ten 400 GbE links leave the die; the four cages expose eight of the channels.`
-            : `Ethernet channel ${ch}. This channel has no board connector on this card, so its ERISC sits idle.`,
+          sub: opts.cages ? (port ? `ch ${ch} · QSFP${port}` : `ch ${ch} · idle`) : `ch ${ch}`,
+          detail: opts.cages
+            ? (port
+              ? `Ethernet channel ${ch}, wired on the board to QSFP-DD cage ${port} — the cage itself is a board part, drawn below the die. Each Ethernet tile runs its own RISC-V core, so the link is programmable rather than a fixed-function PHY.`
+              : `Ethernet channel ${ch}. No board connector is wired to this channel on this card, so its ERISC sits idle.`)
+            : `Ethernet channel ${ch}. Each Ethernet tile runs its own RISC-V core, so the link is programmable rather than a fixed-function PHY. Which channels leave this board, and through what connector, is not something the published board definitions cover for this SKU — so no cage is claimed here.`,
           path: p("eth") });
       } else if (y >= 2) {
         // Blackhole harvests whole Tensix COLUMNS -- UMD tests the mask as
@@ -197,28 +202,20 @@ export function dieTiles(pathPrefix, opts = {}) {
     }
   }
 
-  // The QSFP-DD cages, each wired to two specific Ethernet tiles.
-  const arcs = Object.entries(QSFP).map(([port, chans]) => {
-    const [a, b] = chans.map((ch) => ETH[ch]);
-    return {
-      from: [a[0] + dx, (flip ? 11 - a[1] : a[1]) + dy],
-      to: [b[0] + dx, (flip ? 11 - b[1] : b[1]) + dy],
-      color: "var(--k-link-ink)", dip: 1.6,
-      label: `QSFP-DD cage ${port} — Ethernet channels ${chans.join(" and ")}`,
-    };
-  });
-
-  // Where this die's Ethernet row landed, so a caller can hang the die-to-die
-  // link off it without re-deriving the transform.
+  // Where this die's Ethernet row landed, so a caller can hang board-level
+  // parts off it without re-deriving the transform. A cage is NOT emitted here:
+  // it is a board part and belongs outside the die block, which is the caller's
+  // job to place.
   const ethRow = (flip ? 11 - 1 : 1) + dy;
-  return { tiles, arcs, ethRow, dx, dy };
+  const ethTile = (ch) => [ETH[ch][0] + dx, (flip ? 11 - ETH[ch][1] : ETH[ch][1]) + dy];
+  return { tiles, arcs: [], ethRow, ethTile, dx, dy };
 }
 
 const GRID_LEDE =
   "Blackhole is addressed as a 17 × 12 grid of tiles in NOC0 (x, y) coordinates, and a tile's type follows from where it sits. Columns x = 0 and x = 9 are GDDR6; row y = 1 is Ethernet; row y = 0 is routers plus the ARC and the PCIe tiles. Column x = 8 is the management column that bisects the die — mostly plain routers, with the ARC at the bottom, the security core above it, and just four L2CPU clusters at y = 3, 5, 7 and 9. Everything else — 14 columns × 10 rows — is Tensix, of which two are disabled in the default configuration to make the 120 this SKU ships — one on each side of the spine, at x = 7 and x = 10, because the disable mask is indexed outside-in rather than by ascending x.";
 
 const MESH_NOTE =
-  "The lines between tiles are the NOC — this die has no bus and no cache hierarchy, so the mesh IS the memory system. Every tile carries two NOC routers, links to its four orthogonal neighbours, and the dashed stubs at the borders are the wrap: the mesh closes into a torus, so an edge tile is not a dead end. The links run straight THROUGH the two disabled Tensix columns, and that is not a drawing convenience — harvesting turns off a tile's compute, not its routers, so a disabled column still carries traffic. It could not be otherwise: a column that stopped routing would sever the die. The four curved runs on each die are the QSFP-DD cages, each wired to two specific Ethernet tiles.";
+  "The lines between tiles are the NOC — this die has no bus and no cache hierarchy, so the mesh IS the memory system. Every tile carries two NOC routers, links to its four orthogonal neighbours, and the dashed stubs at the borders are the wrap: the mesh closes into a torus, so an edge tile is not a dead end. The links run straight THROUGH the two disabled Tensix columns, and that is not a drawing convenience — harvesting turns off a tile's compute, not its routers, so a disabled column still carries traffic. It could not be otherwise: a column that stopped routing would sever the die.";
 
 const COORD_NOTE =
   "Drawn in NOC0 coordinates with Y = 11 at the top and Y = 0 at the bottom, the vendor's own convention, so a tile's label cross-references the SoC descriptor directly. Positions are real; the cells are drawn at uniform size, so a Tensix tile and a GDDR tile are not the same area on silicon.";
@@ -228,11 +225,47 @@ const SOURCE =
 
 // A single-ASIC card. P150 fuses off PCIe core (11,0), so (2,0) is the live one.
 export function dieMap(pathPrefix) {
-  const { tiles, arcs } = dieTiles(pathPrefix, { pcieHarvested: [11, 0] });
+  const die = dieTiles(pathPrefix, { pcieHarvested: [11, 0], cages: true });
+  const BOARD = 12;   // one row under the die, for the parts that are not on it
+
+  // The cages are BOARD parts. Each sits under the pair of Ethernet tiles it is
+  // wired to, outside the die block, with a run to each of its two channels.
+  const cages = Object.entries(QSFP).map(([port, chans]) => {
+    const xs = chans.map((ch) => die.ethTile(ch)[0]).sort((a, b) => a - b);
+    return { port: +port, chans, x: xs[0], w: xs[1] - xs[0] + 1 };
+  });
+
+  const boardTiles = [
+    { x: 0, y: BOARD, w: 3, h: 1, kind: "io", label: "PCIe ×16 edge", sub: "card connector",
+      detail: "The card's edge connector — a board part, not a tile on the die. It carries the die's single live PCIe interface out to the host slot.",
+      path: "slot" },
+    ...cages.map((c) => ({
+      x: c.x, y: BOARD, w: c.w, h: 1, kind: "link",
+      label: `QSFP-DD ${c.port}`, sub: "800G cage",
+      detail: `One of the card's four QSFP-DD 800G cages. This is a BOARD part sitting off the die: it is wired to Ethernet channels ${c.chans.join(" and ")}, whose tiles sit directly above it. Eight of the die's fourteen Ethernet channels reach a cage on this card; the rest have no connector and idle.`,
+      specs: [["Cage", `QSFP-DD ${c.port}`], ["Channels", c.chans.join(" and ")], ["Rate", "800G"]],
+      // A board part opens the CARD-level node, not one inside the ASIC.
+      path: "qsfp",
+    })),
+  ];
+
+  // Board part -> the die tiles it is wired to.
+  const arcs = cages.flatMap((c) => c.chans.map((ch) => ({
+    from: [c.x, BOARD], to: die.ethTile(ch),
+    color: "var(--k-link-ink)", dip: 0.45,
+    label: `QSFP-DD cage ${c.port} → Ethernet channel ${ch}`,
+  })));
+  arcs.push({
+    from: [0, BOARD], to: [2, 11], color: "var(--k-io-ink)", dip: 0.45,
+    label: "PCIe edge connector → the die's live PCIe tile at (2,0)",
+  });
+
   return {
-    title: "Die map — the real NOC grid",
-    cols: 17, rows: 12, cell: 54, cellH: 40,
-    tiles, arcs, mesh: { torus: true },
+    title: "Die map — the real NOC grid, and the board parts it reaches",
+    cols: 17, rows: 13, cell: 54, cellH: 40,
+    tiles: [...die.tiles, ...boardTiles], arcs,
+    // The mesh is the DIE. The board row is not part of it.
+    mesh: { torus: true, regions: [{ x0: 0, x1: 16, y0: 0, y1: 11 }] },
     // A read from a GDDR6 bank on the far side of the die to a Tensix tile:
     // NOC0 (0, 6) -> (12, 4), drawn in flipped rows. It crosses the management
     // spine AND a disabled Tensix column, which is the point.
@@ -242,10 +275,10 @@ export function dieMap(pathPrefix) {
       from: [0, 11 - 6], to: [12, 11 - 4],
       note: "The packet runs along X to the destination column, turns ONCE, then runs along Y — dimension-ordered routing. Tenstorrent documents that choice and the reason for it: letting packets turn freely reintroduces cyclic-dependency deadlock, where every router waits on the next and none of them moves. Every tile on the way just switches the packet onward; its cores never see it. Note what the route passes straight through — the management spine at x = 8, and a disabled Tensix column, whose compute is off but whose routers are not.",
     },
-    lede: GRID_LEDE,
+    lede: GRID_LEDE + " The bottom row is NOT part of the die: it is the board — the four QSFP-DD cages and the PCIe edge connector — drawn where it belongs, outside the grid, with a run to each die tile it is wired to.",
     hint: "Hover a tile for what sits there. Every tile here opens its block in the hierarchy below.",
-    interconnect: MESH_NOTE,
-    note: COORD_NOTE,
+    interconnect: MESH_NOTE + " The runs to the bottom row leave the die entirely: a QSFP-DD cage is a connector on the card, wired to two specific Ethernet channels, and the PCIe edge connector carries the die's one live PCIe tile to the host slot.",
+    note: COORD_NOTE + " The board row underneath has no NOC coordinates and is not part of the mesh.",
     source: SOURCE,
   };
 }

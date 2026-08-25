@@ -11,7 +11,7 @@ export default {
   arch: "Blackwell",
   die: "GB202",
   tagline:
-    "The largest shipping GB202: 188 of 192 SMs enabled, 24,064 CUDA cores, 752 fifth-generation Tensor Cores, and 96 GB of GDDR7.",
+    "The largest shipping GB202: 188 of 192 SMs enabled, 24,064 CUDA cores, 752 fifth-generation Tensor Cores, and 96 GB of GDDR7. This page is the 600 W Workstation Edition — the Max-Q and Server cards are separate products in the same family and their figures are not mixed in here.",
 
   headline: [
     ["Architecture", "Blackwell"],
@@ -28,7 +28,7 @@ export default {
     ["Memory bandwidth", "1,792 GB/s"],
     ["Memory controllers", "8 × 64-bit"],
     ["L2 cache", "128 MB (full GB202)"],
-    ["Board power", "600 W (Max-Q: 300 W)"],
+    ["Board power", "600 W"],
     ["Host interface", "PCIe 5.0 ×16"],
   ],
 
