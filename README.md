@@ -27,7 +27,9 @@ Each page carries two views of the same part:
 
 ```
 index.html            landing page: SKU cards + the cross-vendor matrix
-<slug>/index.html     one explorer page per card (a thin shell)
+<vendor>/<slug>/      one explorer page per card (a thin shell), grouped by
+                      vendor: amd/ intel/ nvidia/ tenstorrent/
+<slug>/index.html     redirect stub at the old flat path, preserving the hash
 assets/theme.css      colour tokens, light / dark / auto
 assets/theme.js       theme boot + toggle
 assets/app.css        layout
@@ -52,11 +54,16 @@ python3 -m http.server 8080
 
 ## Conventions
 
-- **Published figures only.** Every number comes from vendor documentation or
-  press coverage, and every page lists its sources. Where a vendor does not
-  publish a figure the site says so rather than estimating. No measurement of
-  our own hardware appears here, and no card is described by anything other
-  than its public specification.
+- **Published figures only, with one labelled exception.** Every number comes
+  from vendor documentation or press coverage, and every page lists its sources.
+  Where a vendor does not publish a figure the site says so rather than
+  estimating. The single exception is the p300c die-to-die channel pairing,
+  which exists in no document — it is read from a live card's UMD cluster
+  descriptor and cross-checked against a second board, and the page says
+  exactly that where the figure appears. If another such fact is ever added, it
+  gets the same treatment: named as read-from-hardware, at the point of use.
+  No performance measurement of ours appears here, and nothing about the
+  machine a reading came from.
 - **Say whether a map is real or logical.** Tenstorrent publishes a SoC
   descriptor giving every tile's NOC coordinate, so the Blackhole map is the
   actual 17 × 12 grid in the vendor's own coordinates (Y = 0 at the bottom). The
@@ -97,8 +104,10 @@ python3 -m http.server 8080
    kind, label, sub, detail, specs, path }`, where `path` is the hierarchy path
    the tile opens (`"se0/sa0/wgp0"`).
 2. Add the slug to `ORDER` and `LOADERS` in `data/index.js`.
-3. Copy an existing `<slug>/index.html` shell and change `data-sku`, the
-   `<title>` and the description.
+3. Copy an existing `<vendor>/<slug>/index.html` shell and change `data-sku`,
+   the `<title>` and the description. `pageHref()` in `data/index.js` derives
+   the URL from `vendorKey` via `VENDOR_DIR`, so nav, cards and matrix all
+   follow automatically — a new vendor needs one entry there.
 
 `kind` is one of `compute`, `matrix`, `cache`, `memory`, `sched`, `fixed`,
 `io`, `off` — it picks the tile colour and the legend label.

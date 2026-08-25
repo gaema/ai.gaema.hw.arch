@@ -236,26 +236,29 @@ export function dualDieMap() {
   // port drives 8 SerDes lanes; the bring-up order in the vendor's own
   // firmware postcodes is SERDES -> ETH_CTRL -> MACPCS -> PACKET.
   const PHY_X = [3, 10], PHY_W = 4;
-  const phyDetail = (side) =>
-    `The Ethernet PHY on ASIC ${side}'s side of one die-to-die link: the ERISC in an Ethernet tile hands packets to the MAC and PCS, which drive 8 SerDes lanes onto the board. The vendor's own bring-up postcodes run SERDES → ETH_CTRL → MACPCS → PACKET, and NUM_SERDES_LANES is 8.`;
+  // The channel pairing, read off a live p300c (see the note on the map). Both
+  // links join asic_location 1 to asic_location 0; ASIC 0 here is location 0.
+  const CH = [{ a0: 3, a1: 8 }, { a0: 2, a1: 9 }];
+  const phyDetail = (side, ch) =>
+    `The Ethernet PHY on ASIC ${side}'s side of this die-to-die link, carrying its logical channel ${ch}: the ERISC in an Ethernet tile hands packets to the MAC and PCS, which drive 8 SerDes lanes onto the board. The vendor's own bring-up postcodes run SERDES → ETH_CTRL → MACPCS → PACKET, and NUM_SERDES_LANES is 8.`;
 
   const tiles = [
     ...top.tiles,
     ...bottom.tiles,
     ...PHY_X.flatMap((x, i) => [
       { x, y: 12, w: PHY_W, h: 1, kind: "link", label: "MAC + PCS · SerDes ×8",
-        sub: `ASIC 0 · link ${i}`, detail: phyDetail(0),
-        specs: [["SerDes lanes", "8"], ["Chain", "ERISC → MAC → PCS → SerDes"]], path: "link" },
+        sub: `ASIC 0 · ch ${CH[i].a0}`, detail: phyDetail(0, CH[i].a0),
+        specs: [["Logical channel", String(CH[i].a0)], ["SerDes lanes", "8"], ["Chain", "ERISC → MAC → PCS → SerDes"]], path: "link" },
       { x, y: 14, w: PHY_W, h: 1, kind: "link", label: "MAC + PCS · SerDes ×8",
-        sub: `ASIC 1 · link ${i}`, detail: phyDetail(1),
-        specs: [["SerDes lanes", "8"], ["Chain", "SerDes → PCS → MAC → ERISC"]], path: "link" },
+        sub: `ASIC 1 · ch ${CH[i].a1}`, detail: phyDetail(1, CH[i].a1),
+        specs: [["Logical channel", String(CH[i].a1)], ["SerDes lanes", "8"], ["Chain", "SerDes → PCS → MAC → ERISC"]], path: "link" },
     ]),
     { x: 0, y: 13, w: 3, h: 1, kind: "link", label: "on-board", sub: "PCB traces",
       detail: "The die-to-die link never leaves the card: it runs as differential pairs on the PCB between the two ASICs' SerDes, instead of out through a QSFP-DD cage.",
       path: "link" },
-    { x: 7, y: 13, w: 3, h: 1, kind: "link", label: "2 × Ethernet", sub: "die ⇄ die",
-      detail: "Two Ethernet channels join the ASICs — tt-metal's mesh graph for this board declares a 1 × 2 device topology with channel count 2. WHICH two of the 14 channels carry it is not in any published table: UMD discovers the pairing at bring-up by reading board_id, asic_location and eth_id out of each Ethernet core and matching same-board, different-ASIC pairs. So the runs below mark the Ethernet ROW, not two specific channels.",
-      specs: [["Channels", "2"], ["Device topology", "1 × 2"], ["Pairing", "discovered at bring-up"]],
+    { x: 7, y: 13, w: 3, h: 1, kind: "link", label: "2 × Ethernet", sub: "ch 3⇄8 · ch 2⇄9",
+      detail: "Two Ethernet channels join the ASICs — tt-metal's mesh graph for this board declares a 1 × 2 device topology with channel count 2. WHICH two is in no published table: UMD discovers the pairing at bring-up by reading board_id, asic_location and eth_id from each Ethernet core and matching same-board, different-ASIC pairs. Read off a live p300c it is logical channel 3 ⇄ 8 and 2 ⇄ 9, joining asic_location 0 to asic_location 1 — identical on two independent boards, so it is a property of the board design rather than of one card. These are LOGICAL channel ids: Ethernet harvesting renumbers them, so they do not index the SoC descriptor's tile list and no NOC coordinate is claimed for them here.",
+      specs: [["Channels", "2"], ["Pairing", "ch 3 ⇄ 8, ch 2 ⇄ 9"], ["Device topology", "1 × 2"], ["Ids", "logical, harvest-renumbered"]],
       path: "link" },
     { x: 14, y: 13, w: 3, h: 1, kind: "link", label: "on-board", sub: "PCB traces",
       detail: "The die-to-die link never leaves the card: it runs as differential pairs on the PCB between the two ASICs' SerDes, instead of out through a QSFP-DD cage.",
@@ -269,11 +272,11 @@ export function dualDieMap() {
     const c = "var(--k-link-ink)";
     return [
       { from: [mid, top.ethRow], to: [mid, 12], color: c, dip: 0.3,
-        label: `ASIC 0 Ethernet row → PHY, link ${i}` },
+        label: `ASIC 0 Ethernet row → PHY (logical channel ${CH[i].a0}; which tile that is depends on harvest renumbering, so the run anchors on the row)` },
       { from: [mid, 12], to: [mid, 14], color: c, dip: 0.3,
-        label: `Die-to-die link ${i} — 8 SerDes lanes over the PCB` },
+        label: `Die-to-die link — ASIC 0 logical channel ${CH[i].a0} ⇄ ASIC 1 logical channel ${CH[i].a1}, 8 SerDes lanes over the PCB` },
       { from: [mid, 14], to: [mid, bottom.ethRow], color: c, dip: 0.3,
-        label: `PHY → ASIC 1 Ethernet row, link ${i}` },
+        label: `PHY → ASIC 1 Ethernet row (logical channel ${CH[i].a1}; which tile that is depends on harvest renumbering, so the run anchors on the row)` },
     ];
   });
 
@@ -288,7 +291,7 @@ export function dualDieMap() {
     hint: "Hover a tile for what sits there. Tiles on the upper die open ASIC 0's branch of the hierarchy, tiles on the lower open ASIC 1's.",
     interconnect: MESH_NOTE + " The two dies do NOT share a NOC: each mesh is closed on its own edges, and the only path between them is the band in the middle — two Ethernet channels, each running out of an Ethernet tile's ERISC through a MAC/PCS and 8 SerDes lanes onto the board, and back up the same stack on the other die.",
     note: COORD_NOTE + " Each die is its own 17 × 12 coordinate space, so both grids run x = 0…16 and y = 0…11 independently. ASIC 1 is drawn MIRRORED — Y = 0 at its top — so that its Ethernet row faces the link; read each die's tile labels, not the page, for its true orientation.",
-    source: SOURCE,
+    source: SOURCE + ". The die-to-die channel pairing is the one figure on this page NOT taken from a document — it is read from a live p300c's UMD cluster descriptor and cross-checked against a second board",
   };
 }
 

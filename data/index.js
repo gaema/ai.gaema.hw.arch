@@ -2,6 +2,17 @@
 
 export const ORDER = ["r9700", "b70", "rtx-pro-6000", "rtx-5090", "p150a", "p300c"];
 
+// Pages live under their vendor, so a URL says who makes the part before it
+// says which part. `vendorKey` is the short token used for colour tokens;
+// the directory spells the vendor out.
+export const VENDOR_DIR = {
+  amd: "amd", intel: "intel", nvidia: "nvidia", tt: "tenstorrent",
+};
+
+export function pageHref(sku) {
+  return `${VENDOR_DIR[sku.vendorKey]}/${sku.id}/`;
+}
+
 // Static specifiers so the modules resolve without a bundler.
 const LOADERS = {
   "r9700": () => import("./r9700.js"),

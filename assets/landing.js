@@ -1,6 +1,6 @@
 // Landing page: the six SKU cards and the cross-vendor matrix, both built from
 // the same registry the explorer pages read.
-import { loadAll, COMPARE_ROWS } from "../data/index.js";
+import { loadAll, COMPARE_ROWS, pageHref } from "../data/index.js";
 
 const el = (tag, cls, text) => {
   const n = document.createElement(tag);
@@ -29,7 +29,7 @@ loadAll().then((skus) => {
   const cards = document.getElementById("cards");
   for (const s of skus) {
     const a = el("a", "card");
-    a.href = s.id + "/";
+    a.href = pageHref(s);
     a.style.setProperty("--card-accent", `var(--v-${s.vendorKey})`);
     a.append(el("span", "vendor", s.vendor));
     a.append(el("h3", null, s.name));
@@ -52,7 +52,7 @@ loadAll().then((skus) => {
   for (const s of skus) {
     const th = el("th");
     const a = el("a", null, s.name);
-    a.href = s.id + "/";
+    a.href = pageHref(s);
     th.append(a);
     hr.append(th);
   }
