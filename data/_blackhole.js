@@ -158,12 +158,27 @@ export function dieMap(pathPrefix) {
     }
   }
 
+  // Every tile has two NOC routers, so the interconnect is the grid itself:
+  // ties to the four orthogonal neighbours, and the edges wrap -- the mesh is
+  // a torus, which is why an edge tile is not a dead end.
+  const arcs = Object.entries(QSFP).map(([port, chans]) => {
+    const [a, b] = chans.map((ch) => ETH[ch]);
+    return {
+      from: [a[0], 11 - a[1]], to: [b[0], 11 - b[1]],
+      color: "var(--k-link-ink)", dip: 1.6,
+      label: `QSFP-DD cage ${port} — Ethernet channels ${chans.join(" and ")}`,
+    };
+  });
+
   return {
     title: "Die map — the real NOC grid",
     cols: 17, rows: 12, cell: 54, cellH: 40,
     tiles,
+    mesh: { torus: true },
+    arcs,
     lede: "Blackhole is addressed as a 17 × 12 grid of tiles in NOC0 (x, y) coordinates, and a tile's type follows from where it sits. Columns x = 0 and x = 9 are GDDR6; row y = 1 is Ethernet; row y = 0 is routers plus the ARC and the two PCIe tiles. Column x = 8 is the management column that bisects the die — mostly plain routers, with the ARC at the bottom, the security core above it, and just four L2CPU clusters at y = 3, 5, 7 and 9. Everything else — 14 columns × 10 rows — is Tensix.",
     hint: "Hover a tile for what sits there. Every tile here opens its block in the hierarchy below.",
+    interconnect: "The lines between tiles are the NOC — this die has no bus and no cache hierarchy, so the mesh IS the memory system. Every tile carries two NOC routers, links to its four orthogonal neighbours, and the dashed stubs at the borders are the wrap: the mesh closes into a torus, so an edge tile is not a dead end. The four curved runs are the QSFP-DD cages, each wired to two specific Ethernet tiles.",
     note: "Drawn in NOC0 coordinates with Y = 11 at the top and Y = 0 at the bottom, the vendor's own convention, so a tile's label cross-references the SoC descriptor directly. Positions are real; the cells are drawn at uniform size, so a Tensix tile and a GDDR tile are not the same area on silicon.",
     source: "the public tt-metal SoC descriptor blackhole_140_arch.yaml, and the P150 board definition in board.cpp",
   };
@@ -180,7 +195,7 @@ export function asic(activeTensix) {
       ["Big RISC-V cores", "16 (SiFive X280)"],
       ["GDDR6 channels", "8"],
       ["GDDR6 capacity", "32 GB"],
-      ["Ethernet", "10 × 400 GbE"],
+      ["Ethernet tiles", "14 on the die"],
     ],
     cols: 4,
     children: [
@@ -202,8 +217,8 @@ export function asic(activeTensix) {
       },
       {
         id: "eth", label: "Ethernet", kind: "link", span: 2,
-        specs: [["Links", "10 × 400 GbE"], ["Aggregate", "~1 TB/s"]],
-        note: "chip-to-chip scale-out over standard Ethernet rather than a proprietary link",
+        specs: [["Tiles on die", "14"], ["Wired on this card", "8, to 4 QSFP-DD cages"]],
+        note: "chip-to-chip scale-out over standard Ethernet rather than a proprietary link. Each Ethernet tile runs its own RISC-V core (an ERISC) — the link is programmable, not a fixed-function PHY",
       },
       { id: "pcie", label: "PCIe 5.0 ×16", kind: "io" },
       { id: "arc", label: "Management complex", kind: "sched", note: "power, telemetry, boot" },

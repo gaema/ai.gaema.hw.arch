@@ -33,7 +33,9 @@
   --k-fixed-ink:   #b03a5b;  --k-fixed-bg:   #fbe8ee;
   --k-sched-ink:   #5a6a1f;  --k-sched-bg:   #eff3dd;
   --k-off-ink:     #8b93a1;  --k-off-bg:     #f2f3f5;
-  --k-link-ink:    #0a7a8a;  --k-link-bg:    #e0f2f5;
+  /* Interconnect reads as wiring, not storage -- kept clear of the cache
+     green and given a dashed border in app.css so the two never blur. */
+  --k-link-ink:    #6b4bc4;  --k-link-bg:    #eee9fa;
 
   /* Vendor identity, used only for small accents on the landing page. */
   --v-amd: #c8102e;
@@ -71,7 +73,7 @@
     --k-fixed-ink:   #f08199;  --k-fixed-bg:   #331923;
     --k-sched-ink:   #b6c76a;  --k-sched-bg:   #232816;
     --k-off-ink:     #5d6673;  --k-off-bg:     #171d25;
-    --k-link-ink:    #3fbdd0;  --k-link-bg:    #0e2a2f;
+    --k-link-ink:    #a08cf0;  --k-link-bg:    #1e1a33;
 
     --v-amd: #ff5a72;
     --v-intel: #4da3e8;
@@ -108,7 +110,7 @@
   --k-fixed-ink:   #f08199;  --k-fixed-bg:   #331923;
   --k-sched-ink:   #b6c76a;  --k-sched-bg:   #232816;
   --k-off-ink:     #5d6673;  --k-off-bg:     #171d25;
-  --k-link-ink:    #3fbdd0;  --k-link-bg:    #0e2a2f;
+  --k-link-ink:    #a08cf0;  --k-link-bg:    #1e1a33;
 
   --v-amd: #ff5a72;
   --v-intel: #4da3e8;

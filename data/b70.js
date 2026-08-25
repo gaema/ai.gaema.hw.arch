@@ -69,7 +69,7 @@ export default {
   vendor: "Intel",
   vendorKey: "intel",
   arch: "Xe2 (Battlemage)",
-  die: "Xe2 (Battlemage)",
+  die: "BMG-G31",
   tagline:
     "The largest discrete Xe2 part: 32 Xe-cores, 256 XMX engines and 32 GB of GDDR6, at 367 INT8 TOPS.",
 
@@ -106,9 +106,10 @@ export default {
 
   dieMap: {
     title: "Die map — Xe2 (Battlemage)",
-    cols: 16, rows: 9, cell: 58, cellH: 42,
+    cols: 16, rows: 11, cell: 58, cellH: 42,
     lede: "All 32 Xe-cores, grouped four to a render slice. Each Xe-core carries 8 vector engines and 8 XMX engines, so the two rows of sixteen below are where all 256 XMX engines live.",
     hint: "Hover a block for detail. Every Xe-core opens at its own place in the hierarchy below.",
+    interconnect: "Drawn as the two Xe fabric bands the compute field sits between. Intel publishes the render-slice grouping but not the fabric's topology for this part, so it is a labelled band rather than a shape — the claim is only that every Xe-core reaches L2 and memory through it.",
     tiles: [
       ...band(0, [
         { w: 5, kind: "io", label: "PCIe 5.0 ×16", path: "pcie",
@@ -118,14 +119,17 @@ export default {
         { w: 5, kind: "fixed", label: "Display + Media", path: "media",
           detail: "Display engine and the media block — video encode and decode." },
       ]),
-      ...memBand(1, 4, 16, "GDDR6", (i) => `ctrl ${i * 2}–${i * 2 + 1}`,
-        "Part of the 256-bit GDDR6 interface: 32 GB at 608 GB/s.",
-        [["Capacity", "32 GB"], ["Bus", "256-bit"], ["Bandwidth", "608 GB/s"]]),
+      ...memBand(1, 4, 16, "GDDR6", (i) => `32-bit ctrl ${i}`,
+        "One of the eight 32-bit controllers that make the 256-bit GDDR6 interface: 32 GB at 608 GB/s (256 bits × 19 Gbps). Four are drawn on each edge.",
+        [["Controllers", "8 × 32-bit"], ["Capacity", "32 GB"], ["Bus", "256-bit"], ["Bandwidth", "608 GB/s"]]),
       ...band(2, [{ w: 16, kind: "cache", label: "L2 cache", sub: "shared across all render slices · banked", path: "l2",
         detail: "Shared last level on the die, banked into slices tied to the memory controllers rather than the single block drawn here. Intel does not publish the capacity for this SKU, so none is claimed.",
         specs: [["Capacity", "not published"], ["Physically", "banked with the memory controllers"]] }]),
+      ...band(3, [{ w: 16, kind: "link", label: "Xe fabric", sub: "Xe-cores ⇄ L2 ⇄ memory controllers",
+        detail: "The on-die interconnect between the render slices and the memory side. Every Xe-core reaches L2 and the memory controllers across it; Intel does not publish its topology for this part, so it is drawn as a band rather than given a shape it may not have.",
+        specs: [["Reaches", "all 32 Xe-cores"], ["Topology", "not published"]] }]),
       ...field({
-        y0: 3, perRow: 8, rows: 4, w: 2,
+        y0: 4, perRow: 8, rows: 4, w: 2,
         make: (i, c, r) => {
           const slice = r * 2 + (c < 4 ? 0 : 1);
           const within = c % 4;
@@ -137,10 +141,13 @@ export default {
           };
         },
       }),
-      ...memBand(7, 4, 16, "GDDR6", (i) => `ctrl ${8 + i * 2}–${9 + i * 2}`,
-        "Part of the 256-bit GDDR6 interface: 32 GB at 608 GB/s.",
-        [["Capacity", "32 GB"], ["Bus", "256-bit"], ["Bandwidth", "608 GB/s"]]),
-      ...band(8, [{ w: 16, kind: "fixed", label: "Geometry + rasterizers · 32 ray tracing units", sub: "4 per render slice",
+      ...band(8, [{ w: 16, kind: "link", label: "Xe fabric", sub: "the same fabric, reaching the other memory edge",
+        detail: "The compute field is drawn between two runs of the same fabric because it reaches both memory edges — the two bands are one interconnect, not two.",
+        specs: [["Reaches", "all 32 Xe-cores"], ["Topology", "not published"]] }]),
+      ...memBand(9, 4, 16, "GDDR6", (i) => `32-bit ctrl ${4 + i}`,
+        "One of the eight 32-bit controllers that make the 256-bit GDDR6 interface: 32 GB at 608 GB/s (256 bits × 19 Gbps). Four are drawn on each edge.",
+        [["Controllers", "8 × 32-bit"], ["Capacity", "32 GB"], ["Bus", "256-bit"], ["Bandwidth", "608 GB/s"]]),
+      ...band(10, [{ w: 16, kind: "fixed", label: "Geometry + rasterizers · 32 ray tracing units", sub: "4 per render slice",
         detail: "The fixed-function front end of each render slice, plus its four ray tracing units — 32 across the die." }]),
     ],
     note: MAP_NOTE,

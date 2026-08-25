@@ -14,10 +14,11 @@ they can be compared like with like:
 
 Each page carries two views of the same part:
 
-- a **die map** — every block drawn at its own place on one grid, so adjacency
-  is visible: which edge the memory controllers sit on, how many cores one L2
-  serves, which tiles a memory channel feeds. Hover for detail, filter by block
-  class, click a block to open it in the hierarchy.
+- a **die map** — every block drawn at its own place on one grid, with the
+  interconnect drawn between them, so adjacency is visible: which edge the
+  memory controllers sit on, how many cores one L2 serves, which tiles a memory
+  channel feeds. Hover for detail, filter by block class, click a block to open
+  it in the hierarchy.
 - a **hierarchy** — card → die → cluster → execution unit → matrix engine.
   Breadcrumb to come back out, `Esc` to go up one level. Every view has its own
   URL.
@@ -67,6 +68,14 @@ python3 -m http.server 8080
   publishes which specific units a given card fused off, so marking particular
   ones would be invention. 188 of 192, 170 of 192, 120 of 140 — stated, not
   drawn.
+- **Draw the interconnect the shape it actually is.** Blackhole has a router in
+  every tile, so its map draws real tile-to-tile links (`mesh: {torus: true}`,
+  rendered into the grid gaps) plus the QSFP cage runs as arcs. The three GPUs
+  do not work that way — their compute reaches cache and memory across a shared
+  fabric whose topology two of the three vendors do not publish — so they get a
+  labelled fabric *band*, hatched and dashed so it never reads as another cache
+  level. Giving a GPU a mesh it does not have would be the same class of error
+  as inventing a harvest pattern.
 - **Colours come from `assets/theme.css`, never from a literal.** The page must
   read correctly in light, dark, and system-default.
 
@@ -76,8 +85,10 @@ python3 -m http.server 8080
    tagline, headline, compare, dieMap, root, sources }`. `root` is the node
    tree; a node is `{ id, label, kind, count, note, specs, span, cols,
    children }`. `dieMap` is `{ title, cols, rows, cell, cellH, lede, hint,
-   note, source, tiles }`; a tile is `{ x, y, w, h, kind, label, sub, detail,
-   specs, path }`, where `path` is the hierarchy path the tile opens (`"se0/sa0/wgp0"`).
+   note, source, interconnect, tiles }`, optionally with `mesh: {torus}` and
+   `arcs: [{from:[x,y], to:[x,y], color, dip, label}]`; a tile is `{ x, y, w, h,
+   kind, label, sub, detail, specs, path }`, where `path` is the hierarchy path
+   the tile opens (`"se0/sa0/wgp0"`).
 2. Add the slug to `ORDER` and `LOADERS` in `data/index.js`.
 3. Copy an existing `<slug>/index.html` shell and change `data-sku`, the
    `<title>` and the description.

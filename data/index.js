@@ -44,6 +44,6 @@ export const KINDS = {
   sched: "Scheduling / control",
   fixed: "Fixed function",
   io: "I/O + interconnect",
-  link: "Chip-to-chip link",
+  link: "Interconnect / fabric",
   off: "Harvested",
 };

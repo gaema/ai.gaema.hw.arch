@@ -12,6 +12,87 @@
 
 import { KINDS } from "../data/index.js";
 
+const SVG = "http://www.w3.org/2000/svg";
+
+const svgEl = (tag, attrs) => {
+  const n = document.createElementNS(SVG, tag);
+  for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, v);
+  return n;
+};
+
+// Draw the on-die network over the laid-out grid.
+//
+// `map.mesh` means every tile has a router and talks to its four orthogonal
+// neighbours: the ties are drawn in the GAPS between tiles, which is where the
+// links physically are. `map.mesh.torus` adds the wrap stubs at each border,
+// because the edge tiles are not dead ends -- the mesh closes on itself.
+//
+// `map.arcs` draws named point-to-point runs on top (a board connector wired to
+// two specific tiles, say), curved so they read as off-grid wiring rather than
+// as more mesh.
+function drawInterconnect(svg, grid, cells, map) {
+  while (svg.firstChild) svg.removeChild(svg.firstChild);
+  const W = grid.clientWidth, H = grid.clientHeight;
+  if (!W || !H) return;
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  svg.setAttribute("width", W);
+  svg.setAttribute("height", H);
+
+  const box = (x, y) => {
+    const n = cells[`${x},${y}`];
+    if (!n) return null;
+    return { l: n.offsetLeft, t: n.offsetTop, w: n.offsetWidth, h: n.offsetHeight,
+             cx: n.offsetLeft + n.offsetWidth / 2, cy: n.offsetTop + n.offsetHeight / 2 };
+  };
+
+  if (map.mesh) {
+    const g = svgEl("g", { class: "ic-mesh" });
+    for (let y = 0; y < map.rows; y++) {
+      for (let x = 0; x < map.cols; x++) {
+        const a = box(x, y);
+        if (!a) continue;
+        const r = box(x + 1, y);
+        if (r) g.append(svgEl("line", { x1: a.l + a.w, y1: a.cy, x2: r.l, y2: r.cy }));
+        const d = box(x, y + 1);
+        if (d) g.append(svgEl("line", { x1: a.cx, y1: a.t + a.h, x2: d.cx, y2: d.t }));
+      }
+    }
+    if (map.mesh.torus) {
+      const s = 7;
+      for (let y = 0; y < map.rows; y++) {
+        const a = box(0, y), b = box(map.cols - 1, y);
+        if (a) g.append(svgEl("line", { class: "wrap", x1: a.l - s, y1: a.cy, x2: a.l, y2: a.cy }));
+        if (b) g.append(svgEl("line", { class: "wrap", x1: b.l + b.w, y1: b.cy, x2: b.l + b.w + s, y2: b.cy }));
+      }
+      for (let x = 0; x < map.cols; x++) {
+        const a = box(x, 0), b = box(x, map.rows - 1);
+        if (a) g.append(svgEl("line", { class: "wrap", x1: a.cx, y1: a.t - s, x2: a.cx, y2: a.t }));
+        if (b) g.append(svgEl("line", { class: "wrap", x1: b.cx, y1: b.t + b.h, x2: b.cx, y2: b.t + b.h + s }));
+      }
+    }
+    svg.append(g);
+  }
+
+  for (const arc of map.arcs || []) {
+    const a = box(arc.from[0], arc.from[1]), b = box(arc.to[0], arc.to[1]);
+    if (!a || !b) continue;
+    // Bow the curve away from the row so two runs over the same tiles stay apart.
+    const dip = (arc.dip || 1) * Math.max(18, Math.abs(b.cx - a.cx) * 0.18);
+    const p = svgEl("path", {
+      class: "ic-arc",
+      d: `M ${a.cx} ${a.cy} Q ${(a.cx + b.cx) / 2} ${a.cy + dip} ${b.cx} ${b.cy}`,
+      stroke: arc.color || "currentColor",
+    });
+    if (arc.label) {
+      const title = svgEl("title", {});
+      title.textContent = arc.label;
+      p.append(title);
+    }
+    svg.append(p);
+    for (const e of [a, b]) svg.append(svgEl("circle", { class: "ic-dot", cx: e.cx, cy: e.cy, r: 3, fill: arc.color || "currentColor" }));
+  }
+}
+
 const el = (tag, cls, text) => {
   const n = document.createElement(tag);
   if (cls) n.className = cls;
@@ -79,14 +160,21 @@ export function renderDieMap(sku, onOpenPath) {
   grid.style.setProperty("--rows", String(map.rows));
   grid.style.setProperty("--cell", (map.cell || 46) + "px");
   grid.style.setProperty("--cellh", (map.cellH || map.cell || 46) + "px");
+  // A mesh is drawn in the gaps, so the gaps have to be wide enough to see.
+  grid.style.setProperty("--gap", (map.mesh ? 8 : 2) + "px");
 
   const tip = el("div", "map-tip");
   tip.setAttribute("role", "status");
+
+  // Tile elements by drawn grid coordinate, so the interconnect overlay can
+  // find where each one actually landed.
+  const cells = {};
 
   for (const t of tiles) {
     const n = el(t.path ? "button" : "div", "dtile" + (t.path ? " opens" : ""));
     if (t.path) n.type = "button";
     n.dataset.kind = t.kind;
+    if (t.kind === "link") n.classList.add("is-link");
     paint(n, t.kind);
     n.style.gridColumn = `${t.x + 1} / span ${t.w || 1}`;
     n.style.gridRow = `${t.y + 1} / span ${t.h || 1}`;
@@ -113,11 +201,38 @@ export function renderDieMap(sku, onOpenPath) {
     n.addEventListener("focus", show);
     n.title = t.label + (t.sub ? " — " + t.sub : "");
     if (t.path) n.addEventListener("click", () => onOpenPath(t.path));
+    cells[`${t.x},${t.y}`] = n;
     grid.append(n);
   }
 
   scroll.append(grid);
+
+  // --- interconnect overlay ----------------------------------------------
+  // Only meshes get an overlay. A GPU's fabric is drawn as a labelled band in
+  // the tile list instead, which is how the vendors draw it themselves.
+  let svg = null, redraw = () => {};
+  if (map.mesh || map.arcs) {
+    svg = document.createElementNS(SVG, "svg");
+    svg.setAttribute("class", "ic-overlay");
+    grid.append(svg);
+    redraw = () => drawInterconnect(svg, grid, cells, map);
+    if (window.ResizeObserver) new ResizeObserver(redraw).observe(grid);
+    requestAnimationFrame(redraw);
+  }
+
   host.append(scroll);
+
+  if (svg) {
+    const t = el("button", "chip ic-toggle", "Hide interconnect");
+    t.type = "button";
+    t.setAttribute("aria-pressed", "true");
+    t.addEventListener("click", () => {
+      const on = svg.classList.toggle("off");
+      t.setAttribute("aria-pressed", String(!on));
+      t.textContent = on ? "Show interconnect" : "Hide interconnect";
+    });
+    bar.append(t);
+  }
 
   const idle = () => {
     tip.textContent = "";
@@ -129,6 +244,12 @@ export function renderDieMap(sku, onOpenPath) {
   idle();
   host.append(tip);
 
+  if (map.interconnect) {
+    const p = el("p", "note ic-note");
+    p.append(el("strong", null, "Interconnect. "));
+    p.append(document.createTextNode(map.interconnect));
+    host.append(p);
+  }
   if (map.note) host.append(el("p", "note", map.note));
   if (map.source) host.append(el("p", "note", "Layout source: " + map.source));
 }

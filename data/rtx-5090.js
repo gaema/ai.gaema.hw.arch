@@ -25,6 +25,8 @@ export default {
     ["Memory", "32 GB GDDR7"],
     ["Memory bus", "512-bit"],
     ["Memory bandwidth", "1,792 GB/s"],
+    ["Memory controllers", "8 × 64-bit"],
+    ["L2 cache", "96 MB (of the die's 128 MB)"],
     ["Board power", "575 W"],
     ["Host interface", "PCIe 5.0 ×16"],
   ],
@@ -35,14 +37,17 @@ export default {
     "SIMD width": "4 × 32-wide processing blocks per SM",
     "Matrix engine": "Tensor Core (5th gen), 4 per SM",
     "Matrix engines total": "680",
-    "Last-level cache": "L2 (capacity not published)",
+    "Last-level cache": "96 MB L2 (die has 128 MB)",
     "Memory": "32 GB GDDR7",
     "Bandwidth": "1,792 GB/s",
     "Board power": "575 W",
     "Host link": "PCIe 5.0 ×16",
   },
 
-  dieMap: dieMap({ activeSMs: 170, mem: "32 GB", bw: "1,792 GB/s" }),
+  dieMap: dieMap({
+    activeSMs: 170, mem: "32 GB", bw: "1,792 GB/s",
+    l2: "96 MB", l2Note: "cut down from the die's full 128 MB — the same harvest that takes the SM count to 170.",
+  }),
 
   root: {
     id: "card", label: "GeForce RTX 5090", kind: "compute",

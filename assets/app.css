@@ -229,14 +229,51 @@ h2.section-h {
 .map-scroll { overflow-x: auto; padding-bottom: 4px; }
 
 .diegrid {
+  position: relative;
   display: grid;
   grid-template-columns: repeat(var(--cols), minmax(var(--cell), 1fr));
   grid-auto-rows: var(--cellh);
-  gap: 2px;
+  gap: var(--gap, 2px);
   min-width: calc(var(--cols) * var(--cell));
 }
 
+/* Interconnect overlay. Sits under the tiles so the mesh reads as wiring
+   between them, and never eats a click. */
+.ic-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: visible;
+}
+
+.ic-overlay.off { display: none; }
+
+.ic-mesh line {
+  stroke: var(--k-io-ink);
+  stroke-width: 2;
+  opacity: 0.55;
+}
+
+.ic-mesh line.wrap {
+  stroke-dasharray: 2 2;
+  opacity: 0.75;
+}
+
+.ic-arc {
+  fill: none;
+  stroke-width: 2;
+  opacity: 0.9;
+  stroke-linecap: round;
+}
+
+.ic-dot { opacity: 0.95; }
+
+.chip.ic-toggle { margin-left: auto; }
+
 .dtile {
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -252,6 +289,18 @@ h2.section-h {
   text-align: center;
   transition: filter 0.12s, opacity 0.12s;
 }
+
+/* Interconnect blocks are wiring, not storage: dashed and lightly hatched, so
+   a fabric band never reads as another cache level. */
+.dtile.is-link {
+  border-style: dashed;
+  background-image: repeating-linear-gradient(
+    -45deg,
+    transparent 0 7px,
+    color-mix(in srgb, var(--tile-ink) 22%, transparent) 7px 8px);
+}
+
+.dtile.is-link .d-label { letter-spacing: 0.05em; }
 
 .dtile.opens { cursor: pointer; border-width: 2px; }
 .dtile.opens:hover, .dtile.opens:focus-visible { filter: brightness(1.08); outline: 2px solid var(--tile-ink); outline-offset: 1px; }

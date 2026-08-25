@@ -55,8 +55,9 @@ export default {
       { ...asic(120), id: "asic0", label: "Blackhole ASIC 0" },
       { ...asic(120), id: "asic1", label: "Blackhole ASIC 1" },
       {
-        id: "link", label: "On-board chip-to-chip link", kind: "io", span: 2,
-        note: "the two ASICs are joined on the board over the same Ethernet fabric used between cards",
+        id: "link", label: "On-board die-to-die link", kind: "link", span: 2,
+        specs: [["Links", "2 Ethernet channels"], ["Fabric", "the same one used between cards"]],
+        note: "the two ASICs are joined on the board over two of the Ethernet channels — the same fabric that runs card to card, just routed on the PCB instead of through a cage",
       },
       { id: "slot", label: "PCIe 5.0 ×16 edge", kind: "io", span: 2 },
     ],

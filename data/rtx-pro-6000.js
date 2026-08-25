@@ -26,6 +26,8 @@ export default {
     ["Memory", "96 GB GDDR7 ECC"],
     ["Memory bus", "512-bit"],
     ["Memory bandwidth", "1,792 GB/s"],
+    ["Memory controllers", "8 × 64-bit"],
+    ["L2 cache", "128 MB (full GB202)"],
     ["Board power", "600 W (Max-Q: 300 W)"],
     ["Host interface", "PCIe 5.0 ×16"],
   ],
@@ -36,14 +38,17 @@ export default {
     "SIMD width": "4 × 32-wide processing blocks per SM",
     "Matrix engine": "Tensor Core (5th gen), 4 per SM",
     "Matrix engines total": "752",
-    "Last-level cache": "L2 (capacity not published)",
+    "Last-level cache": "128 MB L2 (full GB202)",
     "Memory": "96 GB GDDR7 ECC",
     "Bandwidth": "1,792 GB/s",
     "Board power": "600 W",
     "Host link": "PCIe 5.0 ×16",
   },
 
-  dieMap: dieMap({ activeSMs: 188, mem: "96 GB", bw: "1,792 GB/s" }),
+  dieMap: dieMap({
+    activeSMs: 188, mem: "96 GB", bw: "1,792 GB/s",
+    l2: "128 MB", l2Note: "the full GB202 complement — this card is the one that gets all of it.",
+  }),
 
   root: {
     id: "card", label: "RTX PRO 6000 Blackwell", kind: "compute",

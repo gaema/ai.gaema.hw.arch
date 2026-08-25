@@ -133,9 +133,10 @@ export default {
 
   dieMap: {
     title: "Die map — Navi 48",
-    cols: 16, rows: 10, cell: 58, cellH: 42,
+    cols: 16, rows: 12, cell: 58, cellH: 42,
     lede: "All 32 work group processors — the 64 compute units — sitting between the two cache levels that feed them and the GDDR6 controllers on the die edges. Four shader engines, two shader arrays each, four WGPs per array.",
     hint: "Hover a block for detail. Every WGP opens at its own place in the hierarchy below.",
+    interconnect: "Drawn as the two Infinity Fabric bands the compute field sits between. Unlike Blackhole, this is not a mesh with a router in every tile: the WGPs reach L2, the Infinity Cache and the memory controllers through a shared fabric, so the honest picture is a bus band rather than tile-to-tile links. Both bands are the same interconnect reaching both memory edges.",
     tiles: [
       ...band(0, [
         { w: 5, kind: "io", label: "PCIe 5.0 ×16", path: "pcie",
@@ -145,17 +146,20 @@ export default {
         { w: 5, kind: "fixed", label: "Display + Media", path: "media",
           detail: "Display engine and the media block — video encode and decode." },
       ]),
-      ...memBand(1, 4, 16, "GDDR6", (i) => `ctrl ${i * 2}–${i * 2 + 1}`,
-        "Part of the 256-bit GDDR6 interface: 32 GB at 640 GB/s. Half the controllers are drawn on each edge, which is how the bus wraps the die.",
-        [["Capacity", "32 GB"], ["Bus", "256-bit"], ["Bandwidth", "640 GB/s"]]),
+      ...memBand(1, 4, 16, "GDDR6", (i) => `32-bit ctrl ${i}`,
+        "One of the eight 32-bit controllers that make the 256-bit GDDR6 interface: 32 GB at 640 GB/s (256 bits × 20 Gbps). Four are drawn on each edge.",
+        [["Controllers", "8 × 32-bit"], ["Capacity", "32 GB"], ["Bus", "256-bit"], ["Bandwidth", "640 GB/s"]]),
       ...band(2, [{ w: 16, kind: "cache", label: "Infinity Cache — 64 MB", sub: "3rd generation, memory-attached · banked", path: "mall",
         detail: "The last level before GDDR6. It sits in front of memory, so a hit here never leaves for the bus at all — the reason a 256-bit part keeps up. Memory-attached means exactly that: it is banked with the memory controllers along the die edges, not the single central slab drawn here.",
         specs: [["Capacity", "64 MB"], ["Generation", "3rd"], ["Physically", "banked with the memory controllers"]] }]),
       ...band(3, [{ w: 16, kind: "cache", label: "L2 cache — 8 MB", sub: "shared by all four shader engines · banked", path: "l2",
         detail: "8 MB shared across the die, between the per-array L1s and the Infinity Cache. Also banked into slices rather than one block; drawn as a band here for legibility.",
         specs: [["Capacity", "8 MB"], ["Physically", "banked into slices"]] }]),
+      ...band(4, [{ w: 16, kind: "link", label: "Infinity Fabric", sub: "shader engines ⇄ L2 ⇄ Infinity Cache ⇄ memory controllers",
+        detail: "AMD's on-die interconnect. Every WGP reaches the cache levels and the memory controllers through it — there is no direct path from a compute unit to DRAM that does not cross this fabric, which is why the cache levels above sit between it and memory.",
+        specs: [["Reaches", "all 32 WGPs"], ["Ties together", "L2, Infinity Cache, memory, front end"]] }]),
       ...field({
-        y0: 4, perRow: 8, rows: 4, w: 2,
+        y0: 5, perRow: 8, rows: 4, w: 2,
         make: (i, c, r) => {
           const se = (r < 2 ? 0 : 2) + (c < 4 ? 0 : 1);
           const within = (r % 2) * 4 + (c % 4);   // 0..7 inside this shader engine
@@ -168,10 +172,13 @@ export default {
           };
         },
       }),
-      ...memBand(8, 4, 16, "GDDR6", (i) => `ctrl ${8 + i * 2}–${9 + i * 2}`,
-        "Part of the 256-bit GDDR6 interface: 32 GB at 640 GB/s. Half the controllers are drawn on each edge, which is how the bus wraps the die.",
-        [["Capacity", "32 GB"], ["Bus", "256-bit"], ["Bandwidth", "640 GB/s"]]),
-      ...band(9, [{ w: 16, kind: "fixed", label: "Geometry + rasterizers", sub: "one front end per shader engine",
+      ...band(9, [{ w: 16, kind: "link", label: "Infinity Fabric", sub: "the same fabric, reaching the other memory edge",
+        detail: "The compute field is drawn between two runs of the same fabric because it reaches both memory edges — the two bands are one interconnect, not two.",
+        specs: [["Reaches", "all 32 WGPs"], ["Ties together", "L2, Infinity Cache, memory, front end"]] }]),
+      ...memBand(10, 4, 16, "GDDR6", (i) => `32-bit ctrl ${4 + i}`,
+        "One of the eight 32-bit controllers that make the 256-bit GDDR6 interface: 32 GB at 640 GB/s (256 bits × 20 Gbps). Four are drawn on each edge.",
+        [["Controllers", "8 × 32-bit"], ["Capacity", "32 GB"], ["Bus", "256-bit"], ["Bandwidth", "640 GB/s"]]),
+      ...band(11, [{ w: 16, kind: "fixed", label: "Geometry + rasterizers", sub: "one front end per shader engine",
         detail: "The fixed-function graphics front end of each shader engine — geometry setup and rasterization." }]),
     ],
     note: MAP_NOTE,
