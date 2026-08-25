@@ -89,11 +89,16 @@ const QSFP = {
 const L2CPU_Y = { 3: 0, 9: 1, 5: 2, 7: 3 };
 
 // The default configuration disables two Tensix columns to make 120 of 140.
-// This is a product-spec COUNT applied by firmware, not a per-die defect map,
-// and the stock configuration takes the LAST two columns -- so these are drawn
-// where they actually are, unlike the GB202 pages where the position really is
-// unpublished.
-const HARVESTED_TENSIX_X = [15, 16];
+// This is a product-spec COUNT applied by firmware, not a per-die defect map.
+//
+// WHERE those two land is not "the last two columns by x": the disable mask is
+// indexed on the die's OUTSIDE-IN pairing order,
+//   {1, 16, 2, 15, 3, 14, 4, 13, 5, 12, 6, 11, 7, 10}
+// so the two highest indices are 7 and 10 -- the INNERMOST Tensix column on
+// each side of the x = 8 management spine, one per half, not two neighbours at
+// one edge. Drawn at x = 15/16 until 2026-08-25, which was the right count in
+// the wrong place: it read the ordering as ascending x.
+const HARVESTED_TENSIX_X = [7, 10];
 
 function lookups() {
   const gddrAt = {}, ethAt = {}, qsfpAt = {};
@@ -179,8 +184,8 @@ export function dieTiles(pathPrefix, opts = {}) {
         const off = HARVESTED_TENSIX_X.includes(x);
         tiles.push(off
           ? { ...base, kind: "off", label: "Tensix",
-              detail: "Disabled in the default configuration — one of the 20 Tensix tiles that take this SKU from 140 to 120. This is not defect binning: the firmware's product spec carries a Tensix column DISABLE COUNT, and the stock configuration applies it to the last two of the fourteen columns, which is where they are drawn. Change that count and the columns come back, which is exactly how the field is used.",
-              specs: [["Columns disabled", "2 of 14"], ["Tiles", "20 of 140"], ["Mechanism", "product-spec column count"]] }
+              detail: "Disabled in the default configuration — one of the 20 Tensix tiles that take this SKU from 140 to 120. This is not defect binning: the firmware's product spec carries a Tensix column DISABLE COUNT, and change that count and the columns come back. The two it disables are the innermost column on EACH side of the management spine, because the mask is indexed on the die's outside-in pairing order {1,16,2,15,3,14,4,13,5,12,6,11,7,10} rather than on ascending x — so the two highest indices are the columns at x = 7 and x = 10, one per half of the die.",
+              specs: [["Columns disabled", "2 of 14 — x = 7 and x = 10"], ["Tiles", "20 of 140"], ["Mechanism", "product-spec column count"], ["Mask order", "outside-in pairing, not ascending x"]] }
           : { ...base, kind: "compute", label: "Tensix",
               detail: "One Tensix tile: five baby RISC-V cores, a matrix engine, a vector engine and 1.5 MB of software-managed SRAM, behind two NOC routers.",
               specs: [["Baby RISC-V", "5"], ["L1 SRAM", "1.5 MB"], ["NOC routers", "2"]],
@@ -210,7 +215,7 @@ export function dieTiles(pathPrefix, opts = {}) {
 }
 
 const GRID_LEDE =
-  "Blackhole is addressed as a 17 × 12 grid of tiles in NOC0 (x, y) coordinates, and a tile's type follows from where it sits. Columns x = 0 and x = 9 are GDDR6; row y = 1 is Ethernet; row y = 0 is routers plus the ARC and the PCIe tiles. Column x = 8 is the management column that bisects the die — mostly plain routers, with the ARC at the bottom, the security core above it, and just four L2CPU clusters at y = 3, 5, 7 and 9. Everything else — 14 columns × 10 rows — is Tensix, of which the last two columns are disabled in the default configuration to make the 120 this SKU ships.";
+  "Blackhole is addressed as a 17 × 12 grid of tiles in NOC0 (x, y) coordinates, and a tile's type follows from where it sits. Columns x = 0 and x = 9 are GDDR6; row y = 1 is Ethernet; row y = 0 is routers plus the ARC and the PCIe tiles. Column x = 8 is the management column that bisects the die — mostly plain routers, with the ARC at the bottom, the security core above it, and just four L2CPU clusters at y = 3, 5, 7 and 9. Everything else — 14 columns × 10 rows — is Tensix, of which two are disabled in the default configuration to make the 120 this SKU ships — one on each side of the spine, at x = 7 and x = 10, because the disable mask is indexed outside-in rather than by ascending x.";
 
 const MESH_NOTE =
   "The lines between tiles are the NOC — this die has no bus and no cache hierarchy, so the mesh IS the memory system. Every tile carries two NOC routers, links to its four orthogonal neighbours, and the dashed stubs at the borders are the wrap: the mesh closes into a torus, so an edge tile is not a dead end. The four curved runs on each die are the QSFP-DD cages, each wired to two specific Ethernet tiles.";
