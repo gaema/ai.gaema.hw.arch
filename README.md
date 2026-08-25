@@ -70,7 +70,11 @@ python3 -m http.server 8080
   drawn.
 - **Draw the interconnect the shape it actually is.** Blackhole has a router in
   every tile, so its map draws real tile-to-tile links (`mesh: {torus: true}`,
-  rendered into the grid gaps) plus the QSFP cage runs as arcs. The three GPUs
+  rendered into the grid gaps) plus the QSFP cage runs as arcs. A multi-die card
+  stacks its dies vertically with the link band between them, drawing the whole
+  chain — Ethernet row → MAC/PCS → 8 SerDes lanes → PCB → back up the other
+  side — and each die's mesh is a separate `regions` entry so nothing ties
+  across the band. The three GPUs
   do not work that way — their compute reaches cache and memory across a shared
   fabric whose topology two of the three vendors do not publish — so they get a
   labelled fabric *band*, hatched and dashed so it never reads as another cache
@@ -85,8 +89,11 @@ python3 -m http.server 8080
    tagline, headline, compare, dieMap, root, sources }`. `root` is the node
    tree; a node is `{ id, label, kind, count, note, specs, span, cols,
    children }`. `dieMap` is `{ title, cols, rows, cell, cellH, lede, hint,
-   note, source, interconnect, tiles }`, optionally with `mesh: {torus}` and
-   `arcs: [{from:[x,y], to:[x,y], color, dip, label}]`; a tile is `{ x, y, w, h,
+   note, source, interconnect, tiles }`, optionally with
+   `mesh: {torus, regions: [{x0, x1, y0, y1}]}` (one region per die) and
+   `arcs: [{from:[x,y], to:[x,y], color, dip, label}]` — an arc may anchor
+   anywhere inside a spanning tile, and bows perpendicular to its own run, so
+   vertical links read as links; a tile is `{ x, y, w, h,
    kind, label, sub, detail, specs, path }`, where `path` is the hierarchy path
    the tile opens (`"se0/sa0/wgp0"`).
 2. Add the slug to `ORDER` and `LOADERS` in `data/index.js`.

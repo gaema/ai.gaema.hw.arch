@@ -108,7 +108,11 @@ function lookups() {
 // card here has exactly ONE live PCIe tile, not two.
 export function dieTiles(pathPrefix, opts = {}) {
   const { gddrAt, ethAt, qsfpAt } = lookups();
-  const dx = opts.dx || 0;
+  const dx = opts.dx || 0, dy = opts.dy || 0;
+  // NOC0 puts Y=0 at the bottom, so a die normally draws flipped. A second die
+  // stacked below the first is drawn UNflipped, which mirrors it about the
+  // horizontal axis and turns its Ethernet row to face the link between them.
+  const flip = opts.flip !== false;
   const harv = opts.pcieHarvested;
   const tiles = [];
   const p = (id) => (pathPrefix ? pathPrefix + "/" + id : null);
@@ -116,10 +120,9 @@ export function dieTiles(pathPrefix, opts = {}) {
   for (let y = 0; y < 12; y++) {
     for (let x = 0; x < 17; x++) {
       const k = `${x},${y}`;
-      // NOC0 puts Y=0 at the BOTTOM, so the grid row is flipped to draw the
-      // die the way the vendor's own coordinates read. The label keeps the
-      // true (x, y) so it cross-references tt-metal directly.
-      const base = { x: x + dx, y: 11 - y, sub: `${x},${y}` };
+      // The label keeps the true (x, y) so it cross-references tt-metal
+      // directly, whichever way the die is drawn.
+      const base = { x: x + dx, y: (flip ? 11 - y : y) + dy, sub: `${x},${y}` };
 
       if (x === 8 && y === 0) {
         tiles.push({ ...base, kind: "sched", label: "ARC",
@@ -176,13 +179,17 @@ export function dieTiles(pathPrefix, opts = {}) {
   const arcs = Object.entries(QSFP).map(([port, chans]) => {
     const [a, b] = chans.map((ch) => ETH[ch]);
     return {
-      from: [a[0] + dx, 11 - a[1]], to: [b[0] + dx, 11 - b[1]],
+      from: [a[0] + dx, (flip ? 11 - a[1] : a[1]) + dy],
+      to: [b[0] + dx, (flip ? 11 - b[1] : b[1]) + dy],
       color: "var(--k-link-ink)", dip: 1.6,
       label: `QSFP-DD cage ${port} — Ethernet channels ${chans.join(" and ")}`,
     };
   });
 
-  return { tiles, arcs };
+  // Where this die's Ethernet row landed, so a caller can hang the die-to-die
+  // link off it without re-deriving the transform.
+  const ethRow = (flip ? 11 - 1 : 1) + dy;
+  return { tiles, arcs, ethRow, dx, dy };
 }
 
 const GRID_LEDE =
@@ -218,33 +225,69 @@ export function dieMap(pathPrefix) {
 // harvested, so their host interfaces are mirror images. The gutter between
 // them carries the die-to-die link.
 export function dualDieMap() {
-  const GAP = 1, RIGHT = 17 + GAP;
-  const left = dieTiles("asic0", { pcieHarvested: [11, 0] });
-  const right = dieTiles("asic1", { dx: RIGHT, pcieHarvested: [2, 0] });
+  // Stacked, not side by side: the two dies face each other across the link,
+  // which is the only thing joining them. ASIC 1 is drawn mirrored so its
+  // Ethernet row turns toward the band instead of away from it.
+  const BAND = 3, LOWER = 12 + BAND;
+  const top = dieTiles("asic0", { pcieHarvested: [11, 0] });
+  const bottom = dieTiles("asic1", { dy: LOWER, flip: false, pcieHarvested: [2, 0] });
+
+  // The two PHY stacks, one per link, sitting between the dies. Each Ethernet
+  // port drives 8 SerDes lanes; the bring-up order in the vendor's own
+  // firmware postcodes is SERDES -> ETH_CTRL -> MACPCS -> PACKET.
+  const PHY_X = [3, 10], PHY_W = 4;
+  const phyDetail = (side) =>
+    `The Ethernet PHY on ASIC ${side}'s side of one die-to-die link: the ERISC in an Ethernet tile hands packets to the MAC and PCS, which drive 8 SerDes lanes onto the board. The vendor's own bring-up postcodes run SERDES → ETH_CTRL → MACPCS → PACKET, and NUM_SERDES_LANES is 8.`;
 
   const tiles = [
-    ...left.tiles,
-    ...right.tiles,
-    {
-      x: 17, y: 0, w: 1, h: 12, kind: "link",
-      label: "die ⇄ die", sub: "2 × ETH",
-      detail: "The on-board link between the two ASICs: two Ethernet channels, the same fabric that runs card to card, routed on the PCB instead of through a cage. tt-metal's mesh graph for this board declares the pair as a 1 × 2 device topology with a channel count of 2 — it fixes the number of links, not which channels carry them on a given board, so no specific Ethernet tile is claimed here.",
-      specs: [["Channels", "2"], ["Device topology", "1 × 2"], ["Fabric", "Ethernet, same as card-to-card"]],
-      path: "link",
-    },
+    ...top.tiles,
+    ...bottom.tiles,
+    ...PHY_X.flatMap((x, i) => [
+      { x, y: 12, w: PHY_W, h: 1, kind: "link", label: "MAC + PCS · SerDes ×8",
+        sub: `ASIC 0 · link ${i}`, detail: phyDetail(0),
+        specs: [["SerDes lanes", "8"], ["Chain", "ERISC → MAC → PCS → SerDes"]], path: "link" },
+      { x, y: 14, w: PHY_W, h: 1, kind: "link", label: "MAC + PCS · SerDes ×8",
+        sub: `ASIC 1 · link ${i}`, detail: phyDetail(1),
+        specs: [["SerDes lanes", "8"], ["Chain", "SerDes → PCS → MAC → ERISC"]], path: "link" },
+    ]),
+    { x: 0, y: 13, w: 3, h: 1, kind: "link", label: "on-board", sub: "PCB traces",
+      detail: "The die-to-die link never leaves the card: it runs as differential pairs on the PCB between the two ASICs' SerDes, instead of out through a QSFP-DD cage.",
+      path: "link" },
+    { x: 7, y: 13, w: 3, h: 1, kind: "link", label: "2 × Ethernet", sub: "die ⇄ die",
+      detail: "Two Ethernet channels join the ASICs — tt-metal's mesh graph for this board declares a 1 × 2 device topology with channel count 2. WHICH two of the 14 channels carry it is not in any published table: UMD discovers the pairing at bring-up by reading board_id, asic_location and eth_id out of each Ethernet core and matching same-board, different-ASIC pairs. So the runs below mark the Ethernet ROW, not two specific channels.",
+      specs: [["Channels", "2"], ["Device topology", "1 × 2"], ["Pairing", "discovered at bring-up"]],
+      path: "link" },
+    { x: 14, y: 13, w: 3, h: 1, kind: "link", label: "on-board", sub: "PCB traces",
+      detail: "The die-to-die link never leaves the card: it runs as differential pairs on the PCB between the two ASICs' SerDes, instead of out through a QSFP-DD cage.",
+      path: "link" },
   ];
 
+  // ETH row -> PHY -> PHY -> ETH row, for each of the two links. The ETH ends
+  // are anchored on the row, deliberately not on a named channel.
+  const linkArcs = PHY_X.flatMap((x, i) => {
+    const mid = x + Math.floor(PHY_W / 2);
+    const c = "var(--k-link-ink)";
+    return [
+      { from: [mid, top.ethRow], to: [mid, 12], color: c, dip: 0.3,
+        label: `ASIC 0 Ethernet row → PHY, link ${i}` },
+      { from: [mid, 12], to: [mid, 14], color: c, dip: 0.3,
+        label: `Die-to-die link ${i} — 8 SerDes lanes over the PCB` },
+      { from: [mid, 14], to: [mid, bottom.ethRow], color: c, dip: 0.3,
+        label: `PHY → ASIC 1 Ethernet row, link ${i}` },
+    ];
+  });
+
   return {
-    title: "Die map — both ASICs, and the link between them",
-    cols: 17 + GAP + 17, rows: 12, cell: 44, cellH: 38,
+    title: "Die map — both ASICs, stacked, and the link between them",
+    cols: 17, rows: 12 + BAND + 12, cell: 54, cellH: 34,
     tiles,
-    arcs: [...left.arcs, ...right.arcs],
-    // Two closed meshes, one per die — never tied across the gutter.
-    mesh: { torus: true, regions: [{ x0: 0, x1: 16 }, { x0: RIGHT, x1: RIGHT + 16 }] },
-    lede: GRID_LEDE + " Both of the card's ASICs are drawn — ASIC 0 on the left, ASIC 1 on the right — because they are not interchangeable: each fuses off a DIFFERENT one of the two PCIe tiles, so their host interfaces mirror each other.",
-    hint: "Hover a tile for what sits there. Tiles on the left die open ASIC 0's branch of the hierarchy, tiles on the right open ASIC 1's.",
-    interconnect: MESH_NOTE + " The two dies do NOT share a NOC: each mesh is closed, and the only path between them is the die-to-die column in the middle — two Ethernet channels.",
-    note: COORD_NOTE + " Each die is its own 17 × 12 coordinate space, so both grids run x = 0…16 independently; the gutter is drawn, not addressed.",
+    arcs: [...top.arcs, ...bottom.arcs, ...linkArcs],
+    // Two closed meshes, one per die — never tied across the band.
+    mesh: { torus: true, regions: [{ x0: 0, x1: 16, y0: 0, y1: 11 }, { x0: 0, x1: 16, y0: LOWER, y1: LOWER + 11 }] },
+    lede: GRID_LEDE + " Both of the card's ASICs are drawn, stacked with the link between them, because they are not interchangeable: each fuses off a DIFFERENT one of the two PCIe tiles, so their host interfaces mirror each other.",
+    hint: "Hover a tile for what sits there. Tiles on the upper die open ASIC 0's branch of the hierarchy, tiles on the lower open ASIC 1's.",
+    interconnect: MESH_NOTE + " The two dies do NOT share a NOC: each mesh is closed on its own edges, and the only path between them is the band in the middle — two Ethernet channels, each running out of an Ethernet tile's ERISC through a MAC/PCS and 8 SerDes lanes onto the board, and back up the same stack on the other die.",
+    note: COORD_NOTE + " Each die is its own 17 × 12 coordinate space, so both grids run x = 0…16 and y = 0…11 independently. ASIC 1 is drawn MIRRORED — Y = 0 at its top — so that its Ethernet row faces the link; read each die's tile labels, not the page, for its true orientation.",
     source: SOURCE,
   };
 }

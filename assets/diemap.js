@@ -87,11 +87,16 @@ function drawInterconnect(svg, grid, cells, map) {
   for (const arc of map.arcs || []) {
     const a = box(arc.from[0], arc.from[1]), b = box(arc.to[0], arc.to[1]);
     if (!a || !b) continue;
-    // Bow the curve away from the row so two runs over the same tiles stay apart.
-    const dip = (arc.dip || 1) * Math.max(18, Math.abs(b.cx - a.cx) * 0.18);
+    // Bow the curve PERPENDICULAR to the run, so a vertical link reads as a
+    // link and not as a flat line hidden under the tiles it crosses.
+    const dx = b.cx - a.cx, dy = b.cy - a.cy;
+    const vertical = Math.abs(dy) > Math.abs(dx);
+    const amt = (arc.dip || 1) * Math.max(18, (vertical ? Math.abs(dy) : Math.abs(dx)) * 0.18);
+    const mx = (a.cx + b.cx) / 2, my = (a.cy + b.cy) / 2;
+    const ctl = vertical ? [mx + amt, my] : [mx, my + amt];
     const p = svgEl("path", {
       class: "ic-arc",
-      d: `M ${a.cx} ${a.cy} Q ${(a.cx + b.cx) / 2} ${a.cy + dip} ${b.cx} ${b.cy}`,
+      d: `M ${a.cx} ${a.cy} Q ${ctl[0]} ${ctl[1]} ${b.cx} ${b.cy}`,
       stroke: arc.color || "currentColor",
     });
     if (arc.label) {
@@ -215,7 +220,12 @@ export function renderDieMap(sku, onOpenPath) {
     n.addEventListener("focus", show);
     n.title = t.label + (t.sub ? " — " + t.sub : "");
     if (t.path) n.addEventListener("click", () => onOpenPath(t.path));
-    cells[`${t.x},${t.y}`] = n;
+    // Register a spanning tile under EVERY cell it covers, not just its origin,
+    // so an interconnect run can anchor anywhere along a wide block. Anchoring
+    // mid-span used to resolve to nothing and the run was silently dropped.
+    for (let sx = 0; sx < (t.w || 1); sx++) {
+      for (let sy = 0; sy < (t.h || 1); sy++) cells[`${t.x + sx},${t.y + sy}`] = n;
+    }
     grid.append(n);
   }
 
