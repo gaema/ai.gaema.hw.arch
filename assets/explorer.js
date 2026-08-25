@@ -224,5 +224,15 @@ load(id).then((sku) => {
     }
   });
 }).catch((err) => {
-  document.getElementById("stage").textContent = "Could not load " + id + ": " + err.message;
+  const stage = document.getElementById("stage");
+  if (!stage) return;
+  stage.textContent = "";
+  const p = el("p", "load-error");
+  p.append(el("strong", null, `This page could not load ${id}. `));
+  p.append(document.createTextNode(
+    "The diagrams are built in the browser from ES modules; if you are on an old "
+    + "browser, or something between you and the site is blocking or rewriting "
+    + "JavaScript, the page will come up empty. Error: "
+    + (err && err.message ? err.message : String(err))));
+  stage.append(p);
 });

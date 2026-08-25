@@ -12,6 +12,19 @@ const el = (tag, cls, text) => {
 // The four card rows worth showing at a glance, in matrix-key terms.
 const CARD_ROWS = ["Units on die", "Matrix engines total", "Memory", "Bandwidth"];
 
+// Everything below this line is built by script, so a failure here used to
+// leave an empty page with no explanation. Say what went wrong instead.
+function fail(err) {
+  const box = document.getElementById("cards") || document.body;
+  const p = el("p", "load-error");
+  p.append(el("strong", null, "This page could not load its data. "));
+  p.append(document.createTextNode(
+    "The catalogue is built in the browser from ES modules; if you are on an old "
+    + "browser, or something between you and the site is blocking or rewriting "
+    + "JavaScript, the page will come up empty. Error: " + (err && err.message ? err.message : String(err))));
+  box.append(p);
+}
+
 loadAll().then((skus) => {
   const cards = document.getElementById("cards");
   for (const s of skus) {
@@ -54,4 +67,4 @@ loadAll().then((skus) => {
     tbody.append(tr);
   }
   table.append(tbody);
-});
+}).catch(fail);
