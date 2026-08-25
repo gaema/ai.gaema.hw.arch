@@ -147,10 +147,12 @@ export function dieTiles(pathPrefix, opts = {}) {
       } else if ((x === 2 || x === 11) && y === 0) {
         const off = harv && harv[0] === x && harv[1] === y;
         tiles.push(off
-          ? { ...base, kind: "off", label: "PCIe",
-              detail: `PCIe core (${x},${y}) — harvested on this SKU. The die has two PCIe tiles and exactly one of them is fused off, so a card's host interface is a single tile, not two.` }
-          : { ...base, kind: "io", label: "PCIe", sub: `live · ${x},${y}`,
-              detail: `The live PCIe 5.0 host interface, at (${x},${y}). Its twin on the other side of the bottom row is harvested.`,
+          ? { ...base, kind: "off", label: "PCIe", sub: "idle",
+              detail: `PCIe tile (${x},${y}) — present and capable, but idle. Tenstorrent's own wording is that the die carries "2x PCI Express tile, for PCI Express 5.0 x16 connectivity with a host system. One of these tiles will be in use; the other will be permanently idle (at least in current products)." So this is not a cut-down link: EACH tile is x16 on its own, and a card gets its full x16 from the single tile that is wired. UMD enforces which one — a P150 and a P300 left die use (2,0); a P300 right die uses (11,0).`,
+              specs: [["Capability", "PCIe 5.0 ×16 on its own"], ["State", "idle, not cut down"], ["Tiles on die", "2, one used"]] }
+          : { ...base, kind: "io", label: "PCIe", sub: `in use · ${x},${y}`,
+              detail: `The PCIe tile this card actually uses, at (${x},${y}). It carries the whole PCIe 5.0 ×16 link by itself — the die's second PCIe tile is equally capable and simply sits idle, which is the vendor's own description rather than a harvest.`,
+              specs: [["Link", "PCIe 5.0 ×16"], ["Provided by", "this tile alone"], ["Tiles on die", "2, one used"]],
               path: p("pcie") });
       } else if (x === 8 && y === 2) {
         tiles.push({ ...base, kind: "sched", label: "Security",
@@ -321,15 +323,16 @@ export function dualDieMap() {
         sub: `ASIC 1 · ch ${CH[i].a1}`, detail: phyDetail(1, CH[i].a1),
         specs: [["Logical channel", String(CH[i].a1)], ["SerDes lanes", "8"], ["Chain", "SerDes → PCS → MAC → ERISC"]], path: "link" },
     ]),
-    { x: 0, y: 13, w: 3, h: 1, kind: "link", label: "on-board", sub: "PCB traces",
-      detail: "The die-to-die link never leaves the card: it runs as differential pairs on the PCB between the two ASICs' SerDes, instead of out through a QSFP-DD cage.",
+    // The band between the dies is BOARD, not silicon. Two things live there and
+    // they are different in kind: the die-to-die link, which never leaves the
+    // card, and the card-to-card connector, which is the only way off it.
+    { x: 0, y: 12, w: 3, h: 3, kind: "io", label: "Card ⇄ card", sub: "Samtec ARP6",
+      detail: "The card-to-card connector — NOT a QSFP-DD cage. Tenstorrent joins two p300c cards inside a TT-QuietBox 2 with a Samtec ARP6 series high-performance cable. Ethernet channels from BOTH dies leave through it: on a two-card system each die holds two links to a die on the other card. The p300c does not carry QSFP cages at all; the dual-ASIC board that does is the p300b.",
+      specs: [["Type", "Samtec ARP6 cable"], ["Not", "QSFP-DD"], ["Carries", "Ethernet from both dies"]],
       path: "link" },
-    { x: 7, y: 13, w: 3, h: 1, kind: "link", label: "2 × Ethernet", sub: "ch 3⇄8 · ch 2⇄9",
-      detail: "Two Ethernet channels join the ASICs — tt-metal's mesh graph for this board declares a 1 × 2 device topology with channel count 2. WHICH two is in no published table: UMD discovers the pairing at bring-up by reading board_id, asic_location and eth_id from each Ethernet core and matching same-board, different-ASIC pairs. Read off a live p300c it is logical channel 3 ⇄ 8 and 2 ⇄ 9, joining asic_location 0 to asic_location 1 — identical on two independent boards, so it is a property of the board design rather than of one card. These are LOGICAL channel ids: Ethernet harvesting renumbers them, so they do not index the SoC descriptor's tile list and no NOC coordinate is claimed for them here.",
-      specs: [["Channels", "2"], ["Pairing", "ch 3 ⇄ 8, ch 2 ⇄ 9"], ["Device topology", "1 × 2"], ["Ids", "logical, harvest-renumbered"]],
-      path: "link" },
-    { x: 14, y: 13, w: 3, h: 1, kind: "link", label: "on-board", sub: "PCB traces",
-      detail: "The die-to-die link never leaves the card: it runs as differential pairs on the PCB between the two ASICs' SerDes, instead of out through a QSFP-DD cage.",
+    { x: 4, y: 13, w: 10, h: 1, kind: "link", label: "die ⇄ die — 2 × Ethernet over PCB", sub: "ch 3⇄8 · ch 2⇄9 · stays on the card",
+      detail: "The die-to-die link never leaves the board: differential pairs routed on the PCB between the two ASICs' SerDes. tt-metal's mesh graph for this board declares a 1 × 2 device topology with channel count 2. WHICH two is in no published table — UMD discovers the pairing at bring-up from board_id, asic_location and eth_id — and read off a live p300c it is logical channel 3 ⇄ 8 and 2 ⇄ 9, identical on two independent boards. Those are LOGICAL ids, renumbered by Ethernet harvesting, so they do not index the SoC descriptor's tile list and no NOC coordinate is claimed for them.",
+      specs: [["Channels", "2"], ["Pairing", "ch 3 ⇄ 8, ch 2 ⇄ 9"], ["Medium", "PCB differential pairs"], ["Leaves the card", "no"]],
       path: "link" },
   ];
 
@@ -348,8 +351,16 @@ export function dualDieMap() {
     ];
   });
 
+  // Ethernet also leaves the CARD, through the ARP6 connector, from both dies.
+  linkArcs.push(
+    { from: [1, top.ethRow], to: [1, 13], color: "var(--k-io-ink)", dip: 0.3,
+      label: "ASIC 0 Ethernet → card-to-card connector (Samtec ARP6)" },
+    { from: [1, 13], to: [1, bottom.ethRow], color: "var(--k-io-ink)", dip: 0.3,
+      label: "Card-to-card connector → ASIC 1 Ethernet" },
+  );
+
   return {
-    title: "Die map — both ASICs, stacked, and the link between them",
+    title: "Die map — both ASICs, the PCB between them, and what leaves the card",
     cols: 17, rows: 12 + BAND + 12, cell: 54, cellH: 34,
     tiles,
     // A read that has to cross to the OTHER die: Tensix on ASIC 0, down its own
@@ -366,7 +377,7 @@ export function dualDieMap() {
     mesh: { torus: true, regions: [{ x0: 0, x1: 16, y0: 0, y1: 11 }, { x0: 0, x1: 16, y0: LOWER, y1: LOWER + 11 }] },
     lede: GRID_LEDE + " Both of the card's ASICs are drawn, stacked with the link between them, because they are not interchangeable: each fuses off a DIFFERENT one of the two PCIe tiles, so their host interfaces mirror each other.",
     hint: "Hover a tile for what sits there. Tiles on the upper die open ASIC 0's branch of the hierarchy, tiles on the lower open ASIC 1's.",
-    interconnect: MESH_NOTE + " The two dies do NOT share a NOC: each mesh is closed on its own edges, and the only path between them is the band in the middle — two Ethernet channels, each running out of an Ethernet tile's ERISC through a MAC/PCS and 8 SerDes lanes onto the board, and back up the same stack on the other die.",
+    interconnect: MESH_NOTE + " The band between the dies is BOARD, not silicon, and it holds two different things. The die-to-die link stays on the card: two Ethernet channels, each leaving an Ethernet tile's ERISC through a MAC/PCS and 8 SerDes lanes, crossing the PCB as differential pairs and coming back up the same stack on the other die. The connector on the left is the only way OFF the card — a Samtec ARP6 cable, not a QSFP-DD cage — and Ethernet from both dies leaves through it. The two dies share no NOC, so every byte between them takes the PCB path.",
     note: "Both dies are drawn in the DEFAULT configuration: two Tensix columns disabled on each, and the mirrored PCIe harvest. " + COORD_NOTE + " Each die is its own 17 × 12 coordinate space, so both grids run x = 0…16 and y = 0…11 independently. ASIC 1 is drawn MIRRORED — Y = 0 at its top — so that its Ethernet row faces the link; read each die's tile labels, not the page, for its true orientation.",
     source: SOURCE + ". The die-to-die channel pairing is the one figure on this page NOT taken from a document — it is read from a live p300c's UMD cluster descriptor and cross-checked against a second board",
   };

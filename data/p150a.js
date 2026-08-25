@@ -27,7 +27,7 @@ export default {
     ["Ethernet tiles", "14 on the die, 12 usable"],
     ["Ethernet rate", "400 GbE per tile · 800 GbE per port"],
     ["Board Ethernet", "4 × QSFP-DD 800G (8 of the 12 cabled)"],
-    ["PCIe tiles", "2 on the die, 1 live — (11,0) harvested"],
+    ["PCIe tiles", "2 on the die, each ×16-capable — one used, one idle"],
     ["Board power", "300 W"],
     ["Cooling", "active"],
     ["Host interface", "PCIe 5.0 ×16"],
