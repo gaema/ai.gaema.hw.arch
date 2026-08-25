@@ -1,0 +1,114 @@
+/* Colour tokens. Light is the base; dark redefines only what changes.
+   Every colour on the site comes from here -- never a literal in a page. */
+
+:root {
+  --n0:  #ffffff;
+  --n1:  #f7f8fa;
+  --n2:  #eef0f4;
+  --n3:  #e2e5ea;
+  --n4:  #d0d5dd;
+  --n6:  #a8b0bd;
+  --n8:  #6b7583;
+  --n10: #4a525e;
+  --n12: #2b313a;
+  --n14: #12161c;
+
+  --ground: var(--n1);
+  --panel: var(--n0);
+  --line: var(--n3);
+  --line-strong: var(--n4);
+  --ink: var(--n14);
+  --ink-dim: var(--n8);
+  --ink-mid: var(--n10);
+
+  --accent: #2f6fd0;
+  --accent-soft: #e7effb;
+
+  /* Block kinds. -bg is the tile fill, -ink the stripe/label accent. */
+  --k-compute-ink: #2f6fd0;  --k-compute-bg: #e7effb;
+  --k-matrix-ink:  #8a3fc0;  --k-matrix-bg:  #f2e9fb;
+  --k-cache-ink:   #0f8a7a;  --k-cache-bg:   #e2f5f1;
+  --k-memory-ink:  #b06a00;  --k-memory-bg:  #fbf0dd;
+  --k-io-ink:      #4a525e;  --k-io-bg:      #eef0f4;
+  --k-fixed-ink:   #b03a5b;  --k-fixed-bg:   #fbe8ee;
+  --k-sched-ink:   #5a6a1f;  --k-sched-bg:   #eff3dd;
+  --k-off-ink:     #8b93a1;  --k-off-bg:     #f2f3f5;
+
+  /* Vendor identity, used only for small accents on the landing page. */
+  --v-amd: #c8102e;
+  --v-intel: #0068b5;
+  --v-nvidia: #3f9c00;
+  --v-tt: #7a3ff0;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --n0:  #0d1117;
+    --n1:  #12171f;
+    --n2:  #1a212b;
+    --n3:  #262e3a;
+    --n4:  #333d4c;
+    --n6:  #55606f;
+    --n8:  #8b95a4;
+    --n10: #b3bcc9;
+    --n12: #d8dee6;
+    --n14: #f2f5f8;
+
+    --ground: var(--n0);
+    --panel: var(--n1);
+    --line: var(--n3);
+    --line-strong: var(--n4);
+
+    --accent: #6ea8ff;
+    --accent-soft: #17253c;
+
+    --k-compute-ink: #6ea8ff;  --k-compute-bg: #16243a;
+    --k-matrix-ink:  #c08bf0;  --k-matrix-bg:  #271a38;
+    --k-cache-ink:   #3fc9b2;  --k-cache-bg:   #102b28;
+    --k-memory-ink:  #e0a13a;  --k-memory-bg:  #2e2413;
+    --k-io-ink:      #9aa4b2;  --k-io-bg:      #1c232d;
+    --k-fixed-ink:   #f08199;  --k-fixed-bg:   #331923;
+    --k-sched-ink:   #b6c76a;  --k-sched-bg:   #232816;
+    --k-off-ink:     #5d6673;  --k-off-bg:     #171d25;
+
+    --v-amd: #ff5a72;
+    --v-intel: #4da3e8;
+    --v-nvidia: #76d13a;
+    --v-tt: #a984ff;
+  }
+}
+
+:root[data-theme="dark"] {
+  --n0:  #0d1117;
+  --n1:  #12171f;
+  --n2:  #1a212b;
+  --n3:  #262e3a;
+  --n4:  #333d4c;
+  --n6:  #55606f;
+  --n8:  #8b95a4;
+  --n10: #b3bcc9;
+  --n12: #d8dee6;
+  --n14: #f2f5f8;
+
+  --ground: var(--n0);
+  --panel: var(--n1);
+  --line: var(--n3);
+  --line-strong: var(--n4);
+
+  --accent: #6ea8ff;
+  --accent-soft: #17253c;
+
+  --k-compute-ink: #6ea8ff;  --k-compute-bg: #16243a;
+  --k-matrix-ink:  #c08bf0;  --k-matrix-bg:  #271a38;
+  --k-cache-ink:   #3fc9b2;  --k-cache-bg:   #102b28;
+  --k-memory-ink:  #e0a13a;  --k-memory-bg:  #2e2413;
+  --k-io-ink:      #9aa4b2;  --k-io-bg:      #1c232d;
+  --k-fixed-ink:   #f08199;  --k-fixed-bg:   #331923;
+  --k-sched-ink:   #b6c76a;  --k-sched-bg:   #232816;
+  --k-off-ink:     #5d6673;  --k-off-bg:     #171d25;
+
+  --v-amd: #ff5a72;
+  --v-intel: #4da3e8;
+  --v-nvidia: #76d13a;
+  --v-tt: #a984ff;
+}
