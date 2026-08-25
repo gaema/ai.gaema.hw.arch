@@ -121,8 +121,9 @@ export default {
       ...memBand(1, 4, 16, "GDDR6", (i) => `ctrl ${i * 2}–${i * 2 + 1}`,
         "Part of the 256-bit GDDR6 interface: 32 GB at 608 GB/s.",
         [["Capacity", "32 GB"], ["Bus", "256-bit"], ["Bandwidth", "608 GB/s"]]),
-      ...band(2, [{ w: 16, kind: "cache", label: "L2 cache", sub: "shared across all render slices", path: "l2",
-        detail: "Shared last level on the die. Intel does not publish the capacity for this SKU, so none is claimed here." }]),
+      ...band(2, [{ w: 16, kind: "cache", label: "L2 cache", sub: "shared across all render slices · banked", path: "l2",
+        detail: "Shared last level on the die, banked into slices tied to the memory controllers rather than the single block drawn here. Intel does not publish the capacity for this SKU, so none is claimed.",
+        specs: [["Capacity", "not published"], ["Physically", "banked with the memory controllers"]] }]),
       ...field({
         y0: 3, perRow: 8, rows: 4, w: 2,
         make: (i, c, r) => {

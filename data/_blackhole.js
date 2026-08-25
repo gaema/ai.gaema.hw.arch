@@ -78,6 +78,16 @@ const QSFP = {
   1: [9, 11], 2: [8, 10], 3: [5, 7], 4: [4, 6],
 };
 
+// Column 8 is the management column, and it is NOT uniform. Only four of its
+// tiles are L2CPU clusters -- NOC0 y = 3, 9, 5, 7 are clusters 0, 1, 2, 3.
+// (tt-metal's SoC descriptor lists the whole column as `router_only` because
+// tt-metal does not use the L2CPU; that is a software classification, not the
+// silicon.) Source: Tenstorrent's own tt-bh-linux `console/l2cpu.cpp` and
+// `boot.py`, both carrying l2cpu_tile_mapping = {0:(8,3), 1:(8,9), 2:(8,5),
+// 3:(8,7)}, and the per-cluster device tree, which enumerates cpu@0..cpu@3 as
+// `sifive,x280` -- four cores per cluster, 16 on the die.
+const L2CPU_Y = { 3: 0, 9: 1, 5: 2, 7: 3 };
+
 function lookups() {
   const gddrAt = {}, ethAt = {}, qsfpAt = {};
   for (const [ch, pts] of Object.entries(GDDR)) for (const [x, y] of pts) gddrAt[`${x},${y}`] = +ch;
@@ -109,10 +119,18 @@ export function dieMap(pathPrefix) {
         tiles.push({ ...base, kind: "io", label: "PCIe",
           detail: "PCIe 5.0 host interface. Two PCIe tiles sit on the bottom router row.",
           path: p("pcie") });
-      } else if (x === 8) {
-        tiles.push({ ...base, kind: "sched", label: "L2CPU",
-          detail: "The big-RISC-V column: 16 SiFive X280 application-class cores, four per L2CPU complex. This is what lets Blackhole run the host program itself instead of depending on an x86 host.",
+      } else if (x === 8 && y === 2) {
+        tiles.push({ ...base, kind: "sched", label: "Security",
+          detail: "The security core, in the same column as the ARC and the L2CPU clusters. Multicast writes to Tensix skip this whole column.",
+          path: p("arc") });
+      } else if (x === 8 && L2CPU_Y[y] !== undefined) {
+        tiles.push({ ...base, kind: "sched", label: "L2CPU", sub: `cluster ${L2CPU_Y[y]} · ${x},${y}`,
+          detail: `L2CPU cluster ${L2CPU_Y[y]} — four SiFive X280 cores behind a single NOC2AXI port. Four such clusters, at y = 3, 5, 7 and 9 only, make the die's 16 big RISC-V cores; the rest of this column is plain NOC routers.`,
+          specs: [["Cores in this cluster", "4 × SiFive X280"], ["Clusters on die", "4"], ["Big RISC-V cores on die", "16"]],
           path: p("bigrv") });
+      } else if (x === 8) {
+        tiles.push({ ...base, kind: "io", label: "Rtr",
+          detail: "A router-only tile in the management column. This column bisects the two Tensix halves and relays NOC traffic; only four of its tiles are L2CPU clusters." });
       } else if (k in gddrAt) {
         const ch = gddrAt[k];
         tiles.push({ ...base, kind: "memory", label: "GDDR6", sub: `ch ${ch} · ${x},${y}`,
@@ -144,7 +162,7 @@ export function dieMap(pathPrefix) {
     title: "Die map — the real NOC grid",
     cols: 17, rows: 12, cell: 54, cellH: 40,
     tiles,
-    lede: "Blackhole is addressed as a 17 × 12 grid of tiles in NOC0 (x, y) coordinates, and a tile's type follows from where it sits. Columns x = 0 and x = 9 are GDDR6; column x = 8 is the big-RISC-V complex; row y = 1 is Ethernet; row y = 0 is routers with the ARC and the two PCIe tiles. Everything else — 14 columns × 10 rows — is Tensix.",
+    lede: "Blackhole is addressed as a 17 × 12 grid of tiles in NOC0 (x, y) coordinates, and a tile's type follows from where it sits. Columns x = 0 and x = 9 are GDDR6; row y = 1 is Ethernet; row y = 0 is routers plus the ARC and the two PCIe tiles. Column x = 8 is the management column that bisects the die — mostly plain routers, with the ARC at the bottom, the security core above it, and just four L2CPU clusters at y = 3, 5, 7 and 9. Everything else — 14 columns × 10 rows — is Tensix.",
     hint: "Hover a tile for what sits there. Every tile here opens its block in the hierarchy below.",
     note: "Drawn in NOC0 coordinates with Y = 11 at the top and Y = 0 at the bottom, the vendor's own convention, so a tile's label cross-references the SoC descriptor directly. Positions are real; the cells are drawn at uniform size, so a Tensix tile and a GDDR tile are not the same area on silicon.",
     source: "the public tt-metal SoC descriptor blackhole_140_arch.yaml, and the P150 board definition in board.cpp",

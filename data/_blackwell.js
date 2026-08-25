@@ -128,8 +128,9 @@ export function dieMap(opts) {
       ...memBand(1, 6, 12, "GDDR7", (i) => `ctrl ${i * 2}–${i * 2 + 1}`,
         `Part of the 512-bit GDDR7 interface — sixteen 32-bit controllers, ${opts.mem} at ${opts.bw}. Half are drawn on each edge.`,
         [["Capacity", opts.mem], ["Bus", "512-bit"], ["Bandwidth", opts.bw]], "mem"),
-      ...band(2, [{ w: 12, kind: "cache", label: "L2 cache", sub: "shared across every GPC", path: "l2",
-        detail: "Shared last level on the die. NVIDIA does not publish the capacity for this SKU, so none is claimed here." }]),
+      ...band(2, [{ w: 12, kind: "cache", label: "L2 cache", sub: "shared across every GPC · banked", path: "l2",
+        detail: "Shared last level on the die. Blackwell's L2 is partitioned into slices attached to the memory controllers, so it is physically split along both memory edges rather than being the single central band drawn here. NVIDIA does not publish the capacity for this SKU, so none is claimed.",
+        specs: [["Capacity", "not published"], ["Physically", "sliced per memory partition"]] }]),
       ...field({
         y0: 3, perRow: 12, rows: 8, w: 1,
         make: (i, c, r) => ({

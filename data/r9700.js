@@ -148,12 +148,12 @@ export default {
       ...memBand(1, 4, 16, "GDDR6", (i) => `ctrl ${i * 2}–${i * 2 + 1}`,
         "Part of the 256-bit GDDR6 interface: 32 GB at 640 GB/s. Half the controllers are drawn on each edge, which is how the bus wraps the die.",
         [["Capacity", "32 GB"], ["Bus", "256-bit"], ["Bandwidth", "640 GB/s"]]),
-      ...band(2, [{ w: 16, kind: "cache", label: "Infinity Cache — 64 MB", sub: "3rd generation, memory-attached", path: "mall",
-        detail: "The last level before GDDR6. It sits in front of memory, so a hit here never leaves for the bus at all — the reason a 256-bit part keeps up.",
-        specs: [["Capacity", "64 MB"], ["Generation", "3rd"]] }]),
-      ...band(3, [{ w: 16, kind: "cache", label: "L2 cache — 8 MB", sub: "shared by all four shader engines", path: "l2",
-        detail: "8 MB shared across the die, between the per-array L1s and the Infinity Cache.",
-        specs: [["Capacity", "8 MB"]] }]),
+      ...band(2, [{ w: 16, kind: "cache", label: "Infinity Cache — 64 MB", sub: "3rd generation, memory-attached · banked", path: "mall",
+        detail: "The last level before GDDR6. It sits in front of memory, so a hit here never leaves for the bus at all — the reason a 256-bit part keeps up. Memory-attached means exactly that: it is banked with the memory controllers along the die edges, not the single central slab drawn here.",
+        specs: [["Capacity", "64 MB"], ["Generation", "3rd"], ["Physically", "banked with the memory controllers"]] }]),
+      ...band(3, [{ w: 16, kind: "cache", label: "L2 cache — 8 MB", sub: "shared by all four shader engines · banked", path: "l2",
+        detail: "8 MB shared across the die, between the per-array L1s and the Infinity Cache. Also banked into slices rather than one block; drawn as a band here for legibility.",
+        specs: [["Capacity", "8 MB"], ["Physically", "banked into slices"]] }]),
       ...field({
         y0: 4, perRow: 8, rows: 4, w: 2,
         make: (i, c, r) => {
