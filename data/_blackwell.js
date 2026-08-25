@@ -147,7 +147,7 @@ export function dieMap(opts) {
           if (i >= 96 - darkTPCs) {
             return {
               kind: "off", label: "TPC", sub: "dark",
-              detail: `One of the ${darkTPCs} texture processing clusters fused off to take the die's 192 SMs down to this card's ${opts.activeSMs} — ${192 - opts.activeSMs} SMs, and a TPC is an SM pair. NVIDIA does not publish which are disabled, so the ${darkTPCs} greyed here stand for the COUNT, not for a known position.`,
+              detail: `One of the ${darkTPCs} texture processing clusters fused off to take the die's 192 SMs down to this card's ${opts.activeSMs} — ${192 - opts.activeSMs} SMs, and a TPC is an SM pair. Unlike the Blackhole pages, where a product-spec count disables two known columns, this is per-die binning and NVIDIA publishes no pattern for it — so the ${darkTPCs} greyed here are the COUNT at an arbitrary place, not a known position.`,
               specs: [["SMs lost", String(192 - opts.activeSMs)], ["TPCs dark", String(darkTPCs)], ["Position", "not published"]],
             };
           }

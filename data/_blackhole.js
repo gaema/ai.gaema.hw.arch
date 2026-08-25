@@ -88,8 +88,11 @@ const QSFP = {
 // `sifive,x280` -- four cores per cluster, 16 on the die.
 const L2CPU_Y = { 3: 0, 9: 1, 5: 2, 7: 3 };
 
-// Two Tensix columns are fused off on a 120-of-140 part. The position is NOT
-// published, so these two stand in for the count -- see the tile detail.
+// The default configuration disables two Tensix columns to make 120 of 140.
+// This is a product-spec COUNT applied by firmware, not a per-die defect map,
+// and the stock configuration takes the LAST two columns -- so these are drawn
+// where they actually are, unlike the GB202 pages where the position really is
+// unpublished.
 const HARVESTED_TENSIX_X = [15, 16];
 
 function lookups() {
@@ -176,7 +179,8 @@ export function dieTiles(pathPrefix, opts = {}) {
         const off = HARVESTED_TENSIX_X.includes(x);
         tiles.push(off
           ? { ...base, kind: "off", label: "Tensix",
-              detail: "Harvested — one of the 20 Tensix tiles fused off to make 120 of 140. Blackhole harvests whole columns, so two of the fourteen Tensix columns are disabled. WHICH two is a per-part property and is not published: the two columns greyed here stand for the COUNT, not for a known position." }
+              detail: "Disabled in the default configuration — one of the 20 Tensix tiles that take this SKU from 140 to 120. This is not defect binning: the firmware's product spec carries a Tensix column DISABLE COUNT, and the stock configuration applies it to the last two of the fourteen columns, which is where they are drawn. Change that count and the columns come back, which is exactly how the field is used.",
+              specs: [["Columns disabled", "2 of 14"], ["Tiles", "20 of 140"], ["Mechanism", "product-spec column count"]] }
           : { ...base, kind: "compute", label: "Tensix",
               detail: "One Tensix tile: five baby RISC-V cores, a matrix engine, a vector engine and 1.5 MB of software-managed SRAM, behind two NOC routers.",
               specs: [["Baby RISC-V", "5"], ["L1 SRAM", "1.5 MB"], ["NOC routers", "2"]],
@@ -206,7 +210,7 @@ export function dieTiles(pathPrefix, opts = {}) {
 }
 
 const GRID_LEDE =
-  "Blackhole is addressed as a 17 × 12 grid of tiles in NOC0 (x, y) coordinates, and a tile's type follows from where it sits. Columns x = 0 and x = 9 are GDDR6; row y = 1 is Ethernet; row y = 0 is routers plus the ARC and the PCIe tiles. Column x = 8 is the management column that bisects the die — mostly plain routers, with the ARC at the bottom, the security core above it, and just four L2CPU clusters at y = 3, 5, 7 and 9. Everything else — 14 columns × 10 rows — is Tensix, of which two columns are fused off to make the 120 this SKU ships.";
+  "Blackhole is addressed as a 17 × 12 grid of tiles in NOC0 (x, y) coordinates, and a tile's type follows from where it sits. Columns x = 0 and x = 9 are GDDR6; row y = 1 is Ethernet; row y = 0 is routers plus the ARC and the PCIe tiles. Column x = 8 is the management column that bisects the die — mostly plain routers, with the ARC at the bottom, the security core above it, and just four L2CPU clusters at y = 3, 5, 7 and 9. Everything else — 14 columns × 10 rows — is Tensix, of which the last two columns are disabled in the default configuration to make the 120 this SKU ships.";
 
 const MESH_NOTE =
   "The lines between tiles are the NOC — this die has no bus and no cache hierarchy, so the mesh IS the memory system. Every tile carries two NOC routers, links to its four orthogonal neighbours, and the dashed stubs at the borders are the wrap: the mesh closes into a torus, so an edge tile is not a dead end. The four curved runs on each die are the QSFP-DD cages, each wired to two specific Ethernet tiles.";
@@ -303,7 +307,7 @@ export function dualDieMap() {
     lede: GRID_LEDE + " Both of the card's ASICs are drawn, stacked with the link between them, because they are not interchangeable: each fuses off a DIFFERENT one of the two PCIe tiles, so their host interfaces mirror each other.",
     hint: "Hover a tile for what sits there. Tiles on the upper die open ASIC 0's branch of the hierarchy, tiles on the lower open ASIC 1's.",
     interconnect: MESH_NOTE + " The two dies do NOT share a NOC: each mesh is closed on its own edges, and the only path between them is the band in the middle — two Ethernet channels, each running out of an Ethernet tile's ERISC through a MAC/PCS and 8 SerDes lanes onto the board, and back up the same stack on the other die.",
-    note: COORD_NOTE + " Each die is its own 17 × 12 coordinate space, so both grids run x = 0…16 and y = 0…11 independently. ASIC 1 is drawn MIRRORED — Y = 0 at its top — so that its Ethernet row faces the link; read each die's tile labels, not the page, for its true orientation.",
+    note: "Both dies are drawn in the DEFAULT configuration: two Tensix columns disabled on each, and the mirrored PCIe harvest. " + COORD_NOTE + " Each die is its own 17 × 12 coordinate space, so both grids run x = 0…16 and y = 0…11 independently. ASIC 1 is drawn MIRRORED — Y = 0 at its top — so that its Ethernet row faces the link; read each die's tile labels, not the page, for its true orientation.",
     source: SOURCE + ". The die-to-die channel pairing is the one figure on this page NOT taken from a document — it is read from a live p300c's UMD cluster descriptor and cross-checked against a second board",
   };
 }
