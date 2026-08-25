@@ -1,7 +1,7 @@
 // Tenstorrent Blackhole p300c -- two Blackhole ASICs on one card.
 // Every figure here is from a published vendor or press source; see `sources`.
 
-import { asic } from "./_blackhole.js";
+import { asic, dieMap } from "./_blackhole.js";
 
 export default {
   id: "p300c",
@@ -39,6 +39,12 @@ export default {
     "Bandwidth": "512 GB/s per ASIC",
     "Board power": "550 W (board limit)",
     "Host link": "PCIe 5.0 ×16",
+  },
+
+  dieMap: {
+    ...dieMap("asic0"),
+    title: "Die map — the real NOC grid, per ASIC",
+    note: "One die is drawn. The p300c carries two identical Blackhole ASICs, so the map applies to each; the tiles link into ASIC 0's branch of the hierarchy. Grid positions are real NOC coordinates, but the cells are drawn at uniform size — a Tensix tile and a GDDR tile are not the same area on silicon.",
   },
 
   root: {

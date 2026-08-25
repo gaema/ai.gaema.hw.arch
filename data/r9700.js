@@ -1,6 +1,8 @@
 // AMD Radeon AI PRO R9700 -- RDNA 4 (Navi 48).
 // Every figure here is from a published vendor or press source; see `sources`.
 
+import { band, field, memBand, MAP_NOTE } from "./_floorplan.js";
+
 const simd32 = {
   id: "simd32", label: "SIMD32", kind: "compute", count: "2 per CU",
   note: "32-lane vector unit",
@@ -127,6 +129,53 @@ export default {
     "Bandwidth": "640 GB/s",
     "Board power": "300 W",
     "Host link": "PCIe 5.0 ×16",
+  },
+
+  dieMap: {
+    title: "Die map — Navi 48",
+    cols: 16, rows: 10, cell: 58, cellH: 42,
+    lede: "All 32 work group processors — the 64 compute units — sitting between the two cache levels that feed them and the GDDR6 controllers on the die edges. Four shader engines, two shader arrays each, four WGPs per array.",
+    hint: "Hover a block for detail. Every WGP opens at its own place in the hierarchy below.",
+    tiles: [
+      ...band(0, [
+        { w: 5, kind: "io", label: "PCIe 5.0 ×16", path: "pcie",
+          detail: "Host interface. PCIe 5.0 ×16." },
+        { w: 6, kind: "sched", label: "Command processor", sub: "+ ACEs", path: "cp",
+          detail: "The graphics/compute front end: it takes work from the host and hands it to the shader engines." },
+        { w: 5, kind: "fixed", label: "Display + Media", path: "media",
+          detail: "Display engine and the media block — video encode and decode." },
+      ]),
+      ...memBand(1, 4, 16, "GDDR6", (i) => `ctrl ${i * 2}–${i * 2 + 1}`,
+        "Part of the 256-bit GDDR6 interface: 32 GB at 640 GB/s. Half the controllers are drawn on each edge, which is how the bus wraps the die.",
+        [["Capacity", "32 GB"], ["Bus", "256-bit"], ["Bandwidth", "640 GB/s"]]),
+      ...band(2, [{ w: 16, kind: "cache", label: "Infinity Cache — 64 MB", sub: "3rd generation, memory-attached", path: "mall",
+        detail: "The last level before GDDR6. It sits in front of memory, so a hit here never leaves for the bus at all — the reason a 256-bit part keeps up.",
+        specs: [["Capacity", "64 MB"], ["Generation", "3rd"]] }]),
+      ...band(3, [{ w: 16, kind: "cache", label: "L2 cache — 8 MB", sub: "shared by all four shader engines", path: "l2",
+        detail: "8 MB shared across the die, between the per-array L1s and the Infinity Cache.",
+        specs: [["Capacity", "8 MB"]] }]),
+      ...field({
+        y0: 4, perRow: 8, rows: 4, w: 2,
+        make: (i, c, r) => {
+          const se = (r < 2 ? 0 : 2) + (c < 4 ? 0 : 1);
+          const within = (r % 2) * 4 + (c % 4);   // 0..7 inside this shader engine
+          const sa = within < 4 ? 0 : 1;
+          return {
+            kind: "compute", label: "WGP", sub: `SE${se} · ${within}`,
+            path: `se${se}/sa${sa}/wgp${within % 4}`,
+            detail: `Work group processor ${within} of shader engine ${se}, in shader array ${sa}. Two compute units sharing one Local Data Share — 4 SIMD32 vector units, 4 AI accelerators and 2 ray tracing cores in all.`,
+            specs: [["Compute units", "2"], ["SIMD32 units", "4"], ["AI accelerators", "4"]],
+          };
+        },
+      }),
+      ...memBand(8, 4, 16, "GDDR6", (i) => `ctrl ${8 + i * 2}–${9 + i * 2}`,
+        "Part of the 256-bit GDDR6 interface: 32 GB at 640 GB/s. Half the controllers are drawn on each edge, which is how the bus wraps the die.",
+        [["Capacity", "32 GB"], ["Bus", "256-bit"], ["Bandwidth", "640 GB/s"]]),
+      ...band(9, [{ w: 16, kind: "fixed", label: "Geometry + rasterizers", sub: "one front end per shader engine",
+        detail: "The fixed-function graphics front end of each shader engine — geometry setup and rasterization." }]),
+    ],
+    note: MAP_NOTE,
+    source: "AMD's RDNA 4 architecture material (Hot Chips 2025) and the R9700 datasheet",
   },
 
   root: {

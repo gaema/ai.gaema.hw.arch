@@ -48,19 +48,36 @@
   <section class="block">
     <h2>How to read these diagrams</h2>
     <p class="lede">
-      Each page opens at the card and descends: click any block that says
-      <em>open ›</em> to go inside it, use the breadcrumb to come back out, and
-      press <kbd>Esc</kbd> to go up one level. The panel on the right carries
-      the specs for wherever you are. Every view has its own URL, so a link can
-      point straight at, say, a single SIMD32 inside a compute unit.
+      Every page carries two views of the same part, because they answer
+      different questions.
     </p>
     <p class="lede">
-      The diagrams are <strong>logical, not floorplans</strong>. Blocks are
-      arranged for legibility, not to physical scale or position, and a
-      harvested part is drawn as the full die with the disabled units marked —
-      no vendor publishes which specific units a given card has fused off.
-      Figures come only from published vendor documentation and press coverage;
-      each page lists its sources.
+      The <strong>die map</strong> comes first: every block on the die drawn at
+      its own place on one grid. This is the view that shows what a spec sheet
+      cannot — which edge the memory controllers sit on, how many cores one L2
+      has to serve, which column of tiles a memory channel feeds. Hover a block
+      for its detail, use the filter chips to isolate one class, and click a
+      block to open it below.
+    </p>
+    <p class="lede">
+      The <strong>hierarchy</strong> follows: the card opens into its die, the
+      die into its clusters, and down to the thing that actually does the
+      multiply. Click any block marked <em>open ›</em>, use the breadcrumb to
+      come back out, press <kbd>Esc</kbd> to go up one level. Every view has its
+      own URL, so a link can point straight at a single SIMD32 inside a compute
+      unit.
+    </p>
+    <p class="lede">
+      One map is real and the rest are logical, and each page says which it is.
+      Tenstorrent publishes a SoC descriptor giving every tile's NOC coordinate,
+      so the Blackhole map is the <strong>actual grid</strong>, drawn in the
+      vendor's own coordinates. The three GPUs publish block diagrams but no
+      per-unit geometry, so those maps take the vendor's <strong>arrangement</strong>
+      and lay it out for legibility — not to scale, and not to physical position.
+      A harvested part is drawn as the full die with the count stated, because no
+      vendor publishes which specific units a given card fused off. Figures come
+      only from published vendor documentation and press coverage; each page
+      lists its sources.
     </p>
   </section>
 

@@ -1,7 +1,7 @@
 // NVIDIA GeForce RTX 5090 -- GB202, 170 of 192 SMs enabled.
 // Every figure here is from a published vendor or press source; see `sources`.
 
-import { die } from "./_blackwell.js";
+import { die, dieMap } from "./_blackwell.js";
 
 export default {
   id: "rtx-5090",
@@ -41,6 +41,8 @@ export default {
     "Board power": "575 W",
     "Host link": "PCIe 5.0 ×16",
   },
+
+  dieMap: dieMap({ activeSMs: 170, mem: "32 GB", bw: "1,792 GB/s" }),
 
   root: {
     id: "card", label: "GeForce RTX 5090", kind: "compute",

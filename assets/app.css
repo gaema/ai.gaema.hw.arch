@@ -189,6 +189,94 @@ table.matrix tbody tr:hover td, table.matrix tbody tr:hover th { background: var
 
 .note { margin-top: 12px; font-size: 12px; color: var(--ink-dim); }
 
+h2.section-h {
+  margin: 30px 0 0;
+  font-size: 17px;
+  letter-spacing: -0.015em;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--line);
+}
+
+/* ---------- die map ---------- */
+
+.diemap {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--panel);
+  padding: 14px;
+  margin: 22px 0 0;
+}
+
+.map-lede { margin: 0 0 12px; color: var(--ink-mid); font-size: 13px; max-width: 78ch; }
+
+.filters { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+
+.chip {
+  font: inherit;
+  font-size: 12px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--line-strong);
+  background: transparent;
+  color: var(--ink-mid);
+  cursor: pointer;
+}
+
+.chip.chip-kind { border-color: var(--tile-ink); color: var(--tile-ink); }
+.chip:hover { background: var(--n2); }
+.chip[aria-pressed="true"] { background: var(--tile-bg, var(--accent-soft)); color: var(--tile-ink, var(--accent)); border-color: var(--tile-ink, var(--accent)); font-weight: 600; }
+
+.map-scroll { overflow-x: auto; padding-bottom: 4px; }
+
+.diegrid {
+  display: grid;
+  grid-template-columns: repeat(var(--cols), minmax(var(--cell), 1fr));
+  grid-auto-rows: var(--cellh);
+  gap: 2px;
+  min-width: calc(var(--cols) * var(--cell));
+}
+
+.dtile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  border: 1px solid var(--tile-ink);
+  background: var(--tile-bg);
+  color: var(--ink);
+  border-radius: 3px;
+  padding: 2px 3px;
+  overflow: hidden;
+  font: inherit;
+  text-align: center;
+  transition: filter 0.12s, opacity 0.12s;
+}
+
+.dtile.opens { cursor: pointer; border-width: 2px; }
+.dtile.opens:hover, .dtile.opens:focus-visible { filter: brightness(1.08); outline: 2px solid var(--tile-ink); outline-offset: 1px; }
+.dtile.dimmed { opacity: 0.18; }
+
+.dtile .d-label { font-size: 10.5px; font-weight: 700; line-height: 1.15; white-space: nowrap; }
+.dtile .d-sub { font-size: 8.5px; color: var(--ink-dim); line-height: 1.15; white-space: nowrap; }
+
+.map-tip {
+  margin-top: 12px;
+  border-top: 1px solid var(--line);
+  padding-top: 10px;
+  font-size: 13px;
+  min-height: 62px;
+}
+
+.map-tip strong { font-size: 14px; }
+.map-tip .t-kind { color: var(--ink-dim); font-size: 12px; }
+.map-tip .t-idle { color: var(--ink-dim); font-size: 12.5px; }
+.map-tip .t-open { color: var(--accent); font-size: 12px; }
+.map-tip p { margin: 5px 0 0; color: var(--ink-mid); font-size: 12.5px; max-width: 80ch; }
+.map-tip dl { margin: 6px 0 0; display: grid; grid-template-columns: auto 1fr; gap: 2px 12px; font-size: 12.5px; max-width: 420px; }
+.map-tip dt { color: var(--ink-dim); }
+.map-tip dd { margin: 0; text-align: right; }
+
 /* ---------- detail panel ---------- */
 
 .panel { border: 1px solid var(--line); border-radius: 10px; background: var(--panel); padding: 14px; position: sticky; top: 74px; }

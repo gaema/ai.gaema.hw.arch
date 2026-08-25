@@ -1,3 +1,5 @@
+import { band, field, memBand, MAP_NOTE } from "./_floorplan.js";
+
 // Shared Blackwell (GB202) hierarchy, used by both GB202 cards.
 // The GPC → TPC → SM → processing-block nesting is common to the die; the two
 // SKUs differ only in how much of it is enabled, and in the memory attached.
@@ -103,4 +105,45 @@ export function die(opts) {
     { id: "nvenc", label: "NVENC / NVDEC", kind: "fixed", note: "video encode / decode" },
     { id: "display", label: "Display engine", kind: "io" },
   ];
+}
+
+// The GB202 die map. One column per GPC, one cell per TPC -- 12 x 8 = 96 TPCs,
+// which is the die's 192 SMs. Both cards are the same die; they differ only in
+// how many SMs are enabled and in the memory hung off the edges.
+export function dieMap(opts) {
+  return {
+    title: "Die map — GB202",
+    cols: 12, rows: 12, cell: 62, cellH: 40,
+    lede: "Each column below is one graphics processing cluster, each cell one texture processing cluster — an SM pair. Twelve GPCs of eight TPCs is the full GB202: 96 TPCs, 192 SMs, 24,576 CUDA cores.",
+    hint: "Hover a block for detail. Every TPC opens at its own place in the hierarchy below.",
+    tiles: [
+      ...band(0, [
+        { w: 4, kind: "io", label: "PCIe 5.0 ×16", path: "pcie",
+          detail: "Host interface. PCIe 5.0 ×16." },
+        { w: 4, kind: "sched", label: "GigaThread engine", sub: "work distribution", path: "gigathread",
+          detail: "Distributes work across the GPCs." },
+        { w: 4, kind: "fixed", label: "NVENC / NVDEC + display", path: "nvenc",
+          detail: "Video encode and decode blocks, and the display engine." },
+      ]),
+      ...memBand(1, 6, 12, "GDDR7", (i) => `ctrl ${i * 2}–${i * 2 + 1}`,
+        `Part of the 512-bit GDDR7 interface — sixteen 32-bit controllers, ${opts.mem} at ${opts.bw}. Half are drawn on each edge.`,
+        [["Capacity", opts.mem], ["Bus", "512-bit"], ["Bandwidth", opts.bw]], "mem"),
+      ...band(2, [{ w: 12, kind: "cache", label: "L2 cache", sub: "shared across every GPC", path: "l2",
+        detail: "Shared last level on the die. NVIDIA does not publish the capacity for this SKU, so none is claimed here." }]),
+      ...field({
+        y0: 3, perRow: 12, rows: 8, w: 1,
+        make: (i, c, r) => ({
+          kind: "compute", label: "TPC", sub: `G${c}·${r}`,
+          path: `gpc${c}/tpc${r}`,
+          detail: `Texture processing cluster ${r} of GPC ${c}. Two SMs — 256 CUDA cores, 8 fifth-generation Tensor Cores and 2 RT cores.`,
+          specs: [["SMs", "2"], ["CUDA cores", "256"], ["Tensor Cores", "8"]],
+        }),
+      }),
+      ...memBand(11, 6, 12, "GDDR7", (i) => `ctrl ${12 + i * 2}–${13 + i * 2}`,
+        `Part of the 512-bit GDDR7 interface — sixteen 32-bit controllers, ${opts.mem} at ${opts.bw}. Half are drawn on each edge.`,
+        [["Capacity", opts.mem], ["Bus", "512-bit"], ["Bandwidth", opts.bw]], "mem"),
+    ],
+    note: `The full 192-SM die is drawn. This card enables ${opts.activeSMs} of them, and NVIDIA does not publish which are fused off — so no particular TPC here is marked as harvested. ${MAP_NOTE}`,
+    source: "NVIDIA's RTX Blackwell architecture whitepaper and published GB202 die analysis",
+  };
 }

@@ -1,7 +1,7 @@
 // NVIDIA RTX PRO 6000 Blackwell -- GB202, 188 of 192 SMs enabled.
 // Every figure here is from a published vendor or press source; see `sources`.
 
-import { die } from "./_blackwell.js";
+import { die, dieMap } from "./_blackwell.js";
 
 export default {
   id: "rtx-pro-6000",
@@ -42,6 +42,8 @@ export default {
     "Board power": "600 W",
     "Host link": "PCIe 5.0 ×16",
   },
+
+  dieMap: dieMap({ activeSMs: 188, mem: "96 GB", bw: "1,792 GB/s" }),
 
   root: {
     id: "card", label: "RTX PRO 6000 Blackwell", kind: "compute",

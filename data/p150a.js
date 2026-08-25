@@ -1,7 +1,7 @@
 // Tenstorrent Blackhole p150a -- one Blackhole ASIC, 120 Tensix tiles.
 // Every figure here is from a published vendor or press source; see `sources`.
 
-import { asic } from "./_blackhole.js";
+import { asic, dieMap } from "./_blackhole.js";
 
 export default {
   id: "p150a",
@@ -42,6 +42,8 @@ export default {
     "Board power": "300 W",
     "Host link": "PCIe 5.0 ×16",
   },
+
+  dieMap: dieMap("asic"),
 
   root: {
     id: "card", label: "Blackhole p150a", kind: "compute",

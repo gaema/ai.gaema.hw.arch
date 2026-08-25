@@ -42,24 +42,116 @@ export const tensix = {
   ],
 };
 
-// A schematic 14 × 10 Tensix grid. Blackhole harvests whole columns, so the
-// two rightmost columns stand in for the 20 disabled tiles on a 120-core part.
-export function tensixGrid(activeCols) {
-  const rows = 10, cols = 14, out = [];
-  for (let r = 0; r < rows; r++) {
-    for (let c = 0; c < cols; c++) {
-      const on = c < activeCols;
-      out.push(on
-        ? { ...tensix, id: `t-${r}-${c}`, label: `T${c},${r}`, dense: true }
-        : { id: `t-${r}-${c}`, label: `T${c},${r}`, kind: "off", dense: true,
-            note: "harvested — disabled on this SKU" });
+// ---------------------------------------------------------------- die map
+//
+// The real NOC grid, not a schematic: Blackhole is 17 columns x 12 rows of
+// tiles, addressed in NOC0 (x, y) coordinates, and every tile's TYPE follows
+// from its position. 14 of the 17 columns are Tensix (x = 0, 8 and 9 are not),
+// and 10 of the 12 rows are Tensix (y = 0 and 1 are not) -- which is exactly
+// the 14 x 10 = 140 Tensix tiles on the die.
+//
+// Positions below are transcribed from the public tt-metal SoC descriptor
+// `blackhole_140_arch.yaml` and the P150 board definition in `board.cpp`.
+
+// GDDR channel -> its three NOC tiles. Two memory columns, x = 0 and x = 9,
+// four channels each, three tiles per channel = 24 tiles for 8 channels.
+const GDDR = {
+  0: [[0, 0], [0, 1], [0, 11]],
+  1: [[0, 2], [0, 10], [0, 3]],
+  2: [[0, 9], [0, 4], [0, 8]],
+  3: [[0, 5], [0, 7], [0, 6]],
+  4: [[9, 0], [9, 1], [9, 11]],
+  5: [[9, 2], [9, 10], [9, 3]],
+  6: [[9, 9], [9, 4], [9, 8]],
+  7: [[9, 5], [9, 7], [9, 6]],
+};
+
+// Ethernet channel -> NOC tile, in the descriptor's channel order. All sit on
+// row y = 1.
+const ETH = [
+  [1, 1], [16, 1], [2, 1], [15, 1], [3, 1], [14, 1], [4, 1],
+  [13, 1], [5, 1], [12, 1], [6, 1], [11, 1], [7, 1], [10, 1],
+];
+
+// The four QSFP-DD cages on a P150 board, and the two ETH channels each drives.
+const QSFP = {
+  1: [9, 11], 2: [8, 10], 3: [5, 7], 4: [4, 6],
+};
+
+function lookups() {
+  const gddrAt = {}, ethAt = {}, qsfpAt = {};
+  for (const [ch, pts] of Object.entries(GDDR)) for (const [x, y] of pts) gddrAt[`${x},${y}`] = +ch;
+  ETH.forEach(([x, y], ch) => { ethAt[`${x},${y}`] = ch; });
+  for (const [port, chans] of Object.entries(QSFP)) {
+    for (const ch of chans) { const [x, y] = ETH[ch]; qsfpAt[`${x},${y}`] = +port; }
+  }
+  return { gddrAt, ethAt, qsfpAt };
+}
+
+export function dieMap(pathPrefix) {
+  const { gddrAt, ethAt, qsfpAt } = lookups();
+  const tiles = [];
+  const p = (id) => (pathPrefix ? pathPrefix + "/" + id : null);
+
+  for (let y = 0; y < 12; y++) {
+    for (let x = 0; x < 17; x++) {
+      const k = `${x},${y}`;
+      // NOC0 puts Y=0 at the BOTTOM, so the grid row is flipped to draw the
+      // die the way the vendor's own coordinates read. The label keeps the
+      // true (x, y) so it cross-references tt-metal directly.
+      const base = { x, y: 11 - y, sub: `${x},${y}` };
+
+      if (x === 8 && y === 0) {
+        tiles.push({ ...base, kind: "sched", label: "ARC",
+          detail: "The management complex — power, telemetry, boot and reset for the whole die.",
+          path: p("arc") });
+      } else if ((x === 2 || x === 11) && y === 0) {
+        tiles.push({ ...base, kind: "io", label: "PCIe",
+          detail: "PCIe 5.0 host interface. Two PCIe tiles sit on the bottom router row.",
+          path: p("pcie") });
+      } else if (x === 8) {
+        tiles.push({ ...base, kind: "sched", label: "L2CPU",
+          detail: "The big-RISC-V column: 16 SiFive X280 application-class cores, four per L2CPU complex. This is what lets Blackhole run the host program itself instead of depending on an x86 host.",
+          path: p("bigrv") });
+      } else if (k in gddrAt) {
+        const ch = gddrAt[k];
+        tiles.push({ ...base, kind: "memory", label: "GDDR6", sub: `ch ${ch} · ${x},${y}`,
+          detail: `One of three NOC tiles serving GDDR6 channel ${ch}. The two memory columns sit at x = 0 and x = 9, so every Tensix column is at most a few hops from a bank.`,
+          specs: [["Channels", "8"], ["Capacity", "32 GB"], ["Bandwidth", "512 GB/s"]],
+          path: p("gddr") });
+      } else if (y === 1) {
+        const ch = ethAt[k];
+        const port = qsfpAt[k];
+        tiles.push({ ...base, kind: "link", label: "ETH",
+          sub: port ? `ch ${ch} · QSFP${port}` : `ch ${ch} · idle`,
+          detail: port
+            ? `Ethernet channel ${ch}, wired to QSFP-DD cage ${port} on the board. Ten 400 GbE links leave the die; the four cages expose eight of the channels.`
+            : `Ethernet channel ${ch}. This channel has no board connector on this card, so its ERISC sits idle.`,
+          path: p("eth") });
+      } else if (y >= 2) {
+        tiles.push({ ...base, kind: "compute", label: "Tensix",
+          detail: "One Tensix tile: five baby RISC-V cores, a matrix engine, a vector engine and 1.5 MB of software-managed SRAM, behind two NOC routers.",
+          specs: [["Baby RISC-V", "5"], ["L1 SRAM", "1.5 MB"], ["NOC routers", "2"]],
+          path: p("tensix") });
+      } else {
+        tiles.push({ ...base, kind: "io", label: "Rtr",
+          detail: "A router-only tile on the bottom edge: it switches NOC traffic but carries no compute." });
+      }
     }
   }
-  return out;
+
+  return {
+    title: "Die map — the real NOC grid",
+    cols: 17, rows: 12, cell: 54, cellH: 40,
+    tiles,
+    lede: "Blackhole is addressed as a 17 × 12 grid of tiles in NOC0 (x, y) coordinates, and a tile's type follows from where it sits. Columns x = 0 and x = 9 are GDDR6; column x = 8 is the big-RISC-V complex; row y = 1 is Ethernet; row y = 0 is routers with the ARC and the two PCIe tiles. Everything else — 14 columns × 10 rows — is Tensix.",
+    hint: "Hover a tile for what sits there. Every tile here opens its block in the hierarchy below.",
+    note: "Drawn in NOC0 coordinates with Y = 11 at the top and Y = 0 at the bottom, the vendor's own convention, so a tile's label cross-references the SoC descriptor directly. Positions are real; the cells are drawn at uniform size, so a Tensix tile and a GDDR tile are not the same area on silicon.",
+    source: "the public tt-metal SoC descriptor blackhole_140_arch.yaml, and the P150 board definition in board.cpp",
+  };
 }
 
 export function asic(activeTensix) {
-  const activeCols = activeTensix / 10;
   return {
     id: "asic", label: "Blackhole ASIC", kind: "compute",
     note: `${activeTensix} Tensix tiles enabled of the 140 on the die, plus the big RISC-V complex, GDDR6 and Ethernet`,
@@ -75,13 +167,10 @@ export function asic(activeTensix) {
     cols: 4,
     children: [
       {
-        id: "grid", label: "Tensix grid", kind: "compute", span: 4,
-        note: `${activeTensix} of 140 tiles enabled — click through to the array`,
-        specs: [["Enabled", String(activeTensix)], ["On the die", "140"]],
-        cols: 14,
+        ...tensix, id: "tensix", span: 2,
+        count: `${activeTensix} of 140 enabled`,
         gridNote:
-          "Schematic, not a die floorplan. Blackhole harvests whole Tensix columns; the greyed columns stand in for the disabled tiles, not for a published harvest pattern.",
-        children: tensixGrid(activeCols),
+          `Blackhole harvests whole Tensix columns — ${activeTensix} of the die's 140 tiles are enabled on this SKU, i.e. ${(140 - activeTensix) / 10} of the 14 columns are fused off. Which columns is a per-part property and is not published, so the die map above draws all 140 rather than guessing at a pattern.`,
       },
       {
         id: "bigrv", label: "Big RISC-V complex", kind: "sched", span: 2,
@@ -94,7 +183,7 @@ export function asic(activeTensix) {
         note: "8 channels, 32 GB, 512 GB/s",
       },
       {
-        id: "eth", label: "Ethernet", kind: "io", span: 2,
+        id: "eth", label: "Ethernet", kind: "link", span: 2,
         specs: [["Links", "10 × 400 GbE"], ["Aggregate", "~1 TB/s"]],
         note: "chip-to-chip scale-out over standard Ethernet rather than a proprietary link",
       },

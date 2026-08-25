@@ -1,6 +1,8 @@
 // Intel Arc Pro B70 -- Xe2 "Battlemage".
 // Every figure here is from a published vendor or press source; see `sources`.
 
+import { band, field, memBand, MAP_NOTE } from "./_floorplan.js";
+
 const xeCore = {
   id: "xe-core", label: "Xe-core", kind: "compute", count: "32 on the die",
   note: "8 vector engines + 8 XMX engines behind 192 KB of shared L1/SLM",
@@ -100,6 +102,48 @@ export default {
     "Bandwidth": "608 GB/s",
     "Board power": "230 W reference",
     "Host link": "PCIe 5.0 ×16",
+  },
+
+  dieMap: {
+    title: "Die map — Xe2 (Battlemage)",
+    cols: 16, rows: 9, cell: 58, cellH: 42,
+    lede: "All 32 Xe-cores, grouped four to a render slice. Each Xe-core carries 8 vector engines and 8 XMX engines, so the two rows of sixteen below are where all 256 XMX engines live.",
+    hint: "Hover a block for detail. Every Xe-core opens at its own place in the hierarchy below.",
+    tiles: [
+      ...band(0, [
+        { w: 5, kind: "io", label: "PCIe 5.0 ×16", path: "pcie",
+          detail: "Host interface. PCIe 5.0 ×16." },
+        { w: 6, kind: "sched", label: "Command streamer", sub: "global thread dispatch", path: "cs",
+          detail: "Takes work from the host and dispatches threads across the render slices." },
+        { w: 5, kind: "fixed", label: "Display + Media", path: "media",
+          detail: "Display engine and the media block — video encode and decode." },
+      ]),
+      ...memBand(1, 4, 16, "GDDR6", (i) => `ctrl ${i * 2}–${i * 2 + 1}`,
+        "Part of the 256-bit GDDR6 interface: 32 GB at 608 GB/s.",
+        [["Capacity", "32 GB"], ["Bus", "256-bit"], ["Bandwidth", "608 GB/s"]]),
+      ...band(2, [{ w: 16, kind: "cache", label: "L2 cache", sub: "shared across all render slices", path: "l2",
+        detail: "Shared last level on the die. Intel does not publish the capacity for this SKU, so none is claimed here." }]),
+      ...field({
+        y0: 3, perRow: 8, rows: 4, w: 2,
+        make: (i, c, r) => {
+          const slice = r * 2 + (c < 4 ? 0 : 1);
+          const within = c % 4;
+          return {
+            kind: "compute", label: "Xe-core", sub: `slice ${slice} · ${within}`,
+            path: `slice${slice}/xc${within}`,
+            detail: `Xe-core ${within} of render slice ${slice}. 8 vector engines at 512-bit with SIMD16-native ALUs, 8 XMX engines at 2048-bit, and 192 KB of shared L1/SLM.`,
+            specs: [["Vector engines", "8 × 512-bit"], ["XMX engines", "8 × 2048-bit"], ["Shared L1 / SLM", "192 KB"]],
+          };
+        },
+      }),
+      ...memBand(7, 4, 16, "GDDR6", (i) => `ctrl ${8 + i * 2}–${9 + i * 2}`,
+        "Part of the 256-bit GDDR6 interface: 32 GB at 608 GB/s.",
+        [["Capacity", "32 GB"], ["Bus", "256-bit"], ["Bandwidth", "608 GB/s"]]),
+      ...band(8, [{ w: 16, kind: "fixed", label: "Geometry + rasterizers · 32 ray tracing units", sub: "4 per render slice",
+        detail: "The fixed-function front end of each render slice, plus its four ray tracing units — 32 across the die." }]),
+    ],
+    note: MAP_NOTE,
+    source: "Intel's Xe2 architecture material and the Arc Pro B70 product specifications",
   },
 
   root: {

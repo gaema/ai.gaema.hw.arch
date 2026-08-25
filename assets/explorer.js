@@ -6,6 +6,7 @@
 // view is linkable and the back button works.
 
 import { load, KINDS } from "../data/index.js";
+import { renderDieMap } from "./diemap.js";
 
 const el = (tag, cls, text) => {
   const n = document.createElement(tag);
@@ -208,6 +209,12 @@ const id = document.body.dataset.sku;
 load(id).then((sku) => {
   SKU = sku;
   renderHeadline();
+  // The die map hands a hierarchy path back; jumping there scrolls the
+  // explorer into view so the click visibly lands somewhere.
+  renderDieMap(sku, (path) => {
+    goto(path.split("/").filter(Boolean));
+    document.getElementById("stage").scrollIntoView({ behavior: "smooth", block: "center" });
+  });
   render();
   window.addEventListener("hashchange", render);
   window.addEventListener("keydown", (e) => {
