@@ -19,6 +19,10 @@ Each page carries two views of the same part:
   memory controllers sit on, how many cores one L2 serves, which tiles a memory
   channel feeds. Hover for detail, filter by block class, click a block to open
   it in the hierarchy.
+- a **traced read**, on the same map — *Trace a read* animates one memory access
+  along its actual path. On a mesh that is a dimension-ordered route counted in
+  **hops**; on a GPU it is the named levels a read falls through, counted in
+  **stops**, because a cache hierarchy has no distance to measure.
 - a **hierarchy** — card → die → cluster → execution unit → matrix engine.
   Breadcrumb to come back out, `Esc` to go up one level. Every view has its own
   URL.
@@ -110,4 +114,9 @@ python3 -m http.server 8080
    follow automatically — a new vendor needs one entry there.
 
 `kind` is one of `compute`, `matrix`, `cache`, `memory`, `sched`, `fixed`,
-`io`, `off` — it picks the tile colour and the legend label.
+`io`, `link`, `off` — it picks the tile colour and the legend label.
+
+`dieMap.dataflow` adds the traced read: `{label, title, note}` plus either
+`{from:[x,y], to:[x,y]}` for a mesh — routed dimension-ordered, X then one turn
+then Y — or `{kind:"stops", stops:[[x,y], …]}` for a hierarchy walk. Keep the
+two honest: a mesh route's hop count is a real distance, a stop list is not.

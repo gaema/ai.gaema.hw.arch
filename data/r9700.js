@@ -136,6 +136,13 @@ export default {
     cols: 16, rows: 12, cell: 58, cellH: 42,
     lede: "All 32 work group processors — the 64 compute units — sitting between the two cache levels that feed them and the GDDR6 controllers on the die edges. Four shader engines, two shader arrays each, four WGPs per array.",
     hint: "Hover a block for detail. Every WGP opens at its own place in the hierarchy below.",
+    dataflow: {
+      label: "Trace a read",
+      title: "One read: WGP → Infinity Fabric → L2 → Infinity Cache → GDDR6",
+      kind: "stops",
+      stops: [[6, 5], [6, 4], [6, 3], [6, 2], [6, 1]],
+      note: "A WGP that misses locally crosses the Infinity Fabric to L2; a miss there goes to the Infinity Cache, and only a miss THERE reaches GDDR6. That extra level is the whole argument for a 64 MB memory-side cache on a 256-bit bus: most of the traffic that would have become DRAM reads stops one level early, so the part behaves as though its bus were wider than it is.",
+    },
     interconnect: "Drawn as the two Infinity Fabric bands the compute field sits between. Unlike Blackhole, this is not a mesh with a router in every tile: the WGPs reach L2, the Infinity Cache and the memory controllers through a shared fabric, so the honest picture is a bus band rather than tile-to-tile links. Both bands are the same interconnect reaching both memory edges.",
     tiles: [
       ...band(0, [

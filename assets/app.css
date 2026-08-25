@@ -254,6 +254,9 @@ h2.section-h {
   overflow: visible;
 }
 
+/* Point-to-point runs draw in front of the tiles; the mesh stays behind. */
+.ic-overlay.ic-top { z-index: 3; }
+
 .ic-overlay.off { display: none; }
 
 .ic-mesh line {
@@ -272,6 +275,32 @@ h2.section-h {
   stroke-width: 2;
   opacity: 0.9;
   stroke-linecap: round;
+}
+
+/* One traced read. Drawn above the mesh so the route is followable, with the
+   tiles it passes through outlined -- the hops ARE the cost. */
+.ic-route .route-line {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.85;
+}
+
+.ic-route .route-dot { fill: var(--accent); }
+
+.dtile.on-route {
+  outline: 2px solid var(--accent);
+  outline-offset: -1px;
+  z-index: 2;
+}
+
+.chip.df-toggle[aria-pressed="true"] {
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-color: var(--accent);
+  font-weight: 600;
 }
 
 .ic-dot { opacity: 0.95; }

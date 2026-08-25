@@ -30,13 +30,21 @@ const svgEl = (tag, attrs) => {
 // `map.arcs` draws named point-to-point runs on top (a board connector wired to
 // two specific tiles, say), curved so they read as off-grid wiring rather than
 // as more mesh.
-function drawInterconnect(svg, grid, cells, map) {
+function sizeSvg(svg, W, H) {
   while (svg.firstChild) svg.removeChild(svg.firstChild);
-  const W = grid.clientWidth, H = grid.clientHeight;
-  if (!W || !H) return;
   svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
   svg.setAttribute("width", W);
   svg.setAttribute("height", H);
+}
+
+// The mesh belongs BEHIND the tiles -- its links live in the gaps between them.
+// Point-to-point runs (cage wiring, a traced read) belong in FRONT, or they are
+// hidden by the very tiles they connect.
+function drawInterconnect(svg, top, grid, cells, map) {
+  const W = grid.clientWidth, H = grid.clientHeight;
+  if (!W || !H) return;
+  sizeSvg(svg, W, H);
+  sizeSvg(top, W, H);
 
   const box = (x, y) => {
     const n = cells[`${x},${y}`];
@@ -104,9 +112,60 @@ function drawInterconnect(svg, grid, cells, map) {
       title.textContent = arc.label;
       p.append(title);
     }
-    svg.append(p);
-    for (const e of [a, b]) svg.append(svgEl("circle", { class: "ic-dot", cx: e.cx, cy: e.cy, r: 3, fill: arc.color || "currentColor" }));
+    top.append(p);
+    for (const e of [a, b]) top.append(svgEl("circle", { class: "ic-dot", cx: e.cx, cy: e.cy, r: 3, fill: arc.color || "currentColor" }));
   }
+}
+
+// Dataflow: trace one read across the die, because a static map cannot show the
+// thing that actually costs time -- how far a byte travels and how many hops it
+// takes to get there.
+//
+// On a mesh the route is DIMENSION-ORDERED: the packet completes one axis, turns
+// once, and completes the other. That is not a drawing simplification -- it is
+// how cyclic-dependency deadlock is avoided, and turning freely would reintroduce
+// it. On the GPUs there are no per-tile hops to show, so the route is the named
+// stops a read passes through instead.
+function routeCells(map) {
+  const df = map.dataflow;
+  if (!df) return [];
+  if (df.kind === "stops") return df.stops.slice();
+  const [x0, y0] = df.from, [x1, y1] = df.to;
+  const out = [];
+  const stepX = Math.sign(x1 - x0), stepY = Math.sign(y1 - y0);
+  for (let x = x0; x !== x1; x += stepX) out.push([x, y0]);   // along X first
+  for (let y = y0; y !== y1; y += stepY) out.push([x1, y]);   // one turn, then Y
+  out.push([x1, y1]);
+  return out;
+}
+
+function drawRoute(svg, grid, cells, map) {
+  const path = routeCells(map);
+  if (path.length < 2) return null;
+  const pts = [];
+  for (const [x, y] of path) {
+    const n = cells[`${x},${y}`];
+    if (!n) continue;
+    pts.push([n.offsetLeft + n.offsetWidth / 2, n.offsetTop + n.offsetHeight / 2]);
+    n.classList.add("on-route");
+  }
+  if (pts.length < 2) return null;
+
+  const g = svgEl("g", { class: "ic-route" });
+  const d = "M " + pts.map((p) => `${p[0]} ${p[1]}`).join(" L ");
+  g.append(svgEl("path", { class: "route-line", d }));
+
+  const dot = svgEl("circle", { class: "route-dot", r: 5, cx: pts[0][0], cy: pts[0][1] });
+  const motion = svgEl("animateMotion", {
+    dur: Math.max(2, pts.length * 0.18) + "s", repeatCount: "indefinite", path: d,
+  });
+  // animateMotion is relative to the element's own position, so start at origin.
+  dot.setAttribute("cx", 0);
+  dot.setAttribute("cy", 0);
+  dot.append(motion);
+  g.append(dot);
+  svg.append(g);
+  return path.length;
 }
 
 const el = (tag, cls, text) => {
@@ -235,17 +294,50 @@ export function renderDieMap(sku, onOpenPath) {
   // --- interconnect overlay ----------------------------------------------
   // Only meshes get an overlay. A GPU's fabric is drawn as a labelled band in
   // the tile list instead, which is how the vendors draw it themselves.
-  let svg = null, redraw = () => {};
-  if (map.mesh || map.arcs) {
+  let svg = null, svgTop = null, redraw = () => {};
+  let routeOn = false, hops = null;
+  if (map.mesh || map.arcs || map.dataflow) {
     svg = document.createElementNS(SVG, "svg");
     svg.setAttribute("class", "ic-overlay");
+    svgTop = document.createElementNS(SVG, "svg");
+    svgTop.setAttribute("class", "ic-overlay ic-top");
     grid.append(svg);
-    redraw = () => drawInterconnect(svg, grid, cells, map);
+    grid.append(svgTop);
+    redraw = () => {
+      drawInterconnect(svg, svgTop, grid, cells, map);
+      for (const n of grid.querySelectorAll(".on-route")) n.classList.remove("on-route");
+      if (routeOn) hops = drawRoute(svgTop, grid, cells, map);
+    };
     if (window.ResizeObserver) new ResizeObserver(redraw).observe(grid);
     requestAnimationFrame(redraw);
   }
 
   host.append(scroll);
+
+  if (map.dataflow) {
+    const d = el("button", "chip df-toggle", map.dataflow.label || "Trace a read");
+    d.type = "button";
+    d.setAttribute("aria-pressed", "false");
+    d.addEventListener("click", () => {
+      routeOn = !routeOn;
+      d.setAttribute("aria-pressed", String(routeOn));
+      redraw();
+      // A mesh route is counted in HOPS -- tile-to-tile, and the count is the
+      // cost. A GPU read passes through named levels, which are stops, not hops;
+      // calling them hops would invent a distance the hierarchy does not have.
+      const unit = map.dataflow.kind === "stops" ? "stops" : "hops";
+      d.textContent = routeOn
+        ? (hops ? `Hide the read · ${hops} ${unit}` : "Hide the read")
+        : (map.dataflow.label || "Trace a read");
+      tip.textContent = "";
+      if (routeOn) {
+        tip.append(el("strong", null, map.dataflow.title || "One read, traced"));
+        tip.append(el("p", null, map.dataflow.note));
+        tip.classList.add("on");
+      } else idle();
+    });
+    bar.append(d);
+  }
 
   if (svg) {
     const t = el("button", "chip ic-toggle", "Hide interconnect");
@@ -253,6 +345,7 @@ export function renderDieMap(sku, onOpenPath) {
     t.setAttribute("aria-pressed", "true");
     t.addEventListener("click", () => {
       const on = svg.classList.toggle("off");
+      svgTop.classList.toggle("off", on);
       t.setAttribute("aria-pressed", String(!on));
       t.textContent = on ? "Show interconnect" : "Hide interconnect";
     });

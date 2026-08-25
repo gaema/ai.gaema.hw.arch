@@ -109,6 +109,13 @@ export default {
     cols: 16, rows: 11, cell: 58, cellH: 42,
     lede: "All 32 Xe-cores, grouped four to a render slice. Each Xe-core carries 8 vector engines and 8 XMX engines, so the two rows of sixteen below are where all 256 XMX engines live.",
     hint: "Hover a block for detail. Every Xe-core opens at its own place in the hierarchy below.",
+    dataflow: {
+      label: "Trace a read",
+      title: "One read: Xe-core → Xe fabric → L2 → GDDR6",
+      kind: "stops",
+      stops: [[6, 5], [6, 3], [6, 2], [6, 1]],
+      note: "An Xe-core that misses in its own 192 KB of L1/SLM crosses the fabric to L2, and a miss there goes to a memory controller. Three stops, and one of them is the level Intel does not publish a size for — which is why this page states the path but not what fraction of it ends at L2.",
+    },
     interconnect: "Drawn as the two Xe fabric bands the compute field sits between. Intel publishes the render-slice grouping but not the fabric's topology for this part, so it is a labelled band rather than a shape — the claim is only that every Xe-core reaches L2 and memory through it.",
     tiles: [
       ...band(0, [

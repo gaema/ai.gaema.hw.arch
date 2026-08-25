@@ -233,6 +233,15 @@ export function dieMap(pathPrefix) {
     title: "Die map — the real NOC grid",
     cols: 17, rows: 12, cell: 54, cellH: 40,
     tiles, arcs, mesh: { torus: true },
+    // A read from a GDDR6 bank on the far side of the die to a Tensix tile:
+    // NOC0 (0, 6) -> (12, 4), drawn in flipped rows. It crosses the management
+    // spine AND a disabled Tensix column, which is the point.
+    dataflow: {
+      label: "Trace a read",
+      title: "One read: GDDR6 bank (0,6) → Tensix (12,4)",
+      from: [0, 11 - 6], to: [12, 11 - 4],
+      note: "The packet runs along X to the destination column, turns ONCE, then runs along Y — dimension-ordered routing. Tenstorrent documents that choice and the reason for it: letting packets turn freely reintroduces cyclic-dependency deadlock, where every router waits on the next and none of them moves. Every tile on the way just switches the packet onward; its cores never see it. Note what the route passes straight through — the management spine at x = 8, and a disabled Tensix column, whose compute is off but whose routers are not.",
+    },
     lede: GRID_LEDE,
     hint: "Hover a tile for what sits there. Every tile here opens its block in the hierarchy below.",
     interconnect: MESH_NOTE,
@@ -306,6 +315,15 @@ export function dualDieMap() {
     title: "Die map — both ASICs, stacked, and the link between them",
     cols: 17, rows: 12 + BAND + 12, cell: 54, cellH: 34,
     tiles,
+    // A read that has to cross to the OTHER die: Tensix on ASIC 0, down its own
+    // mesh to the Ethernet row, across the link, and on into ASIC 1.
+    dataflow: {
+      label: "Trace a cross-die read",
+      title: "One read that leaves the die: ASIC 0 Tensix → the link → ASIC 1",
+      kind: "stops",
+      stops: [[5, 11 - 6], [5, 11 - 1], [5, 12], [5, 14], [5, LOWER + 1], [5, LOWER + 6]],
+      note: "Inside a die this would be a handful of NOC hops. Leaving it is a different kind of journey: down ASIC 0's mesh to an Ethernet tile, out through the MAC/PCS and 8 SerDes lanes, across the board, and back up the same stack into ASIC 1's mesh. The two dies share no NOC, so there is no shorter path — which is why the pair behaves as two devices that talk, rather than as one big grid.",
+    },
     arcs: [...top.arcs, ...bottom.arcs, ...linkArcs],
     // Two closed meshes, one per die — never tied across the band.
     mesh: { torus: true, regions: [{ x0: 0, x1: 16, y0: 0, y1: 11 }, { x0: 0, x1: 16, y0: LOWER, y1: LOWER + 11 }] },

@@ -118,6 +118,16 @@ export function dieMap(opts) {
     lede: `Each column below is one graphics processing cluster, each cell one texture processing cluster — an SM pair. Twelve GPCs of eight TPCs is the full GB202: 96 TPCs, 192 SMs, 24,576 CUDA cores. This card gets ${opts.activeSMs} of those SMs, so ${(192 - opts.activeSMs) / 2} TPCs are drawn dark.`,
     hint: "Hover a block for detail. Every TPC opens at its own place in the hierarchy below.",
     interconnect: "Drawn as the two crossbar bands the TPC field sits between. The L2 is sliced per memory partition, so a GPC's traffic can land in any slice — the crossbar is what makes 96 or 128 MB spread along both memory edges behave as one shared cache. No NVLink on either of these cards: off-card, the only path is PCIe 5.0 ×16.",
+    // A read on a GPU has no per-tile hops to trace: it is a walk down the
+    // hierarchy. The stops are the real ones -- SM, crossbar, L2 slice, memory
+    // controller -- and the whole point is how few there are next to Blackhole.
+    dataflow: {
+      label: "Trace a read",
+      title: "One read: TPC → crossbar → L2 → GDDR7",
+      kind: "stops",
+      stops: [[5, 8], [5, 3], [5, 2], [5, 1]],
+      note: "Nothing here hops tile to tile. An SM that misses in its own L1 goes out across the GPC⇄L2 crossbar to whichever L2 slice owns that address, and only on a miss there does it reach a memory controller. That is the whole path: four stops, not a route. It is the opposite of the Blackhole page, where distance is measured in NOC hops and the program chooses them — here the hierarchy decides, and the only lever a programmer has is whether the data was already in L2.",
+    },
     tiles: [
       ...band(0, [
         { w: 4, kind: "io", label: "PCIe 5.0 ×16", path: "pcie",
