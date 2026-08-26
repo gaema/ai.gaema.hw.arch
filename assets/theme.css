@@ -21,11 +21,11 @@
   --ink-dim: var(--n8);
   --ink-mid: var(--n10);
 
-  --accent: #2f6fd0;
-  --accent-soft: #e7effb;
+  --accent: #1f6feb;
+  --accent-soft: #eef3ff;
 
   /* Block kinds. -bg is the tile fill, -ink the stripe/label accent. */
-  --k-compute-ink: #2f6fd0;  --k-compute-bg: #e7effb;
+  --k-compute-ink: #1f6feb;  --k-compute-bg: #eef3ff;
   --k-matrix-ink:  #8a3fc0;  --k-matrix-bg:  #f2e9fb;
   --k-cache-ink:   #0f8a7a;  --k-cache-bg:   #e2f5f1;
   --k-memory-ink:  #b06a00;  --k-memory-bg:  #fbf0dd;
@@ -62,10 +62,10 @@
     --line: var(--n3);
     --line-strong: var(--n4);
 
-    --accent: #6ea8ff;
-    --accent-soft: #17253c;
+    --accent: #58a6ff;
+    --accent-soft: #122437;
 
-    --k-compute-ink: #6ea8ff;  --k-compute-bg: #16243a;
+    --k-compute-ink: #58a6ff;  --k-compute-bg: #122437;
     --k-matrix-ink:  #c08bf0;  --k-matrix-bg:  #271a38;
     --k-cache-ink:   #3fc9b2;  --k-cache-bg:   #102b28;
     --k-memory-ink:  #e0a13a;  --k-memory-bg:  #2e2413;
@@ -99,10 +99,10 @@
   --line: var(--n3);
   --line-strong: var(--n4);
 
-  --accent: #6ea8ff;
-  --accent-soft: #17253c;
+  --accent: #58a6ff;
+  --accent-soft: #122437;
 
-  --k-compute-ink: #6ea8ff;  --k-compute-bg: #16243a;
+  --k-compute-ink: #58a6ff;  --k-compute-bg: #122437;
   --k-matrix-ink:  #c08bf0;  --k-matrix-bg:  #271a38;
   --k-cache-ink:   #3fc9b2;  --k-cache-bg:   #102b28;
   --k-memory-ink:  #e0a13a;  --k-memory-bg:  #2e2413;

@@ -38,6 +38,8 @@ code, .mono {
   flex-wrap: wrap;
 }
 
+.brandwrap { white-space: nowrap; }
+
 .brand {
   font-weight: 650;
   letter-spacing: -0.01em;
@@ -46,7 +48,16 @@ code, .mono {
   white-space: nowrap;
 }
 
-.brand span { color: var(--ink-dim); font-weight: 400; }
+/* The wordmark is two links, not one: the site name goes to this site's root,
+   and "· gaema" goes to gaema.ai. Same shape on viz, so the family reads as a
+   family and there is always a way back up. */
+.brand-home {
+  color: var(--ink-dim);
+  font-weight: 400;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.brand-home:hover { color: var(--accent); }
 
 .top nav { display: flex; gap: 4px; margin-left: auto; }
 
