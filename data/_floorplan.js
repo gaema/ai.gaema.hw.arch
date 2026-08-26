@@ -2,10 +2,9 @@
 //
 // The three GPUs here share a shape: a front-end strip, memory controllers on
 // the edges, a cache slab, and a field of identical compute tiles in the
-// middle. Blackhole gets its positions from a published SoC descriptor; these
-// parts do not publish one, so the maps below are built from the vendors' own
-// block diagrams — the ARRANGEMENT is theirs, the exact geometry is not, and
-// every page says so.
+// middle. Blackhole has a SoC descriptor giving every tile's position; these
+// parts have only block diagrams, so the maps below are built from those — the
+// ARRANGEMENT is the vendor's, the exact geometry is not, and every page says so.
 
 // A row of side-by-side blocks that together span the die width.
 // `cells` is [{w, ...tile}, ...]; x is accumulated left to right.

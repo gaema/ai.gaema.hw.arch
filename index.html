@@ -13,7 +13,7 @@
 
 <header class="top">
   <div class="wrap">
-    <span class="brandwrap"><a class="brand" href="./">Accelerator architectures</a> <a class="brand-home" href="https://gaema.ai">· gaema</a></span>
+    <span class="brandwrap"><a class="brand" href="./">arch</a> <a class="brand-home" href="https://gaema.ai">· gaema</a></span>
     <nav id="nav"></nav>
     <button class="ghost" id="theme-toggle" type="button">Auto</button>
   </div>
@@ -77,14 +77,13 @@
     </p>
     <p class="lede">
       One map is real and the rest are logical, and each page says which it is.
-      Tenstorrent publishes a SoC descriptor giving every tile's NOC coordinate,
-      so the Blackhole map is the <strong>actual grid</strong>, drawn in the
-      vendor's own coordinates. The three GPUs publish block diagrams but no
-      per-unit geometry, so those maps take the vendor's <strong>arrangement</strong>
-      and lay it out for legibility — not to scale, and not to physical position.
-      A harvested part is drawn as the full die with the count stated, because no
-      vendor publishes which specific units a given card fused off. Figures come
-      only from published vendor documentation and press coverage; each page
+      Blackhole has a SoC descriptor giving every tile's NOC coordinate, so its
+      map is the <strong>actual grid</strong>, drawn in the vendor's own
+      coordinates. The three GPUs have block diagrams but no per-unit geometry,
+      so those maps take the vendor's <strong>arrangement</strong> and lay it out
+      for legibility — not to scale, and not to physical position. On a harvested
+      part the disabled units are drawn struck through so the cut is visible at a
+      glance; the count is real and the placement is illustrative. Each page
       lists its sources.
     </p>
   </section>

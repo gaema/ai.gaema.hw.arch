@@ -291,6 +291,10 @@ h2.section-h.sub + dl.spec-grid { margin-top: 8px; }
    make the row scannable and neither needs to change. */
 @media (max-width: 640px) {
   .chip { padding: 8px 12px; }
+  /* The picker gives up width first: it is the only elastic thing in the bar,
+     and a truncated part name still identifies the page (the selected option
+     is also shown in full when the list is open). */
+  .top nav select { max-width: 9rem; }
 }
 .chip[aria-pressed="true"] { background: var(--tile-bg, var(--accent-soft)); color: var(--tile-ink, var(--accent)); border-color: var(--tile-ink, var(--accent)); font-weight: 600; }
 
