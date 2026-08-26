@@ -284,6 +284,14 @@ h2.section-h.sub + dl.spec-grid { margin-top: 8px; }
 
 .chip.chip-kind { border-color: var(--tile-ink); color: var(--tile-ink); }
 .chip:hover { background: var(--n2); }
+
+/* Portrait phones: the filter chips measured 27px tall, under the 24px minimum
+   once you allow for an imprecise finger, and there are ten of them in a row
+   above the die map. Padding only -- the type size and the pill shape are what
+   make the row scannable and neither needs to change. */
+@media (max-width: 640px) {
+  .chip { padding: 8px 12px; }
+}
 .chip[aria-pressed="true"] { background: var(--tile-bg, var(--accent-soft)); color: var(--tile-ink, var(--accent)); border-color: var(--tile-ink, var(--accent)); font-weight: 600; }
 
 .map-scroll { overflow-x: auto; padding-bottom: 4px; }
