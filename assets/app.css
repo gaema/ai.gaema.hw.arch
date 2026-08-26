@@ -101,19 +101,21 @@ code, .mono {
 .top nav a:hover { background: var(--n2); color: var(--ink); }
 .top nav a[aria-current="page"] { background: var(--accent-soft); color: var(--accent); }
 
+/* Theme switch. Same shape as viz's .vz-theme-btn: a mono glyph in a small
+   bordered square, the mode carried by the tooltip rather than by width. The
+   old form was a 62px-wide word ("Auto" / "Light" / "Dark"), which is the one
+   control that moved when the theme changed. */
 button.ghost {
-  font: inherit;
-  font-size: 13px;
-  color: var(--ink-mid);
-  background: transparent;
+  font: 13px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+  color: var(--ink-dim);
+  background: var(--panel);
   border: 1px solid var(--line-strong);
-  border-radius: 6px;
-  padding: 4px 10px;
+  border-radius: 7px;
+  padding: 6px 10px;
   cursor: pointer;
-  min-width: 62px;
 }
 
-button.ghost:hover { background: var(--n2); color: var(--ink); }
+button.ghost:hover { border-color: var(--accent); color: var(--accent); }
 
 /* ---------- landing ---------- */
 
