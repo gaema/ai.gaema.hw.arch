@@ -101,14 +101,14 @@ export function dieMap(opts) {
   const off = new Set(opts.disabledIndices || []);
   const memBlocks = opts.memBlocksPerBand;
   const fractionLabel = `1/${memBlocks * 2} of the bus`;
-  const memDetail = `One ${memBlocks * 2 === 8 ? "eighth" : "quarter"} of the ${opts.bus} ${opts.dram} interface — ${opts.bw} from ${opts.busBits} bits × ${opts.memSpeed}. Intel does not publish how that bus is divided into controllers for this die, so the blocks are a drawing convenience, NOT a controller count.`;
+  const memDetail = `One ${memBlocks * 2 === 8 ? "eighth" : "quarter"} of the ${opts.bus} ${opts.dram} interface — ${opts.bw} from ${opts.busBits} bits × ${opts.memSpeed}. The blocks are a drawing convenience, NOT a controller count.`;
   const memSpecs = [
     ["This block", `1 of ${memBlocks * 2} drawn — not a controller count`],
     ["Its share of bandwidth", opts.shareOfBw],
     ["Whole memory subsystem", `${opts.bus}, ${opts.bw}`],
     ["DRAM on the board", `${opts.mem} ${opts.dram}`],
   ];
-  const fabricSpecs = [["Reaches", `all ${opts.xeCores} Xe-cores`], ["Topology", "not published"]];
+  const fabricSpecs = [["Reaches", `all ${opts.xeCores} Xe-cores`]];
 
   return {
     title: "Die map — Xe2 (Battlemage)",
@@ -121,9 +121,9 @@ export function dieMap(opts) {
       kind: "stops",
       stops: [[Math.floor(cols / 2) - 2, 5], [Math.floor(cols / 2) - 2, 3],
               [Math.floor(cols / 2) - 2, 2], [Math.floor(cols / 2) - 2, 1]],
-      note: `An Xe-core that misses in its own 256 KB of L1/SLM crosses the fabric to L2, and a miss there goes to a memory controller. Three stops — and the L2 is the level Intel does not publish a size for, so this page states the path rather than what fraction of it ends at L2.`,
+      note: `An Xe-core that misses in its own 256 KB of L1/SLM crosses the fabric to L2, and a miss there goes to a memory controller. Three stops, not a route — the hierarchy decides where a read lands, and the only lever a kernel has is whether the data was already in L2.`,
     },
-    interconnect: "Drawn as the two Xe fabric bands the compute field sits between. Intel publishes the render-slice grouping but not the fabric's topology for this part, so it is a labelled band rather than a shape — the claim is only that every Xe-core reaches L2 and memory through it.",
+    interconnect: "Drawn as the two Xe fabric bands the compute field sits between — a labelled band rather than a shape, since the claim is only that every Xe-core reaches L2 and memory through it.",
     tiles: [
       ...band(0, opts.frontEnd(cols)),
       ...memBand(1, memBlocks, cols, opts.dram, () => fractionLabel, memDetail, memSpecs),
@@ -131,7 +131,7 @@ export function dieMap(opts) {
         detail: opts.l2Detail,
         specs: opts.l2Specs }]),
       ...band(3, [{ w: cols, kind: "link", label: "Xe fabric", sub: "Xe-cores ⇄ L2 ⇄ memory controllers",
-        detail: "The on-die interconnect between the render slices and the memory side. Every Xe-core reaches L2 and the memory controllers across it; Intel does not publish its topology for this part, so it is drawn as a band rather than given a shape it may not have.",
+        detail: "The on-die interconnect between the render slices and the memory side. Every Xe-core reaches L2 and the memory controllers across it. Drawn as a band rather than a specific topology.",
         specs: fabricSpecs }]),
       ...field({
         y0: 4, perRow, rows: fieldRows, w: 2,
@@ -142,7 +142,7 @@ export function dieMap(opts) {
             return {
               kind: "off", label: "Xe-core", sub: "disabled",
               detail: opts.disabledDetail,
-              specs: [["State", "disabled on this SKU"], ["Position", "not published by Intel"]],
+              specs: [["State", "disabled on this SKU"], ["Position", "illustrative"]],
             };
           }
           return {

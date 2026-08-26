@@ -60,25 +60,16 @@ python3 -m http.server 8080
 
 ## Conventions
 
-- **Published figures only, and anything else is labelled where it appears.**
-  Every number comes from vendor documentation or press coverage, and every page
-  lists its sources. Where a vendor does not publish a figure the site says so
-  rather than estimating — and says what was looked for, so the reader can tell
-  *nobody knows* from *we did not check*.
+- **State the figure; don't narrate its sourcing.** Every number comes from
+  vendor documentation, published analysis, or the silicon itself, and every
+  page lists its sources at the bottom. The page body carries the VALUE — a
+  reader wants to know that the B70's L2 is 24 MiB, not to read commentary
+  about which vendor documents do or do not mention it. Where a figure is
+  genuinely unknown the cell reads `—`.
 
-  Three figures are read from hardware instead, each named as such at the point
-  of use: the p300c die-to-die channel pairing (in no document; read from a live
-  card's UMD cluster descriptor and cross-checked against a second board), and
-  the **L2 capacities of BMG-G31 and BMG-G21** — 24 MiB and 18 MiB. Intel
-  publishes no L2 figure for either die: not in the product specifications, not
-  in the B50 data sheet, not in review teardowns, and not statically in Intel's
-  own compute-runtime, which fills the field from the driver at runtime. Reading
-  it from the device is the only way to obtain it, so the site states it and
-  says so.
-
-  Anything read from hardware must be a property of the SILICON, not of us: no
-  performance measurement of ours appears here, and nothing about the machine a
-  reading came from — no host, no bus address, no fleet detail.
+  Whatever the route to a number, it must be a property of the SILICON: no
+  performance measurement of ours appears here, and nothing about the machine
+  any reading came from — no host, no bus address, no fleet detail.
 - **Keep the die and the board apart, and never let an attribute cross.** A
   QSFP-DD cage and a PCIe edge connector are parts of the CARD: they are drawn
   outside the die block, in their own row, with runs to the die tiles they are
@@ -91,23 +82,21 @@ python3 -m http.server 8080
 - **A page describes ONE product.** Sibling variants — Max-Q, Server Edition,
   the cut-down part in the same family — are named as separate products or left
   out, never folded into this card's figures.
-- **Say whether a map is real or logical.** Tenstorrent publishes a SoC
-  descriptor giving every tile's NOC coordinate, so the Blackhole map is the
-  actual 17 × 12 grid in the vendor's own coordinates (Y = 0 at the bottom). The
-  three GPUs publish block diagrams but no per-unit geometry, so those maps take
-  the vendor's arrangement and lay it out for legibility — not to scale, not to
+- **Say whether a map is real or logical.** Blackhole has a SoC descriptor
+  giving every tile's NOC coordinate, so its map is the actual 17 × 12 grid in
+  the vendor's own coordinates (Y = 0 at the bottom). The three GPUs have block
+  diagrams but no per-unit geometry, so those maps take the vendor's
+  arrangement and lay it out for legibility — not to scale, not to
   physical position — and say so on the page. Never present a hand-placed
   floorplan as a die photo.
-- **A harvest is drawn, but its POSITION is never claimed.** Disabled units are
-  shown struck through and greyed, because a reader comparing 188 of 192 against
-  120 of 140 should see the difference rather than read it. What no vendor
-  publishes is WHICH units a given card fused off, so the placement is always
-  declared as a drawing choice at the point of use: the Blackwell pages draw
-  dark TPCs, Blackhole draws a mirrored column pair whose *shape* is known from
-  the harvesting scheme while the specific pair varies per die, and the B50
-  draws four disabled Xe-cores grouped only for legibility — the B570's 18 of
-  the same 20 proves Intel harvests per-Xe-core, so no whole-slice cut should be
-  inferred from the picture.
+- **A harvest is drawn; its POSITION is illustrative.** Disabled units are
+  shown struck through and greyed, because a reader comparing 188 of 192
+  against 120 of 140 should see the difference rather than read it. WHICH units
+  a given card fused off is not something the maps assert: the Blackwell pages
+  draw dark TPCs, Blackhole draws a mirrored column pair whose *shape* follows
+  from the harvesting scheme while the specific pair varies per die, and the
+  B50 draws four disabled Xe-cores grouped for legibility. Each says at the
+  point of use that the placement is illustrative.
 - **Draw the interconnect the shape it actually is.** Blackhole has a router in
   every tile, so its map draws real tile-to-tile links (`mesh: {torus: true}`,
   rendered into the grid gaps) plus the QSFP cage runs as arcs. A multi-die card
@@ -116,8 +105,7 @@ python3 -m http.server 8080
   side — and each die's mesh is a separate `regions` entry so nothing ties
   across the band. The three GPUs
   do not work that way — their compute reaches cache and memory across a shared
-  fabric whose topology two of the three vendors do not publish — so they get a
-  labelled fabric *band*, hatched and dashed so it never reads as another cache
+  fabric — so they get a labelled fabric *band*, hatched and dashed so it never reads as another cache
   level. Giving a GPU a mesh it does not have would be the same class of error
   as inventing a harvest pattern.
 - **Colours come from `assets/theme.css`, never from a literal.** The page must

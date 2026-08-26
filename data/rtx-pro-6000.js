@@ -74,7 +74,7 @@ export default {
   },
 
   dieNote:
-    "The GPC array below is drawn as the full 12-GPC GB202. This card enables 188 of the die's 192 SMs; NVIDIA does not publish which four are disabled, so no particular SM here is marked off.",
+    "The GPC array below is drawn as the full 12-GPC GB202. This card enables 188 of the die's 192 SMs; no particular SM here is marked off.",
 
   sources: [
     ["NVIDIA — RTX PRO 6000 Blackwell Workstation Edition", "https://www.nvidia.com/en-us/products/workstations/professional-desktop-gpus/rtx-pro-6000/"],

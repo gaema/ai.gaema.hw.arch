@@ -16,9 +16,9 @@ export default {
   spec: {
     "Architecture": "Blackhole",
     "Die": "Blackhole ASIC × 2",
-    "Process node": "6 nm — Tenstorrent's own figure; it has never named the foundry",
-    "Transistors": "Not published — no vendor figure, and no third-party die analysis of Blackhole exists",
-    "Die area": "Not published — the ~600 mm² figure in circulation is a pre-launch third-party estimate, not Tenstorrent's",
+    "Process node": "6 nm",
+    "Transistors": "—",
+    "Die area": "—",
     "Execution unit": "Tensix tile",
     "Units enabled": "240 of 280 — 120 of 140 per ASIC",
     "Matrix engines": "240 (1 per Tensix tile)",
@@ -59,7 +59,7 @@ export default {
 
   root: {
     id: "card", label: "Blackhole p300c", kind: "compute",
-    note: "two Blackhole ASICs on one liquid-cooled board, behind a single PCIe 5.0 ×16 edge connector — but each die keeps its OWN live PCIe interface, so they do not share one. How the board fans two endpoints onto one connector is not in the published descriptors, so it is not drawn",
+    note: "two Blackhole ASICs on one liquid-cooled board, behind a single PCIe 5.0 ×16 edge connector — but each die keeps its OWN live PCIe interface, so they do not share one. How the board fans two endpoints onto one connector is not drawn",
     cols: 2,
     children: [
       {
@@ -77,7 +77,7 @@ export default {
       },
       {
         id: "slot", label: "PCIe 5.0 ×16 edge", kind: "io", span: 2,
-        note: "the card's edge connector — a board part. Each ASIC has its own live PCIe tile, so the card carries two endpoints behind one connector; the board-level fan-out is not published and is not claimed here",
+        note: "the card's edge connector — a board part. Each ASIC has its own live PCIe tile, so the card carries two endpoints behind one connector; the board-level fan-out is not drawn",
       },
     ],
   },

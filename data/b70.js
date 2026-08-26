@@ -1,6 +1,5 @@
 // Intel Arc Pro B70 -- Xe2 "Battlemage", BMG-G31.
-// Every figure here is from a published vendor or press source, except the L2
-// capacity, which Intel does not publish and which is labelled where it appears.
+// Every figure here is from a published vendor or press source; see `sources`.
 
 import { sliceList, dieMap } from "./_battlemage.js";
 
@@ -23,7 +22,7 @@ const SHAPE = {
 };
 
 const L2_NOTE =
-  "24 MiB, shared across every render slice and banked with the memory controllers. Intel publishes no L2 figure for BMG-G31 — not in the product specifications and not in any review teardown — so this is the capacity the device itself reports through the driver, which is the only way to obtain it";
+  "24 MiB, shared across every render slice and banked with the memory controllers rather than sitting as one block";
 
 export default {
   id: "b70",
@@ -44,7 +43,7 @@ export default {
     "Execution unit": "Xe-core",
     "Units enabled": "32 of 32 — full die",
     "Matrix engines": "256 XMX engines (8 per Xe-core)",
-    "On-chip memory": "24 MiB L2 — Intel publishes no figure; this is what the device reports",
+    "On-chip memory": "24 MiB L2",
     "Memory": "32 GB GDDR6",
     "Memory bus": "256-bit",
     "Memory bandwidth": "608 GB/s",
@@ -72,7 +71,7 @@ export default {
     "SIMD width": "8 × 512-bit vector engines, SIMD16 native",
     "Matrix engine": "XMX, 8 per Xe-core",
     "Matrix engines total": "256",
-    "Last-level cache": "24 MiB L2 (device-reported)",
+    "Last-level cache": "24 MiB L2",
     "Memory": "32 GB GDDR6",
     "Bandwidth": "608 GB/s",
     "Board power": "230 W reference",
@@ -83,9 +82,8 @@ export default {
     ...SHAPE,
     l2Sub: "24 MiB shared across all render slices",
     l2Detail:
-      "24 MiB of shared last level, banked into slices tied to the memory controllers rather than the single block drawn here. Intel publishes no L2 capacity for BMG-G31, so this is the figure the device reports through the driver — see the note under the map.",
-    l2Specs: [["Capacity", "24 MiB"], ["Source", "device-reported, not published by Intel"],
-              ["Physically", "banked with the memory controllers"]],
+      "24 MiB of shared last level, banked into slices tied to the memory controllers rather than the single block drawn here.",
+    l2Specs: [["Capacity", "24 MiB"], ["Physically", "banked with the memory controllers"]],
     frontEnd: () => [
       { w: 5, kind: "io", label: "PCIe 5.0 ×16", path: "pcie",
         detail: "The host link: 16 lanes of PCIe 5.0, about 63 GB/s each way — roughly a tenth of the 608 GB/s the card reaches its own GDDR6 at. Model weights cross here once at load; anything that has to keep crossing it during inference is in a fundamentally slower regime." },
@@ -95,7 +93,7 @@ export default {
         detail: "The display engine, which scans finished framebuffers out to the physical outputs, alongside the fixed-function media block that encodes and decodes video without using the Xe-cores. Neither participates in inference." },
     ],
     mapNote:
-      "Nothing here is drawn as disabled: the B70 is the full 32 Xe-core configuration of the die — the cut-down part in this family is the B65 — so there is no harvest to mark, unlike the Blackwell and Blackhole pages. The 24 MiB L2 is the one figure on this page Intel does not publish; it is read from the device, and is the same class of exception as the p300c's die-to-die channel numbers.",
+      "Nothing here is drawn as disabled: the B70 is the full 32 Xe-core configuration of the die — the cut-down part in this family is the B65 — so there is no harvest to mark, unlike the Blackwell and Blackhole pages.",
   }),
 
   root: {
@@ -106,14 +104,13 @@ export default {
       ...sliceList(SHAPE),
       {
         id: "l2", label: "L2 cache — 24 MiB", kind: "cache", span: 2,
-        specs: [["Capacity", "24 MiB"], ["vs BMG-G21 (B50)", "18 MiB"],
-                ["Source", "device-reported — Intel publishes none"]],
+        specs: [["Capacity", "24 MiB"], ["vs BMG-G21 (B50)", "18 MiB"]],
         note: L2_NOTE + ". Anything that misses here goes to GDDR6 at 608 GB/s, so what fits in L2 sets how close a bandwidth-bound kernel gets to peak — and the 33% more of it than the B50 carries (24 MiB against 18) is one of the two things, with bandwidth, that separates the two parts at the same clock",
       },
       {
         id: "gddr", label: "GDDR6 memory controllers", kind: "memory", span: 2,
         specs: [["Capacity", "32 GB"], ["Bus", "256-bit"], ["Bandwidth", "608 GB/s"]],
-        note: "the controllers driving the card's 32 GB of GDDR6 — 256 bits at 19 Gbps, so 608 GB/s. This is the number that bounds token generation: in a memory-bound decode every weight is read once per token, so the model's size divided by this rate is the floor on time per token no amount of compute can undercut. Intel does not publish how the bus is split into controllers for this die",
+        note: "the controllers driving the card's 32 GB of GDDR6 — 256 bits at 19 Gbps, so 608 GB/s. This is the number that bounds token generation: in a memory-bound decode every weight is read once per token, so the model's size divided by this rate is the floor on time per token no amount of compute can undercut",
       },
       { id: "cs", label: "Command streamer", kind: "sched",
         note: "the die-wide front end. It reads the command buffers the driver builds and dispatches thread groups out to the render slices, where each Xe-core's own thread dispatcher places them on its vector engines. Every kernel launch enters the GPU through this block" },

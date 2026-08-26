@@ -190,18 +190,18 @@ export function dieTiles(pathPrefix, opts = {}) {
             ? (port
               ? `Ethernet channel ${ch}, 400 GbE bidirectional, wired on the board to QSFP-DD cage ${port} — the cage pairs two such tiles for 800 GbE and is itself a board part, drawn below the die. Each Ethernet tile runs its own RISC-V core, so the link is programmable rather than a fixed-function PHY.`
               : `Ethernet channel ${ch}, 400 GbE bidirectional. No board connector is cabled to this channel on this card — 8 of the 12 usable channels reach a cage — so it can neither send nor receive, though its RISC-V core and L1 remain usable.`)
-            : `Ethernet channel ${ch}. Each Ethernet tile runs its own RISC-V core, so the link is programmable rather than a fixed-function PHY. Which channels leave this board, and through what connector, is not something the published board definitions cover for this SKU — so no cage is claimed here.`,
+            : `Ethernet channel ${ch}. Each Ethernet tile runs its own RISC-V core, so the link is programmable rather than a fixed-function PHY. Which channels leave this board, and through what connector, is not drawn for this SKU.`,
           path: p("eth") });
       } else if (y >= 2) {
         // Blackhole harvests whole Tensix COLUMNS -- UMD tests the mask as
         // `tensix_harvesting_mask & (1 << x)`. A P150/P300 ships 120 of 140,
         // i.e. two of the fourteen columns fused off. WHICH two is a per-part
-        // property with no published table, so the count is drawn at a fixed
+        // property that varies per part, so the count is drawn at a fixed
         // place and every such tile says the position is not the claim.
         const off = HARVESTED_TENSIX_X.includes(x);
         tiles.push(off
           ? { ...base, kind: "off", label: "Tensix", sub: "router on",
-              detail: `Compute disabled — one of the 20 Tensix tiles that take this SKU from 140 to 120. Its five RISC-V cores and compute complex are off. Its two NOC routers are almost certainly not: harvesting takes whole columns, and a column that stopped routing would cut the die in half, so the mesh is drawn running through. Tenstorrent does not state this in so many words, so treat it as the only reading the topology allows rather than a quoted fact. WHICH two columns go dark varies per die — this is binning, and published examples differ. What does not vary is the shape: the disable mask is indexed on the die's outside-in pairing order {1,16,2,15,3,14,4,13,5,12,6,11,7,10}, whose pairs each sum to 17, so the two columns are always MIRRORED about the die's centre — one in each half. The pair drawn here is real but stands for that shape, not for a known position.`,
+              detail: `Compute disabled — one of the 20 Tensix tiles that take this SKU from 140 to 120. Its five RISC-V cores and compute complex are off. Its two NOC routers are almost certainly not: harvesting takes whole columns, and a column that stopped routing would cut the die in half, so the mesh is drawn running through — the only reading the topology allows. WHICH two columns go dark varies per die; this is binning. What does not vary is the shape: the disable mask is indexed on the die's outside-in pairing order {1,16,2,15,3,14,4,13,5,12,6,11,7,10}, whose pairs each sum to 17, so the two columns are always MIRRORED about the die's centre — one in each half. The pair drawn here is real but stands for that shape, not for a known position.`,
               specs: [["Compute", "disabled"], ["NOC routers", "2 — inferred still routing"], ["Columns disabled", "2 of 14, a mirrored pair"], ["Tiles", "20 of 140"], ["Which pair", "varies per die"]] }
           : { ...base, kind: "compute", label: "Tensix",
               detail: "One Tensix tile: five baby RISC-V cores, a matrix engine, a vector engine and 1.5 MB of software-managed SRAM, behind two NOC routers.",
@@ -337,7 +337,7 @@ export function dualDieMap() {
       specs: [["Type", "Samtec ARP6 cable"], ["Not", "QSFP-DD"], ["Carries", "Ethernet from both dies"]],
       path: "link" },
     { x: 4, y: 13, w: 10, h: 1, kind: "link", label: "die ⇄ die — 2 × Ethernet over PCB", sub: "ch 3⇄8 · ch 2⇄9 · stays on the card",
-      detail: "The die-to-die link never leaves the board: differential pairs routed on the PCB between the two ASICs' SerDes. tt-metal's mesh graph for this board declares a 1 × 2 device topology with channel count 2. WHICH two is in no published table — UMD discovers the pairing at bring-up from board_id, asic_location and eth_id — and read off a live p300c it is logical channel 3 ⇄ 8 and 2 ⇄ 9, identical on two independent boards. Those are LOGICAL ids, renumbered by Ethernet harvesting, so they do not index the SoC descriptor's tile list and no NOC coordinate is claimed for them.",
+      detail: "The die-to-die link never leaves the board: differential pairs routed on the PCB between the two ASICs' SerDes. tt-metal's mesh graph for this board declares a 1 × 2 device topology with channel count 2. UMD discovers the pairing at bring-up from board_id, asic_location and eth_id; it resolves to logical channel 3 ⇄ 8 and 2 ⇄ 9. Those are LOGICAL ids, renumbered by Ethernet harvesting, so they do not index the SoC descriptor's tile list and no NOC coordinate is claimed for them.",
       specs: [["Channels", "2"], ["Pairing", "ch 3 ⇄ 8, ch 2 ⇄ 9"], ["Medium", "PCB differential pairs"], ["Leaves the card", "no"]],
       path: "link" },
   ];
@@ -409,7 +409,7 @@ export function asic(activeTensix) {
         ...tensix, id: "tensix", span: 2,
         count: `${activeTensix} of 140 enabled`,
         gridNote:
-          `Blackhole harvests whole Tensix columns — ${activeTensix} of the die's 140 tiles are enabled on this SKU, i.e. ${(140 - activeTensix) / 10} of the 14 columns are fused off. Which columns is a per-part property and is not published, so the die map above draws all 140 rather than guessing at a pattern.`,
+          `Blackhole harvests whole Tensix columns — ${activeTensix} of the die's 140 tiles are enabled on this SKU, i.e. ${(140 - activeTensix) / 10} of the 14 columns are fused off. Which columns varies from part to part, so the die map above draws all 140 rather than a particular pattern.`,
       },
       {
         id: "bigrv", label: "Big RISC-V complex", kind: "sched", span: 2,

@@ -75,7 +75,7 @@ export default {
   },
 
   dieNote:
-    "The GPC array below is drawn as the full 12-GPC GB202. This card enables 170 of the die's 192 SMs; NVIDIA does not publish the exact harvest pattern, so no particular SM here is marked off.",
+    "The GPC array below is drawn as the full 12-GPC GB202. This card enables 170 of the die's 192 SMs; no particular SM here is marked off.",
 
   sources: [
     ["NVIDIA — GeForce RTX 5090", "https://www.nvidia.com/en-us/geforce/graphics-cards/50-series/rtx-5090/"],

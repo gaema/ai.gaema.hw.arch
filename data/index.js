@@ -26,9 +26,9 @@ const LOADERS = {
 
 // The spec card's fixed spine: every SKU answers these, in this order, so the
 // card reads the same on every page and a reader can compare down a column
-// instead of hunting for whichever field a given vendor happened to publish.
-// A field nobody publishes is answered "Not published" rather than dropped --
-// an absent row and an unanswerable one look identical once the row is gone.
+// instead of hunting for whichever field a given vendor happened to quote.
+// A field with no known value reads "--" rather than being dropped: an absent
+// row and an unknown one look identical once the row is gone.
 export const SPEC_SPINE = [
   "Architecture",
   "Die",
