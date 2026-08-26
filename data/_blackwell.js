@@ -142,7 +142,7 @@ export function dieMap(opts) {
     // hierarchy. The stops are the real ones -- SM, crossbar, L2 slice, memory
     // controller -- and the whole point is how few there are next to Blackhole.
     dataflow: {
-      label: "Trace a read",
+      label: "Traced read",
       title: "One read: TPC → crossbar → L2 → GDDR7",
       kind: "stops",
       stops: [[5, 8], [5, 3], [5, 2], [5, 1]],

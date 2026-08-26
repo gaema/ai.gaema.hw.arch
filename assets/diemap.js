@@ -203,31 +203,62 @@ export function renderDieMap(sku, onOpenPath) {
   for (const t of tiles) if (!kinds.includes(t.kind)) kinds.push(t.kind);
 
   const bar = el("div", "filters");
+
+  // The filters pick ONE kind out of N -- setFilter below clears every other
+  // chip -- so they are a radio group, not a row of toggles. That distinction
+  // is invisible on screen (a highlight looks the same either way) and decides
+  // everything off it: a radio group announces "3 of 8" and moves with the
+  // arrow keys, while eight aria-pressed buttons announce eight independent
+  // on/off controls and give no way to hear that choosing one un-chose another.
+  // The group needs its own element because the two toggle buttons share this
+  // bar and must NOT be members of it.
+  const group = el("div", "filter-group");
+  group.setAttribute("role", "radiogroup");
+  group.setAttribute("aria-label", "Show one kind of block");
+  bar.append(group);
+
   const chips = [];
 
-  function setFilter(kind) {
-    for (const c of chips) c.el.setAttribute("aria-pressed", String(c.kind === kind));
+  function setFilter(kind, focus) {
+    for (const c of chips) {
+      const on = c.kind === kind;
+      c.el.setAttribute("aria-checked", String(on));
+      // Roving tabindex: a radio group is ONE tab stop, and the arrows move
+      // within it. Eight separate stops would be the toggle behaviour again.
+      c.el.tabIndex = on ? 0 : -1;
+      if (on && focus) c.el.focus();
+    }
     for (const t of grid.children) {
       t.classList.toggle("dimmed", kind !== null && t.dataset.kind !== kind);
     }
   }
 
-  const all = el("button", "chip", "All blocks");
-  all.type = "button";
-  all.setAttribute("aria-pressed", "true");
-  all.addEventListener("click", () => setFilter(null));
-  chips.push({ el: all, kind: null });
-  bar.append(all);
+  function onKey(e) {
+    const step = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[e.key];
+    if (!step) return;
+    e.preventDefault();
+    const i = chips.findIndex((c) => c.el === e.target);
+    setFilter(chips[(i + step + chips.length) % chips.length].kind, true);
+  }
 
-  for (const k of kinds) {
-    const c = el("button", "chip", KINDS[k] || k);
+  function addChip(kind, label) {
+    const c = el("button", "chip", label);
     c.type = "button";
-    c.setAttribute("aria-pressed", "false");
+    c.setAttribute("role", "radio");
+    c.setAttribute("aria-checked", String(kind === null));
+    c.tabIndex = kind === null ? 0 : -1;
+    c.addEventListener("click", () => setFilter(kind));
+    c.addEventListener("keydown", onKey);
+    chips.push({ el: c, kind });
+    group.append(c);
+    return c;
+  }
+
+  addChip(null, "All blocks");
+  for (const k of kinds) {
+    const c = addChip(k, KINDS[k] || k);
     paint(c, k);
     c.classList.add("chip-kind");
-    c.addEventListener("click", () => setFilter(k));
-    chips.push({ el: c, kind: k });
-    bar.append(c);
   }
   host.append(bar);
 
@@ -315,15 +346,15 @@ export function renderDieMap(sku, onOpenPath) {
   host.append(scroll);
 
   if (map.dataflow) {
-    const d = el("button", "chip df-toggle", map.dataflow.label || "Trace a read");
+    // Named for the THING it shows, not for the next action -- the same shape
+    // as the seven kind filters beside it, so all ten chips in this bar are one
+    // control type: label = what it is, aria-pressed = whether it is on, and
+    // the highlight carries the state. An action label ("Hide the read") cannot
+    // pair with aria-pressed, because pressed reports what IS while the label
+    // promises what a click WILL do -- they invert the moment the toggle is on.
+    const base = map.dataflow.label || "Traced read";
+    const d = el("button", "chip df-toggle", base);
     d.type = "button";
-    // The VISIBLE label names the next action ("Trace a read" / "Hide the
-    // read"), which is right on screen and wrong for the accessible name:
-    // aria-pressed reports whether the overlay is SHOWN, so pairing it with an
-    // action name announces the inverse of the truth -- "Hide the read,
-    // pressed" while the read is visible. A stable noun fixes the pairing
-    // without changing anything a sighted reader sees.
-    d.setAttribute("aria-label", "Traced read");
     d.setAttribute("aria-pressed", "false");
     d.addEventListener("click", () => {
       routeOn = !routeOn;
@@ -333,9 +364,10 @@ export function renderDieMap(sku, onOpenPath) {
       // cost. A GPU read passes through named levels, which are stops, not hops;
       // calling them hops would invent a distance the hierarchy does not have.
       const unit = map.dataflow.kind === "stops" ? "stops" : "hops";
-      d.textContent = routeOn
-        ? (hops ? `Hide the read · ${hops} ${unit}` : "Hide the read")
-        : (map.dataflow.label || "Trace a read");
+      // The count is an ANNOTATION on the same name, not a different name: the
+      // accessible name stays recognisably "Traced read" whether on or off,
+      // which is what WCAG 2.5.3 (Label in Name) asks of a visible label.
+      d.textContent = routeOn && hops ? `${base} · ${hops} ${unit}` : base;
       tip.textContent = "";
       if (routeOn) {
         tip.append(el("strong", null, map.dataflow.title || "One read, traced"));
@@ -347,19 +379,13 @@ export function renderDieMap(sku, onOpenPath) {
   }
 
   if (svg) {
-    const t = el("button", "chip ic-toggle", "Hide interconnect");
+    const t = el("button", "chip ic-toggle", "Interconnect");
     t.type = "button";
-    // Same pairing as the traced-read chip above: pressed = the interconnect is
-    // SHOWN, so the accessible name has to be the thing, not the action. This
-    // one announced "Hide interconnect, pressed" on every page load, with the
-    // interconnect fully visible.
-    t.setAttribute("aria-label", "Interconnect");
     t.setAttribute("aria-pressed", "true");
     t.addEventListener("click", () => {
-      const on = svg.classList.toggle("off");
-      svgTop.classList.toggle("off", on);
-      t.setAttribute("aria-pressed", String(!on));
-      t.textContent = on ? "Show interconnect" : "Hide interconnect";
+      const hidden = svg.classList.toggle("off");
+      svgTop.classList.toggle("off", hidden);
+      t.setAttribute("aria-pressed", String(!hidden));
     });
     bar.append(t);
   }

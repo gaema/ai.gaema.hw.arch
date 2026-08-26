@@ -282,7 +282,7 @@ export function dieMap(pathPrefix) {
     // NOC0 (0, 6) -> (12, 4), drawn in flipped rows. It crosses the management
     // spine AND a disabled Tensix column, which is the point.
     dataflow: {
-      label: "Trace a read",
+      label: "Traced read",
       title: "One read: GDDR6 bank (0,6) → Tensix (12,4)",
       from: [0, 11 - 6], to: [12, 11 - 4],
       note: "The packet runs along X to the destination column, turns ONCE, then runs along Y — dimension-ordered routing. Tenstorrent documents that choice and the reason for it: letting packets turn freely reintroduces cyclic-dependency deadlock, where every router waits on the next and none of them moves. Every tile on the way just switches the packet onward; its cores never see it. Note what the route passes straight through — the management spine at x = 8, and a disabled Tensix column, whose compute is off but whose routers are not.",
@@ -372,7 +372,7 @@ export function dualDieMap() {
     // A read that has to cross to the OTHER die: Tensix on ASIC 0, down its own
     // mesh to the Ethernet row, across the link, and on into ASIC 1.
     dataflow: {
-      label: "Trace a cross-die read",
+      label: "Traced cross-die read",
       title: "One read that leaves the die: ASIC 0 Tensix → the link → ASIC 1",
       kind: "stops",
       stops: [[5, 11 - 6], [5, 11 - 1], [5, 12], [5, 14], [5, LOWER + 1], [5, LOWER + 6]],

@@ -271,6 +271,12 @@ h2.section-h.sub + dl.spec-grid { margin-top: 8px; }
 
 .filters { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
 
+/* The radio group is a real element rather than display:contents, so its
+   semantics survive in every engine; nesting the same flex reproduces the
+   single-row-of-chips layout it replaced, and .ic-toggle's margin-left:auto
+   still pushes off the group as a whole. */
+.filter-group { display: flex; flex-wrap: wrap; gap: 6px; }
+
 .chip {
   font: inherit;
   font-size: 12px;
@@ -296,7 +302,11 @@ h2.section-h.sub + dl.spec-grid { margin-top: 8px; }
      is also shown in full when the list is open). */
   .top nav select { max-width: 9rem; }
 }
-.chip[aria-pressed="true"] { background: var(--tile-bg, var(--accent-soft)); color: var(--tile-ink, var(--accent)); border-color: var(--tile-ink, var(--accent)); font-weight: 600; }
+/* Selected filter (aria-checked, a radio) and engaged toggle (aria-pressed) get
+   the same treatment: the highlight means "this is on" either way. The ARIA
+   differs because the CONTROLS differ; the visual language does not. */
+.chip[aria-pressed="true"],
+.chip[aria-checked="true"] { background: var(--tile-bg, var(--accent-soft)); color: var(--tile-ink, var(--accent)); border-color: var(--tile-ink, var(--accent)); font-weight: 600; }
 
 .map-scroll { overflow-x: auto; padding-bottom: 4px; }
 
@@ -361,12 +371,10 @@ h2.section-h.sub + dl.spec-grid { margin-top: 8px; }
   z-index: 2;
 }
 
-.chip.df-toggle[aria-pressed="true"] {
-  background: var(--accent-soft);
-  color: var(--accent);
-  border-color: var(--accent);
-  font-weight: 600;
-}
+/* No per-chip pressed styling: every chip in this bar is the same control, so
+   .chip[aria-pressed="true"] above dresses all ten. The df-toggle used to carry
+   its own copy of that rule, which resolved to the identical colours because it
+   sets no --tile-bg -- a special case for a chip that was not really a toggle. */
 
 .ic-dot { opacity: 0.95; }
 

@@ -161,7 +161,7 @@ export default {
     lede: "All 32 work group processors — the 64 compute units — sitting between the two cache levels that feed them and the GDDR6 controllers on the die edges. Four shader engines, two shader arrays each, four WGPs per array.",
     hint: "Hover a block for detail. Every WGP opens at its own place in the hierarchy below.",
     dataflow: {
-      label: "Trace a read",
+      label: "Traced read",
       title: "One read: WGP → Infinity Fabric → L2 → Infinity Cache → GDDR6",
       kind: "stops",
       stops: [[6, 5], [6, 4], [6, 3], [6, 2], [6, 1]],

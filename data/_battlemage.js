@@ -116,7 +116,7 @@ export function dieMap(opts) {
     lede: `All ${opts.xeCores} Xe-cores, grouped four to a render slice. Each Xe-core carries 8 vector engines and 8 XMX engines, so the field below is where all ${opts.xmxOnDie} XMX engines live.`,
     hint: "Hover a block for detail. Every Xe-core opens at its own place in the hierarchy below.",
     dataflow: {
-      label: "Trace a read",
+      label: "Traced read",
       title: "One read: Xe-core → Xe fabric → L2 → " + opts.dram,
       kind: "stops",
       stops: [[Math.floor(cols / 2) - 2, 5], [Math.floor(cols / 2) - 2, 3],
