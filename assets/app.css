@@ -197,6 +197,18 @@ h2.section-h {
   border-bottom: 1px solid var(--line);
 }
 
+/* The second spec card is subordinate to the spine above it, so it gets a
+   quieter heading rather than one that reads as a new top-level section. */
+h2.section-h.sub {
+  margin: 22px 0 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-dim);
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+h2.section-h.sub + dl.spec-grid { margin-top: 8px; }
+
 /* ---------- die map ---------- */
 
 .diemap {

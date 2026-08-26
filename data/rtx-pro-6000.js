@@ -13,25 +13,32 @@ export default {
   tagline:
     "The largest shipping GB202: 188 of 192 SMs enabled, 24,064 CUDA cores, 752 fifth-generation Tensor Cores, and 96 GB of GDDR7. This page is the 600 W Workstation Edition — the Max-Q and Server cards are separate products in the same family and their figures are not mixed in here.",
 
-  headline: [
-    ["Architecture", "Blackwell"],
-    ["Die", "GB202, TSMC 4N"],
-    ["Transistors", "92.2 B"],
-    ["Die area", "~750 mm²"],
-    ["SMs enabled", "188 of 192"],
+  spec: {
+    "Architecture": "Blackwell",
+    "Die": "GB202",
+    "Process node": "TSMC 4N",
+    "Transistors": "92.2 B",
+    "Die area": "~750 mm²",
+    "Execution unit": "Streaming Multiprocessor (SM)",
+    "Units enabled": "188 of 192",
+    "Matrix engines": "752 Tensor Cores (5th gen, 4 per SM)",
+    "On-chip memory": "128 MB L2 — the full GB202 cache",
+    "Memory": "96 GB GDDR7 ECC",
+    "Memory bus": "512-bit",
+    "Memory bandwidth": "1,792 GB/s",
+    "Board power": "600 W",
+    "Cooling": "Active — figures here are the 600 W Workstation Edition",
+    "Host interface": "PCIe 5.0 ×16",
+    "Scale-out link": "None — PCIe only",
+  },
+
+  extra: [
     ["CUDA cores", "24,064"],
-    ["Tensor Cores", "752 (5th gen)"],
     ["RT Cores", "188 (4th gen)"],
-    ["FP32", "~125 TFLOPS"],
-    ["Memory", "96 GB GDDR7 ECC"],
-    ["Memory bus", "512-bit"],
-    ["Memory bandwidth", "1,792 GB/s"],
-    ["Memory controllers", "16 × 32-bit"],
     ["GPCs enabled", "12 of 12"],
     ["TPCs enabled", "94 of 96"],
-    ["L2 cache", "128 MB (full GB202)"],
-    ["Board power", "600 W"],
-    ["Host interface", "PCIe 5.0 ×16"],
+    ["Memory controllers", "16 × 32-bit"],
+    ["FP32", "~125 TFLOPS"],
   ],
 
   compare: {

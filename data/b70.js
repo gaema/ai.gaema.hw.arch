@@ -78,22 +78,34 @@ export default {
   tagline:
     "The largest discrete Xe2 part: 32 Xe-cores, 256 XMX engines and 32 GB of GDDR6, at 367 INT8 TOPS.",
 
-  headline: [
-    ["Architecture", "Xe2 “Battlemage”"],
-    ["Xe-cores", "32"],
+  spec: {
+    "Architecture": "Xe2 “Battlemage”",
+    "Die": "BMG-G31",
+    "Process node": "TSMC N5",
+    "Transistors": "27.7 B",
+    "Die area": "368 mm²",
+    "Execution unit": "Xe-core",
+    "Units enabled": "32 of 32 — full die",
+    "Matrix engines": "256 XMX engines (8 per Xe-core)",
+    "On-chip memory": "L2 — capacity not published for this SKU",
+    "Memory": "32 GB GDDR6",
+    "Memory bus": "256-bit",
+    "Memory bandwidth": "608 GB/s",
+    "Board power": "230 W reference (160–290 W partner)",
+    "Cooling": "Active — partner designs vary",
+    "Host interface": "PCIe 5.0 ×16",
+    "Scale-out link": "None — PCIe only",
+  },
+
+  extra: [
     ["Render slices", "8"],
     ["Vector engines", "256 (8 per Xe-core)"],
-    ["XMX engines", "256 (8 per Xe-core)"],
     ["Ray tracing units", "32"],
     ["Graphics clock", "2,280 MHz"],
     ["Max dynamic frequency", "2,800 MHz"],
+    ["Memory speed", "19 Gbps"],
     ["FP32", "22.9 TFLOPS"],
     ["INT8", "367 TOPS"],
-    ["Memory", "32 GB GDDR6"],
-    ["Memory bus", "256-bit"],
-    ["Memory bandwidth", "608 GB/s"],
-    ["Board power", "230 W reference (160–290 W partner)"],
-    ["Host interface", "PCIe 5.0 ×16"],
     ["Launch price", "$949"],
   ],
 

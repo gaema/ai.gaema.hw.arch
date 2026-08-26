@@ -13,24 +13,33 @@ export default {
   tagline:
     "The consumer GB202: 170 of 192 SMs, 21,760 CUDA cores, and 32 GB of GDDR7 on the same 512-bit bus as its workstation sibling.",
 
-  headline: [
-    ["Architecture", "Blackwell"],
-    ["Die", "GB202, TSMC 4N"],
-    ["SMs enabled", "170 of 192"],
+  spec: {
+    "Architecture": "Blackwell",
+    "Die": "GB202",
+    "Process node": "TSMC 4N",
+    "Transistors": "92.2 B",
+    "Die area": "~750 mm²",
+    "Execution unit": "Streaming Multiprocessor (SM)",
+    "Units enabled": "170 of 192",
+    "Matrix engines": "680 Tensor Cores (5th gen, 4 per SM)",
+    "On-chip memory": "96 MB L2 — of the die's 128 MB",
+    "Memory": "32 GB GDDR7",
+    "Memory bus": "512-bit",
+    "Memory bandwidth": "1,792 GB/s",
+    "Board power": "575 W",
+    "Cooling": "Active — dual flow-through on the Founders Edition",
+    "Host interface": "PCIe 5.0 ×16",
+    "Scale-out link": "None — PCIe only",
+  },
+
+  extra: [
     ["CUDA cores", "21,760"],
-    ["Tensor Cores", "680 (5th gen)"],
     ["RT Cores", "170 (4th gen)"],
-    ["Base clock", "2.01 GHz"],
-    ["Boost clock", "2.41 GHz"],
-    ["Memory", "32 GB GDDR7"],
-    ["Memory bus", "512-bit"],
-    ["Memory bandwidth", "1,792 GB/s"],
-    ["Memory controllers", "16 × 32-bit"],
     ["GPCs enabled", "11 of 12"],
     ["TPCs enabled", "85 of 96"],
-    ["L2 cache", "96 MB (of the die's 128 MB)"],
-    ["Board power", "575 W"],
-    ["Host interface", "PCIe 5.0 ×16"],
+    ["Memory controllers", "16 × 32-bit"],
+    ["Base clock", "2.01 GHz"],
+    ["Boost clock", "2.41 GHz"],
   ],
 
   compare: {

@@ -109,7 +109,11 @@ python3 -m http.server 8080
 ## Adding a card
 
 1. Write `data/<slug>.js` exporting `{ id, name, vendor, vendorKey, arch, die,
-   tagline, headline, compare, dieMap, root, sources }`. `root` is the node
+   tagline, spec, extra, compare, dieMap, root, sources }`. `spec` must answer
+   every field in `SPEC_SPINE` (`data/index.js`) and nothing else — the spec
+   card is the same 16 rows in the same order on all six pages, and `load()`
+   throws if a SKU drifts. Whatever a vendor counts that the others do not goes
+   in `extra`, which renders as a second, subordinate card. `root` is the node
    tree; a node is `{ id, label, kind, count, note, specs, span, cols,
    children }`. `dieMap` is `{ title, cols, rows, cell, cellH, lede, hint,
    note, source, interconnect, tiles }`, optionally with

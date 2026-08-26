@@ -113,22 +113,32 @@ export default {
   tagline:
     "AMD's first RDNA 4 professional card: 64 compute units, 128 second-generation AI accelerators, and 32 GB of GDDR6 behind a 64 MB Infinity Cache.",
 
-  headline: [
-    ["Architecture", "RDNA 4"],
-    ["Die", "Navi 48, 4 nm"],
-    ["Transistors", "53.9 B"],
-    ["Die area", "356.5 mm²"],
-    ["Compute units", "64"],
+  spec: {
+    "Architecture": "RDNA 4",
+    "Die": "Navi 48",
+    "Process node": "TSMC N4P",
+    "Transistors": "53.9 B",
+    "Die area": "356.5 mm²",
+    "Execution unit": "Compute Unit (CU)",
+    "Units enabled": "64 of 64 — full die",
+    "Matrix engines": "128 AI Accelerators (2 per CU)",
+    "On-chip memory": "8 MB L2 + 64 MB Infinity Cache",
+    "Memory": "32 GB GDDR6",
+    "Memory bus": "256-bit",
+    "Memory bandwidth": "640 GB/s",
+    "Board power": "300 W",
+    "Cooling": "Active — blower, dual slot",
+    "Host interface": "PCIe 5.0 ×16",
+    "Scale-out link": "None — PCIe only",
+  },
+
+  extra: [
+    ["Shader engines", "4"],
+    ["Work group processors", "32"],
     ["Stream processors", "4,096"],
-    ["AI accelerators", "128 (2nd gen)"],
     ["Ray tracing cores", "64 (3rd gen)"],
-    ["Memory", "32 GB GDDR6"],
-    ["Memory bus", "256-bit"],
-    ["Memory bandwidth", "640 GB/s"],
-    ["L2 cache", "8 MB"],
-    ["Infinity Cache", "64 MB (3rd gen)"],
-    ["Board power", "300 W"],
-    ["Host interface", "PCIe 5.0 ×16"],
+    ["Memory controllers", "4 × (4×16-bit)"],
+    ["Memory speed", "20 Gbps"],
   ],
 
   // Rows the cross-vendor matrix on the landing page reads.

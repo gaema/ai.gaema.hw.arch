@@ -23,10 +23,51 @@ const LOADERS = {
   "p300c": () => import("./p300c.js"),
 };
 
+// The spec card's fixed spine: every SKU answers these, in this order, so the
+// card reads the same on all six pages and a reader can compare down a column
+// instead of hunting for whichever field a given vendor happened to publish.
+// A field nobody publishes is answered "Not published" rather than dropped --
+// an absent row and an unanswerable one look identical once the row is gone.
+export const SPEC_SPINE = [
+  "Architecture",
+  "Die",
+  "Process node",
+  "Transistors",
+  "Die area",
+  "Execution unit",
+  "Units enabled",
+  "Matrix engines",
+  "On-chip memory",
+  "Memory",
+  "Memory bus",
+  "Memory bandwidth",
+  "Board power",
+  "Cooling",
+  "Host interface",
+  "Scale-out link",
+];
+
+// Enforced at load, not left to discipline: the card drifted out of shape once
+// already (six pages, 53 distinct fields, 5 of them common to all six).
+export function specRows(sku) {
+  const missing = SPEC_SPINE.filter((k) => !sku.spec || !sku.spec[k]);
+  if (missing.length) {
+    throw new Error(`${sku.id}: spec card missing ${missing.join(", ")}`);
+  }
+  const extra = Object.keys(sku.spec).filter((k) => !SPEC_SPINE.includes(k));
+  if (extra.length) {
+    throw new Error(`${sku.id}: spec card has non-spine keys ${extra.join(", ")}`);
+  }
+  return SPEC_SPINE.map((k) => [k, sku.spec[k]]);
+}
+
 export function load(id) {
   const l = LOADERS[id];
   if (!l) return Promise.reject(new Error("unknown SKU: " + id));
-  return l().then((m) => m.default);
+  return l().then((m) => {
+    specRows(m.default);            // throw at load, not at render
+    return m.default;
+  });
 }
 
 export function loadAll() {

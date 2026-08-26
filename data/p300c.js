@@ -13,25 +13,33 @@ export default {
   tagline:
     "Two Blackhole ASICs on one liquid-cooled board — 240 Tensix tiles and 64 GB of GDDR6 at 600 W — joined by two Ethernet channels, not by a shared NOC. Each die fuses off a different one of its two PCIe tiles, so the pair are mirror images rather than copies. The p300c is not sold on its own: it is the card inside TT-QuietBox 2, and the separately-sold dual-ASIC boards are the p300a and p300b.",
 
-  headline: [
-    ["Architecture", "Blackhole"],
+  spec: {
+    "Architecture": "Blackhole",
+    "Die": "Blackhole ASIC × 2",
+    "Process node": "6 nm class — Tenstorrent has not named the foundry",
+    "Transistors": "Not published",
+    "Die area": "Not published",
+    "Execution unit": "Tensix tile",
+    "Units enabled": "240 of 280 — 120 of 140 per ASIC",
+    "Matrix engines": "240 (1 per Tensix tile)",
+    "On-chip memory": "360 MB SRAM — 1.5 MB per tile, software-managed, no cache hierarchy",
+    "Memory": "64 GB GDDR6 — 32 GB per ASIC",
+    "Memory bus": "256-bit per ASIC — 8 channels at 16 GT/s",
+    "Memory bandwidth": "1,024 GB/s board · 512 GB/s per ASIC",
+    "Board power": "600 W TBP",
+    "Cooling": "Liquid",
+    "Host interface": "PCIe 5.0 ×16",
+    "Scale-out link": "Samtec ARP6 cable — card to card, no QSFP cages",
+  },
+
+  extra: [
     ["ASICs on card", "2"],
-    ["Tensix tiles", "240 (120 per ASIC)"],
     ["Baby RISC-V per tile", "5 (RV32IM, 1.35 GHz)"],
-    ["SRAM per tile", "1.5 MB"],
-    ["SRAM on card", "360 MB"],
     ["Big RISC-V cores", "32 (16 per ASIC)"],
-    ["Die-to-die link", "2 Ethernet channels"],
+    ["Die-to-die link", "2 Ethernet channels, on the PCB"],
     ["PCIe tiles", "2 per die, each ×16-capable — one used, one idle"],
     ["PCIe mirroring", "left die uses (2,0), right die uses (11,0)"],
-    ["Card-to-card", "Samtec ARP6 cable (not QSFP-DD)"],
-    ["Board memory bandwidth", "1,024 GB/s across both ASICs"],
-    ["Memory", "64 GB GDDR6 (32 GB per ASIC)"],
-    ["Memory bandwidth", "512 GB/s per ASIC"],
-    ["Board power", "600 W TBP"],
-    ["Cooling", "liquid"],
     ["Availability", "not sold separately — ships in TT-QuietBox 2"],
-    ["Host interface", "PCIe 5.0 ×16"],
   ],
 
   compare: {

@@ -13,24 +13,34 @@ export default {
   tagline:
     "A grid of 120 independent Tensix tiles, each with five RISC-V cores and 1.5 MB of software-managed SRAM — no warp scheduler, no cache hierarchy, and four QSFP-DD ports to bolt cards together.",
 
-  headline: [
-    ["Architecture", "Blackhole"],
+  spec: {
+    "Architecture": "Blackhole",
+    "Die": "Blackhole ASIC × 1",
+    "Process node": "6 nm class — Tenstorrent has not named the foundry",
+    "Transistors": "Not published",
+    "Die area": "Not published",
+    "Execution unit": "Tensix tile",
+    "Units enabled": "120 of 140",
+    "Matrix engines": "120 (1 per Tensix tile)",
+    "On-chip memory": "180 MB SRAM — 1.5 MB per tile, software-managed, no cache hierarchy",
+    "Memory": "32 GB GDDR6",
+    "Memory bus": "256-bit — 8 channels at 16 GT/s",
+    "Memory bandwidth": "512 GB/s",
+    "Board power": "300 W",
+    "Cooling": "Active",
+    "Host interface": "PCIe 5.0 ×16",
+    "Scale-out link": "4 × QSFP-DD 800G",
+  },
+
+  extra: [
     ["ASICs on card", "1"],
-    ["Tensix tiles", "120 (of 140 on the die)"],
     ["Baby RISC-V per tile", "5 (RV32IM, 1.35 GHz)"],
-    ["SRAM per tile", "1.5 MB"],
     ["Big RISC-V cores", "16 (SiFive X280)"],
-    ["BLOCKFP8", "664 TFLOPS"],
-    ["Memory", "32 GB GDDR6"],
-    ["Memory channels", "8 (16 GT/s)"],
-    ["Memory bandwidth", "512 GB/s"],
     ["Ethernet tiles", "14 on the die, 12 usable"],
     ["Ethernet rate", "400 GbE per tile · 800 GbE per port"],
     ["Board Ethernet", "4 × QSFP-DD 800G (8 of the 12 cabled)"],
     ["PCIe tiles", "2 on the die, each ×16-capable — one used, one idle"],
-    ["Board power", "300 W"],
-    ["Cooling", "active"],
-    ["Host interface", "PCIe 5.0 ×16"],
+    ["BLOCKFP8", "664 TFLOPS"],
   ],
 
   compare: {

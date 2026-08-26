@@ -5,7 +5,7 @@
 // it, and the breadcrumb walks back out. The path lives in the URL hash, so any
 // view is linkable and the back button works.
 
-import { load, KINDS } from "../data/index.js";
+import { load, KINDS, specRows } from "../data/index.js";
 import { renderDieMap } from "./diemap.js";
 
 const el = (tag, cls, text) => {
@@ -184,10 +184,27 @@ function renderHeadline() {
   if (dl) {
     dl.textContent = "";
     // <div> grouping inside <dl> is valid HTML and keeps each pair in one cell.
-    for (const [k, v] of SKU.headline) {
-      const cell = el("div");
-      cell.append(el("dt", null, k), el("dd", null, v));
-      dl.append(cell);
+    const fill = (target, rows) => {
+      for (const [k, v] of rows) {
+        const cell = el("div");
+        cell.append(el("dt", null, k), el("dd", null, v));
+        target.append(cell);
+      }
+    };
+    // The spine: the same rows in the same order on every page, so the reader
+    // compares the cards rather than decoding each one.
+    fill(dl, specRows(SKU));
+
+    // Everything a vendor counts that the others do not — CUDA cores against
+    // Xe-cores against baby RISC-Vs. Real information, but not comparable, so
+    // it sits below the spine instead of interleaved with it.
+    const rest = SKU.extra || [];
+    if (rest.length) {
+      const h = el("h2", "section-h sub", `${SKU.arch} specifics`);
+      const dl2 = el("dl", "spec-grid");
+      dl2.id = "headline-extra";
+      fill(dl2, rest);
+      dl.after(h, dl2);
     }
   }
   const s = document.getElementById("sources");
