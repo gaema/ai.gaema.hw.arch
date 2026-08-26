@@ -87,7 +87,7 @@ export default {
     "Execution unit": "Xe-core",
     "Units enabled": "32 of 32 — full die",
     "Matrix engines": "256 XMX engines (8 per Xe-core)",
-    "On-chip memory": "L2 — capacity not published for this SKU",
+    "On-chip memory": "L2 — Intel has not published the capacity for BMG-G31; the smaller BMG-G21 (Arc B580) is 18 MB",
     "Memory": "32 GB GDDR6",
     "Memory bus": "256-bit",
     "Memory bandwidth": "608 GB/s",
@@ -149,7 +149,7 @@ export default {
         [["This block", "1 of 8 drawn — not a controller count"], ["Its share of bandwidth", "76 GB/s"],
          ["Whole memory subsystem", "256-bit, 608 GB/s"], ["DRAM on the board", "32 GB GDDR6"]]),
       ...band(2, [{ w: 16, kind: "cache", label: "L2 cache", sub: "shared across all render slices · banked", path: "l2",
-        detail: "Shared last level on the die, banked into slices tied to the memory controllers rather than the single block drawn here. Intel does not publish the capacity for this SKU, so none is claimed.",
+        detail: "Shared last level on the die, banked into slices tied to the memory controllers rather than the single block drawn here. Intel does not publish the capacity for BMG-G31, so none is claimed — the smaller BMG-G21 in the Arc B580 has 18 MB behind a 192-bit bus.",
         specs: [["Capacity", "not published"], ["Physically", "banked with the memory controllers"]] }]),
       ...band(3, [{ w: 16, kind: "link", label: "Xe fabric", sub: "Xe-cores ⇄ L2 ⇄ memory controllers",
         detail: "The on-die interconnect between the render slices and the memory side. Every Xe-core reaches L2 and the memory controllers across it; Intel does not publish its topology for this part, so it is drawn as a band rather than given a shape it may not have.",
@@ -189,7 +189,7 @@ export default {
       ...slices,
       {
         id: "l2", label: "L2 cache", kind: "cache", span: 2,
-        note: "the die's shared last level, sitting between the Xe-cores' own 256 KB L1/SLM blocks and the memory controllers, and banked into slices tied to those controllers rather than being one central block. Anything that misses here goes to GDDR6 at 608 GB/s, so what fits in L2 sets how close a bandwidth-bound kernel gets to peak. Intel does not publish the capacity for this SKU, so none is claimed here",
+        note: "the die's shared last level, sitting between the Xe-cores' own 256 KB L1/SLM blocks and the memory controllers, and banked into slices tied to those controllers rather than being one central block. Anything that misses here goes to GDDR6 at 608 GB/s, so what fits in L2 sets how close a bandwidth-bound kernel gets to peak. Intel has never published the capacity for BMG-G31, so none is claimed here — for scale, the smaller BMG-G21 in the Arc B580 carries 18 MB behind a 192-bit bus",
       },
       {
         id: "gddr", label: "GDDR6 memory controllers", kind: "memory", span: 2,
@@ -214,5 +214,7 @@ export default {
     ["Tom's Hardware — Arc Pro B70 and B65 bring 32 GB to AI and pro apps", "https://www.tomshardware.com/pc-components/gpus/intel-arc-pro-b70-and-arc-pro-b65-gpus-bring-32gb-of-ram-to-ai-and-pro-apps-bigger-battlemage-finally-arrives-but-its-not-for-gaming"],
     ["Chips and Cheese — Intel's Battlemage architecture", "https://chipsandcheese.com/p/intels-battlemage-architecture"],
     ["VideoCardz — BMG-G31 said to feature 27.7 B transistors", "https://videocardz.com/newz/intel-big-battlemage-bmg-g31-said-to-feature-27-7b-transistors-48-fewer-than-amd-navi-48"],
+    ["igor'sLAB — Arc Pro B70 review: teardown, topology, material tests", "https://www.igorslab.de/en/intel-arc-pro-b70-review-teardown-topology-material-tests-workstation-ai-benchmarks/"],
+    ["TechPowerUp — Arc B580 architecture: 18 MB L2 on BMG-G21", "https://www.techpowerup.com/review/intel-arc-b580/2.html"],
   ],
 };
