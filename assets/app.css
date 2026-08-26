@@ -121,7 +121,7 @@ button.ghost:hover { border-color: var(--accent); color: var(--accent); }
 
 .hero { padding: 44px 0 28px; }
 .hero h1 { margin: 0 0 10px; font-size: 30px; letter-spacing: -0.02em; }
-.hero p { margin: 0; max-width: 62ch; color: var(--ink-mid); }
+.hero p { margin: 0; color: var(--ink-mid); text-wrap: balance; }
 
 .cards {
   display: grid;
@@ -154,7 +154,7 @@ button.ghost:hover { border-color: var(--accent); color: var(--accent); }
 
 section.block { padding: 30px 0; }
 section.block > h2 { margin: 0 0 4px; font-size: 20px; letter-spacing: -0.015em; }
-section.block > p.lede { margin: 0 0 16px; color: var(--ink-mid); max-width: 70ch; }
+section.block > p.lede { margin: 0 0 16px; color: var(--ink-mid); text-wrap: balance; }
 
 .scroll-x { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); }
 
@@ -267,7 +267,7 @@ h2.section-h.sub + dl.spec-grid { margin-top: 8px; }
   margin-left: calc(50% - min(48vw, 1000px));
 }
 
-.map-lede { margin: 0 0 12px; color: var(--ink-mid); font-size: 13px; max-width: 78ch; }
+.map-lede { margin: 0 0 12px; color: var(--ink-mid); font-size: 13px; text-wrap: balance; }
 
 .filters { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
 
@@ -453,16 +453,14 @@ h2.section-h.sub + dl.spec-grid { margin-top: 8px; }
 
 .sku-head { padding: 26px 0 4px; }
 .sku-head h1 { margin: 0 0 8px; font-size: 26px; letter-spacing: -0.02em; }
-/* The lede keeps a reading measure rather than running the full 1140px column.
-   62ch, not 72: `ch` is the width of "0" and the average proportional glyph is
-   narrower, so 72ch rendered ~82 characters per line -- past the comfortable
-   45-75 range. `balance` stops a short tagline from breaking into one long line
-   plus a three-word orphan; it is ignored where unsupported and on the longer
-   taglines, which are paragraphs and want the plain measure. */
+/* No measure cap: the lede uses the same column width as the spec card under
+   it. A cap here read as a mistake rather than as typography -- it left the
+   sentence in a 600px well beside 540px of empty page, which is what made a
+   two-line tagline look broken. `balance` still evens the lines on the longer
+   taglines that do wrap at full width. */
 .sku-head p {
   margin: 0;
   color: var(--ink-mid);
-  max-width: 62ch;
   text-wrap: balance;
 }
 
