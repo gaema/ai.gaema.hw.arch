@@ -48,7 +48,35 @@ code, .mono {
 
 .brand span { color: var(--ink-dim); font-weight: 400; }
 
-.top nav { display: flex; gap: 4px; flex-wrap: wrap; margin-left: auto; }
+.top nav { display: flex; gap: 4px; margin-left: auto; }
+
+/* The part picker. A row of links stopped fitting once the catalogue grew, so
+   this is a real <select>: fixed width whatever the part count, native
+   keyboard and touch behaviour, and it shows the current page as selected. */
+.top nav select {
+  appearance: none;
+  font: inherit;
+  font-size: 13px;
+  color: var(--ink);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 6px 30px 6px 11px;
+  cursor: pointer;
+  max-width: 15rem;
+  /* Caret drawn inline so the page stays self-contained (no asset request). */
+  background-image: linear-gradient(45deg, transparent 50%, currentColor 50%),
+                    linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position: right 13px center, right 8px center;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+}
+.top nav select:hover { background-color: var(--n2); }
+.top nav select:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+/* Native dropdown lists are painted by the OS, so the options need explicit
+   colours or a dark-theme page renders black text on a black list. */
+.top nav select option,
+.top nav select optgroup { background: var(--panel); color: var(--ink); }
 
 .top nav a {
   color: var(--ink-mid);

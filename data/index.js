@@ -1,6 +1,6 @@
 // The SKU registry. Everything else on the site is driven from here.
 
-export const ORDER = ["r9700", "b70", "rtx-pro-6000", "rtx-5090", "p150a", "p300c"];
+export const ORDER = ["r9700", "b50", "b70", "rtx-pro-6000", "rtx-5090", "p150a", "p300c"];
 
 // Pages live under their vendor, so a URL says who makes the part before it
 // says which part. `vendorKey` is the short token used for colour tokens;
@@ -16,6 +16,7 @@ export function pageHref(sku) {
 // Static specifiers so the modules resolve without a bundler.
 const LOADERS = {
   "r9700": () => import("./r9700.js"),
+  "b50": () => import("./b50.js"),
   "b70": () => import("./b70.js"),
   "rtx-pro-6000": () => import("./rtx-pro-6000.js"),
   "rtx-5090": () => import("./rtx-5090.js"),
@@ -24,7 +25,7 @@ const LOADERS = {
 };
 
 // The spec card's fixed spine: every SKU answers these, in this order, so the
-// card reads the same on all six pages and a reader can compare down a column
+// card reads the same on every page and a reader can compare down a column
 // instead of hunting for whichever field a given vendor happened to publish.
 // A field nobody publishes is answered "Not published" rather than dropped --
 // an absent row and an unanswerable one look identical once the row is gone.

@@ -1,12 +1,13 @@
 # arch.hw.gaema.ai — accelerator architecture explorer
 
-Interactive block diagrams of six AI accelerators, drawn to one structure so
+Interactive block diagrams of seven AI accelerators, drawn to one structure so
 they can be compared like with like:
 
 | Card | Vendor | Architecture |
 |---|---|---|
 | Radeon AI PRO R9700 | AMD | RDNA 4 (Navi 48) |
-| Arc Pro B70 | Intel | Xe2 “Battlemage” |
+| Arc Pro B50 | Intel | Xe2 “Battlemage” (BMG-G21) |
+| Arc Pro B70 | Intel | Xe2 “Battlemage” (BMG-G31) |
 | RTX PRO 6000 Blackwell | NVIDIA | Blackwell (GB202) |
 | GeForce RTX 5090 | NVIDIA | Blackwell (GB202) |
 | Blackhole p150a | Tenstorrent | Blackhole |
@@ -44,6 +45,7 @@ assets/nav.js         header nav, built from the registry
 data/index.js         the SKU registry — the one place a card is added
 data/<slug>.js        one card's die map, hierarchy, specs and sources
 data/_floorplan.js    band/field/memBand helpers for hand-placed GPU die maps
+data/_battlemage.js   Xe2 hierarchy + die map, shared by the two Intel cards
 data/_blackwell.js    GB202 hierarchy + die map, shared by the two NVIDIA cards
 data/_blackhole.js    Blackhole hierarchy + die map, shared by the two TT cards
 ```
@@ -58,16 +60,25 @@ python3 -m http.server 8080
 
 ## Conventions
 
-- **Published figures only, with one labelled exception.** Every number comes
-  from vendor documentation or press coverage, and every page lists its sources.
-  Where a vendor does not publish a figure the site says so rather than
-  estimating. The single exception is the p300c die-to-die channel pairing,
-  which exists in no document — it is read from a live card's UMD cluster
-  descriptor and cross-checked against a second board, and the page says
-  exactly that where the figure appears. If another such fact is ever added, it
-  gets the same treatment: named as read-from-hardware, at the point of use.
-  No performance measurement of ours appears here, and nothing about the
-  machine a reading came from.
+- **Published figures only, and anything else is labelled where it appears.**
+  Every number comes from vendor documentation or press coverage, and every page
+  lists its sources. Where a vendor does not publish a figure the site says so
+  rather than estimating — and says what was looked for, so the reader can tell
+  *nobody knows* from *we did not check*.
+
+  Three figures are read from hardware instead, each named as such at the point
+  of use: the p300c die-to-die channel pairing (in no document; read from a live
+  card's UMD cluster descriptor and cross-checked against a second board), and
+  the **L2 capacities of BMG-G31 and BMG-G21** — 24 MiB and 16 MiB. Intel
+  publishes no L2 figure for either die: not in the product specifications, not
+  in the B50 data sheet, not in review teardowns, and not statically in Intel's
+  own compute-runtime, which fills the field from the driver at runtime. Reading
+  it from the device is the only way to obtain it, so the site states it and
+  says so.
+
+  Anything read from hardware must be a property of the SILICON, not of us: no
+  performance measurement of ours appears here, and nothing about the machine a
+  reading came from — no host, no bus address, no fleet detail.
 - **Keep the die and the board apart, and never let an attribute cross.** A
   QSFP-DD cage and a PCIe edge connector are parts of the CARD: they are drawn
   outside the die block, in their own row, with runs to the die tiles they are
@@ -87,10 +98,16 @@ python3 -m http.server 8080
   the vendor's arrangement and lay it out for legibility — not to scale, not to
   physical position — and say so on the page. Never present a hand-placed
   floorplan as a die photo.
-- **A harvested part is drawn whole, with the count stated.** No vendor
-  publishes which specific units a given card fused off, so marking particular
-  ones would be invention. 188 of 192, 170 of 192, 120 of 140 — stated, not
-  drawn.
+- **A harvest is drawn, but its POSITION is never claimed.** Disabled units are
+  shown struck through and greyed, because a reader comparing 188 of 192 against
+  120 of 140 should see the difference rather than read it. What no vendor
+  publishes is WHICH units a given card fused off, so the placement is always
+  declared as a drawing choice at the point of use: the Blackwell pages draw
+  dark TPCs, Blackhole draws a mirrored column pair whose *shape* is known from
+  the harvesting scheme while the specific pair varies per die, and the B50
+  draws four disabled Xe-cores grouped only for legibility — the B570's 18 of
+  the same 20 proves Intel harvests per-Xe-core, so no whole-slice cut should be
+  inferred from the picture.
 - **Draw the interconnect the shape it actually is.** Blackhole has a router in
   every tile, so its map draws real tile-to-tile links (`mesh: {torus: true}`,
   rendered into the grid gaps) plus the QSFP cage runs as arcs. A multi-die card
@@ -111,7 +128,7 @@ python3 -m http.server 8080
 1. Write `data/<slug>.js` exporting `{ id, name, vendor, vendorKey, arch, die,
    tagline, spec, extra, compare, dieMap, root, sources }`. `spec` must answer
    every field in `SPEC_SPINE` (`data/index.js`) and nothing else — the spec
-   card is the same 16 rows in the same order on all six pages, and `load()`
+   card is the same 16 rows in the same order on every page, and `load()`
    throws if a SKU drifts. Whatever a vendor counts that the others do not goes
    in `extra`, which renders as a second, subordinate card. `root` is the node
    tree; a node is `{ id, label, kind, count, note, specs, span, cols,

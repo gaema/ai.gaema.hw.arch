@@ -1,4 +1,4 @@
-// Landing page: the six SKU cards and the cross-vendor matrix, both built from
+// Landing page: the SKU cards and the cross-vendor matrix, both built from
 // the same registry the explorer pages read.
 import { loadAll, COMPARE_ROWS, pageHref } from "../data/index.js";
 
