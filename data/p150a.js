@@ -16,7 +16,7 @@ export default {
   spec: {
     "Architecture": "Blackhole",
     "Die": "Blackhole ASIC × 1",
-    "Process node": "6 nm class — Tenstorrent has not named the foundry",
+    "Process node": "6 nm — Tenstorrent's own figure; it has never named the foundry",
     "Transistors": "Not published",
     "Die area": "Not published",
     "Execution unit": "Tensix tile",
@@ -36,9 +36,9 @@ export default {
     ["ASICs on card", "1"],
     ["Baby RISC-V per tile", "5 (RV32IM, 1.35 GHz)"],
     ["Big RISC-V cores", "16 (SiFive X280)"],
-    ["Ethernet tiles", "14 on the die, 12 usable"],
+    ["Ethernet tiles", "14 on the die, 12 available on this card"],
     ["Ethernet rate", "400 GbE per tile · 800 GbE per port"],
-    ["Board Ethernet", "4 × QSFP-DD 800G (8 of the 12 cabled)"],
+    ["Board Ethernet", "4 × QSFP-DD 800G — 8 of the 12 cabled, because the live PCIe ×16 tile consumes the SerDes of the other 4"],
     ["PCIe tiles", "2 on the die, each ×16-capable — one used, one idle"],
     ["BLOCKFP8", "664 TFLOPS"],
   ],
@@ -82,5 +82,6 @@ export default {
     ["The Register — Tenstorrent details its RISC-V packed Blackhole chips", "https://www.theregister.com/2024/08/27/tenstorrent_ai_blackhole/"],
     ["Tenstorrent — Blackhole & TT-Metalium, Hot Chips 2024 (PDF)", "https://hc2024.hotchips.org/assets/program/conference/day1/88_HC2024.Tenstorrent.Jasmina.Davor.v7.pdf"],
     ["VideoCardz — Blackhole p150 revised from 140 to 120 cores", "https://videocardz.com/newz/tenstorrent-downgrades-blackhole-p150-pcie-cards-specs-from-140-to-120-cores"],
+    ["Tenstorrent — tt-isa-documentation, Blackhole A0 tile inventory", "https://github.com/tenstorrent/tt-isa-documentation/blob/main/BlackholeA0/README.md"],
   ],
 };

@@ -81,5 +81,6 @@ export default {
     ["NVIDIA — GeForce RTX 5090", "https://www.nvidia.com/en-us/geforce/graphics-cards/50-series/rtx-5090/"],
     ["TechPowerUp — GB202 die shot: 24,576 CUDA cores at 128 per SM", "https://www.techpowerup.com/331657/nvidia-gb202-blackwell-die-exposed-shows-the-massive-24-576-cuda-core-configuration"],
     ["Chips and Cheese — Blackwell: NVIDIA's massive GPU", "https://chipsandcheese.com/p/blackwell-nvidias-massive-gpu"],
+    ["VideoCardz — NVIDIA reveals Blackwell die sizes: GB202 is 750 mm², 92.2 B transistors", "https://videocardz.com/newz/nvidia-reveals-die-sizes-for-gb200-blackwell-gpus-gb202-is-750mm%C2%B2-features-92-2b-transistors"],
   ],
 };

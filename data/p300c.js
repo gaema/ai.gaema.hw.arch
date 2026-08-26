@@ -16,7 +16,7 @@ export default {
   spec: {
     "Architecture": "Blackhole",
     "Die": "Blackhole ASIC × 2",
-    "Process node": "6 nm class — Tenstorrent has not named the foundry",
+    "Process node": "6 nm — Tenstorrent's own figure; it has never named the foundry",
     "Transistors": "Not published",
     "Die area": "Not published",
     "Execution unit": "Tensix tile",
@@ -35,7 +35,7 @@ export default {
   extra: [
     ["ASICs on card", "2"],
     ["Baby RISC-V per tile", "5 (RV32IM, 1.35 GHz)"],
-    ["Big RISC-V cores", "32 (16 per ASIC)"],
+    ["Big RISC-V cores", "32 (16 per ASIC) — Tenstorrent's own p300c table still marks this “TBD”"],
     ["Die-to-die link", "2 Ethernet channels, on the PCB"],
     ["PCIe tiles", "2 per die, each ×16-capable — one used, one idle"],
     ["PCIe mirroring", "left die uses (2,0), right die uses (11,0)"],
@@ -86,5 +86,6 @@ export default {
     ["Tenstorrent — Blackhole p300c card specifications", "https://docs.tenstorrent.com/aibs/blackhole/p300.html"],
     ["Tenstorrent — Blackhole cards", "https://tenstorrent.com/hardware/blackhole"],
     ["Tenstorrent — Blackhole & TT-Metalium, Hot Chips 2024 (PDF)", "https://hc2024.hotchips.org/assets/program/conference/day1/88_HC2024.Tenstorrent.Jasmina.Davor.v7.pdf"],
+    ["Tenstorrent — tt-isa-documentation, Blackhole A0 tile inventory", "https://github.com/tenstorrent/tt-isa-documentation/blob/main/BlackholeA0/README.md"],
   ],
 };

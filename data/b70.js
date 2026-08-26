@@ -92,7 +92,7 @@ export default {
     "Memory bus": "256-bit",
     "Memory bandwidth": "608 GB/s",
     "Board power": "230 W reference (160–290 W partner)",
-    "Cooling": "Active — partner designs vary",
+    "Cooling": "Active or passive — partner designs vary (ASRock and Sparkle both ship fanless 32 GB models)",
     "Host interface": "PCIe 5.0 ×16",
     "Scale-out link": "None — PCIe only",
   },
@@ -213,5 +213,6 @@ export default {
     ["TechPowerUp — Intel announces Arc Pro B70 and B65", "https://www.techpowerup.com/347703/intel-announces-arc-pro-b70-and-arc-pro-b65-gpus-maxes-out-xe2-battlemage-architecture"],
     ["Tom's Hardware — Arc Pro B70 and B65 bring 32 GB to AI and pro apps", "https://www.tomshardware.com/pc-components/gpus/intel-arc-pro-b70-and-arc-pro-b65-gpus-bring-32gb-of-ram-to-ai-and-pro-apps-bigger-battlemage-finally-arrives-but-its-not-for-gaming"],
     ["Chips and Cheese — Intel's Battlemage architecture", "https://chipsandcheese.com/p/intels-battlemage-architecture"],
+    ["VideoCardz — BMG-G31 said to feature 27.7 B transistors", "https://videocardz.com/newz/intel-big-battlemage-bmg-g31-said-to-feature-27-7b-transistors-48-fewer-than-amd-navi-48"],
   ],
 };

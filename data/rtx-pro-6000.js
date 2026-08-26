@@ -27,7 +27,7 @@ export default {
     "Memory bus": "512-bit",
     "Memory bandwidth": "1,792 GB/s",
     "Board power": "600 W",
-    "Cooling": "Active — figures here are the 600 W Workstation Edition",
+    "Cooling": "Active blower — this page is the 600 W Workstation Edition; Max-Q is 300 W and Server Edition is passive",
     "Host interface": "PCIe 5.0 ×16",
     "Scale-out link": "None — PCIe only",
   },
