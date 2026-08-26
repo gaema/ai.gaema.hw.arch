@@ -39,8 +39,10 @@ const xeCore = {
       specs: [["Capacity", "256 KB per Xe-core"]],
       note: "one 256 KB pool serving both the L1 and the shared-local-memory role — bigger than the 192 KB of Alchemist and of Lunar Lake's Xe2-LPG, which is the figure this is easily confused with",
     },
-    { id: "ls", label: "Load / store", kind: "io" },
-    { id: "thread", label: "Thread dispatch", kind: "sched" },
+    { id: "ls", label: "Load / store", kind: "io",
+      note: "the Xe-core's path to memory: it resolves addresses for the vector engines and moves data between them and the 256 KB L1/SLM block, coalescing lanes into as few transactions as it can. Scattered access patterns cost here before they ever reach L2" },
+    { id: "thread", label: "Thread dispatch", kind: "sched",
+      note: "hands threads to the eight vector engines and tracks the ones in flight. It is fed by the global command streamer at die level, so this is the local half of a two-level dispatch scheme" },
   ],
 };
 
@@ -54,8 +56,11 @@ const renderSlice = {
     { ...xeCore, id: "xc1", label: "Xe-core 1", count: null },
     { ...xeCore, id: "xc2", label: "Xe-core 2", count: null },
     { ...xeCore, id: "xc3", label: "Xe-core 3", count: null },
-    { id: "rtu", label: "Ray Tracing Unit ×4", kind: "fixed", span: 2 },
-    { id: "geo", label: "Geometry + rasterizer", kind: "fixed", span: 2 },
+    { id: "rtu", label: "Ray Tracing Unit ×4", kind: "fixed", span: 2,
+      note: "hardware BVH traversal and intersection, one per Xe-core. Xe2 runs THREE traversal pipelines per unit against Alchemist's two — 6 box tests each, 18 box intersections per clock — plus two triangle tests per clock at the bottom of the tree",
+      specs: [["Per render slice", "4"], ["Traversal pipelines", "3 per unit"], ["Box tests", "18 per clock"], ["Triangle tests", "2 per clock"]] },
+    { id: "geo", label: "Geometry + rasterizer", kind: "fixed", span: 2,
+      note: "the render slice's fixed-function graphics front end — geometry setup and rasterization. One per slice, which is what makes it a RENDER slice rather than just a group of Xe-cores" },
   ],
 };
 
@@ -180,9 +185,12 @@ export default {
         note: "256-bit bus, 32 GB, 608 GB/s",
       },
       { id: "cs", label: "Command streamer", kind: "sched", note: "global thread dispatch" },
-      { id: "pcie", label: "PCIe 5.0 ×16", kind: "io" },
+      { id: "pcie", label: "PCIe 5.0 ×16", kind: "io",
+        note: "the host link. 16 lanes of PCIe 5.0, about 63 GB/s each way — roughly a tenth of this card's own 608 GB/s",
+        specs: [["Lanes", "16"], ["Generation", "PCIe 5.0"], ["Bandwidth", "~63 GB/s per direction"]] },
       { id: "media", label: "Media engine", kind: "fixed", note: "encode / decode" },
-      { id: "display", label: "Display engine", kind: "io" },
+      { id: "display", label: "Display engine", kind: "io",
+        note: "scanout — drives the physical outputs from finished framebuffers. Idle on a card doing only inference" },
     ],
   },
 

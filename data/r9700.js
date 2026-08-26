@@ -16,7 +16,9 @@ const simd32 = {
     { id: "alu-a", label: "ALU", kind: "compute", note: "FMA / INT" },
     { id: "alu-b", label: "ALU", kind: "compute", note: "FMA / INT" },
     { id: "tlu", label: "TLU", kind: "compute", note: "transcendentals" },
-    { id: "vgpr", label: "Vector register file", kind: "cache", span: 3 },
+    { id: "vgpr", label: "Vector register file", kind: "cache", span: 3,
+      note: "192 KB per SIMD. RDNA 4 allocates it DYNAMICALLY — a kernel takes what it asks for rather than a fixed slice, so a register-hungry kernel runs with fewer waves instead of failing to fit, and a lean one gets more. At 96 or fewer registers per lane all 16 wave slots fill",
+      specs: [["Per SIMD", "192 KB"], ["Wave slots", "16"], ["Full occupancy at", "≤96 VGPRs"], ["Allocation", "dynamic (new in RDNA 4)"]] },
   ],
 };
 
@@ -45,9 +47,12 @@ const cu = {
     },
     { id: "rt", label: "Ray Tracing core", kind: "fixed", note: "3rd generation" },
     { id: "scalar", label: "Scalar unit", kind: "sched", note: "uniform work + branch" },
-    { id: "l0", label: "L0 vector cache", kind: "cache" },
+    { id: "l0", label: "L0 vector cache", kind: "cache",
+      note: "32 KB per compute unit — the first thing a vector memory access hits, about 30 cycles away. RDNA 4 reorganised the L0: 64 KB per WGP in total, against RDNA 3's larger-but-differently-split arrangement",
+      specs: [["Per CU", "32 KB"], ["Per WGP", "64 KB"], ["Latency", "~30 cycles"]] },
     { id: "tex", label: "Texture units", kind: "fixed", note: "4 per CU" },
-    { id: "sched-cu", label: "Instruction issue", kind: "sched" },
+    { id: "sched-cu", label: "Instruction issue", kind: "sched",
+      note: "fetches and issues for the waves resident on this CU, choosing among them each cycle and steering each instruction to the right pipe — vector, scalar, matrix, memory or branch. As on every GPU here, latency is hidden by switching waves rather than by reordering" },
   ],
 };
 
@@ -85,7 +90,8 @@ const shaderEngine = {
   children: [
     { ...shaderArray, id: "sa0", label: "Shader Array 0" },
     { ...shaderArray, id: "sa1", label: "Shader Array 1" },
-    { id: "geo", label: "Geometry + rasterizer", kind: "fixed", span: 2 },
+    { id: "geo", label: "Geometry + rasterizer", kind: "fixed", span: 2,
+      note: "the shader engine's own graphics front end: primitive assembly, culling and rasterization into fragments. One per shader engine, so geometry throughput scales with the four engines rather than sitting in a single central block. Idle in pure compute" },
   ],
 };
 
@@ -219,9 +225,12 @@ export default {
         note: "256-bit bus, 32 GB, 640 GB/s",
       },
       { id: "cp", label: "Command processor", kind: "sched", note: "front end + ACEs" },
-      { id: "pcie", label: "PCIe 5.0 ×16", kind: "io" },
+      { id: "pcie", label: "PCIe 5.0 ×16", kind: "io",
+        note: "the host link. 16 lanes of PCIe 5.0, about 63 GB/s each way — roughly a tenth of this card's own 640 GB/s, so anything that has to cross it is a different performance regime from anything that stays in VRAM",
+        specs: [["Lanes", "16"], ["Generation", "PCIe 5.0"], ["Bandwidth", "~63 GB/s per direction"]] },
       { id: "media", label: "Media engine", kind: "fixed", note: "encode / decode" },
-      { id: "display", label: "Display engine", kind: "io" },
+      { id: "display", label: "Display engine", kind: "io",
+        note: "scanout — reads finished framebuffers and drives the outputs. Idle on a card doing only inference" },
     ],
   },
 

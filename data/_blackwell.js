@@ -14,16 +14,25 @@ export const processingBlock = {
   ],
   cols: 4,
   children: [
-    { id: "cuda", label: "CUDA cores ×32", kind: "compute", span: 2 },
+    { id: "cuda", label: "CUDA cores ×32", kind: "compute", span: 2,
+      note: "the FP32/INT32 lanes. A warp is 32 threads and a partition is 32 lanes wide, so one warp issues across the block in a single cycle — the shape of the hardware is why 32 is the scheduling unit",
+      specs: [["Lanes", "32"], ["Warp width", "32 threads"], ["Blocks per SM", "4"]] },
     {
       id: "tc", label: "Tensor Core", kind: "matrix", span: 2,
       note: "5th generation — the matrix engine behind the card's low-precision throughput",
       specs: [["Per processing block", "1"], ["Per SM", "4"], ["Generation", "5th"]],
     },
-    { id: "warp", label: "Warp scheduler", kind: "sched" },
-    { id: "rf", label: "Register file", kind: "cache" },
-    { id: "l0i", label: "L0 instruction cache", kind: "cache" },
-    { id: "lsu", label: "LD/ST + SFU", kind: "io" },
+    { id: "warp", label: "Warp scheduler", kind: "sched",
+      note: "picks one ready warp per cycle from the slots it tracks and issues a single instruction. Latency is hidden by having other warps ready, not by reordering — there is no out-of-order execution here, so occupancy IS the latency-hiding mechanism",
+      specs: [["Wave slots tracked", "12 per partition"], ["Issue rate", "1 instruction/cycle"]] },
+    { id: "rf", label: "Register file", kind: "cache",
+      note: "64 KB per processing block, 256 KB per SM — unchanged since Ampere. It is the budget that decides occupancy: the more registers a kernel needs per thread, the fewer warps fit, and the less latency the scheduler can hide",
+      specs: [["Per processing block", "64 KB"], ["Per SM", "256 KB"], ["Shared across", "12 wave slots"]] },
+    { id: "l0i", label: "L0 instruction cache", kind: "cache",
+      note: "the private instruction feed for this partition, backed by a 128 KB L1 instruction cache at SM level (roughly 8K instructions). Unrolled or heavily inlined kernels can miss here, which costs issue slots even when the data path is idle" },
+    { id: "lsu", label: "LD/ST + SFU", kind: "io",
+      note: "load/store units address the L1 and shared memory below, and the special function units handle transcendentals — reciprocal, square root, sine, exponential — at a quarter of the FP32 lane count, so transcendental-heavy code runs at a fraction of peak",
+      specs: [["SFUs", "4 per partition"], ["vs FP32 lanes", "32 — an 8:1 ratio"]] },
   ],
 };
 
@@ -44,9 +53,12 @@ export function sm(total) {
       { ...processingBlock, id: "pb1", label: "Processing block 1", count: null },
       { ...processingBlock, id: "pb2", label: "Processing block 2", count: null },
       { ...processingBlock, id: "pb3", label: "Processing block 3", count: null },
-      { id: "l1", label: "L1 data cache / shared memory", kind: "cache", span: 2 },
+      { id: "l1", label: "L1 data cache / shared memory", kind: "cache", span: 2,
+        note: "one 128 KB block per SM, partitioned between the hardware-managed L1 and programmer-managed shared memory. A CUDA block's shared memory is carved from here, so asking for more of it directly reduces how many blocks fit on the SM",
+        specs: [["Per SM", "128 KB"], ["Split", "L1 / shared, configurable"]] },
       { id: "rt", label: "RT Core", kind: "fixed", note: "4th generation" },
-      { id: "tex", label: "Texture units ×4", kind: "fixed" },
+      { id: "tex", label: "Texture units ×4", kind: "fixed",
+        note: "filtered, interpolated sampling with addressing modes in hardware. Idle in most compute work, but the path is still there and CUDA can reach it through texture objects" },
     ],
   };
 }
@@ -60,7 +72,8 @@ export function tpc(total) {
     children: [
       { ...sm(total), id: "sm0", label: "SM 0", count: null },
       { ...sm(total), id: "sm1", label: "SM 1", count: null },
-      { id: "pm", label: "PolyMorph engine", kind: "fixed", span: 2 },
+      { id: "pm", label: "PolyMorph engine", kind: "fixed", span: 2,
+        note: "the per-TPC geometry front end — vertex fetch, tessellation, viewport transform, attribute setup. One per TPC, so geometry throughput scales with TPC count rather than being a single fixed block" },
     ],
   };
 }
@@ -75,7 +88,8 @@ export function gpc(total) {
     cols: 4,
     children: [
       ...[0, 1, 2, 3, 4, 5, 6, 7].map((i) => ({ ...t, id: "tpc" + i, label: "TPC " + i })),
-      { id: "raster", label: "Raster engine", kind: "fixed", span: 4 },
+      { id: "raster", label: "Raster engine", kind: "fixed", span: 4,
+        note: "one per GPC: turns triangles into pixel fragments — edge setup, coarse and fine rasterization, z-cull. This is the block that makes a GPC a GRAPHICS processing cluster rather than just a bag of SMs" },
     ],
   };
 }
@@ -102,9 +116,12 @@ export function die(opts) {
       note: opts.memNote,
     },
     { id: "gigathread", label: "GigaThread engine", kind: "sched", note: "work distribution" },
-    { id: "pcie", label: "PCIe 5.0 ×16", kind: "io" },
+    { id: "pcie", label: "PCIe 5.0 ×16", kind: "io",
+      note: "the host link. 16 lanes of PCIe 5.0, about 63 GB/s each way — roughly 3.5% of this card's own memory bandwidth, which is why a working set that has to stream from host memory performs nothing like one that fits in VRAM",
+      specs: [["Lanes", "16"], ["Generation", "PCIe 5.0"], ["Bandwidth", "~63 GB/s per direction"]] },
     { id: "nvenc", label: "NVENC / NVDEC", kind: "fixed", note: "video encode / decode" },
-    { id: "display", label: "Display engine", kind: "io" },
+    { id: "display", label: "Display engine", kind: "io",
+      note: "scanout: reads finished framebuffers and drives the physical outputs, with its own timing and colour pipeline. Entirely idle on a card used only for compute" },
   ];
 }
 

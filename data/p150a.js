@@ -58,7 +58,11 @@ export default {
         id: "qsfp", label: "4 × QSFP-DD 800G", kind: "io", span: 2,
         note: "passive ports — link cards together to pool memory across chips",
       },
-      { id: "slot", label: "PCIe 5.0 ×16 edge", kind: "io", span: 2 },
+      {
+        id: "slot", label: "PCIe 5.0 ×16 edge", kind: "io", span: 2,
+        note: "the card's edge connector — a board part, not a tile on the die. It carries the one PCIe tile the die actually uses out to the host slot at about 63 GB/s each way, an eighth of the card's own 512 GB/s",
+        specs: [["Lanes", "16"], ["Generation", "PCIe 5.0"], ["Bandwidth", "~63 GB/s per direction"]],
+      },
     ],
   },
 
