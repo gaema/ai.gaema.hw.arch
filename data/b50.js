@@ -42,7 +42,7 @@ export default {
     "Execution unit": "Xe-core",
     "Units enabled": "16 of 20 on the die",
     "Matrix engines": "128 XMX engines (8 per Xe-core)",
-    "On-chip memory": "16 MiB L2 — Intel publishes no figure; this is what the device reports",
+    "On-chip memory": "18 MiB L2 — Intel publishes no figure for the B50; this is what the device reports",
     "Memory": "16 GB GDDR6",
     "Memory bus": "128-bit",
     "Memory bandwidth": "224 GB/s",
@@ -71,7 +71,7 @@ export default {
     "SIMD width": "8 × 512-bit vector engines, SIMD16 native",
     "Matrix engine": "XMX, 8 per Xe-core",
     "Matrix engines total": "128",
-    "Last-level cache": "16 MiB L2 (device-reported)",
+    "Last-level cache": "18 MiB L2 (device-reported)",
     "Memory": "16 GB GDDR6",
     "Bandwidth": "224 GB/s",
     "Board power": "70 W",
@@ -83,21 +83,21 @@ export default {
     disabledIndices: [16, 17, 18, 19],
     disabledDetail:
       "One of the four Xe-cores disabled on the B50 — the die carries 20 and this SKU enables 16. Intel publishes neither WHICH four are cut nor whether they are grouped, and the B570 (18 of the same 20) shows the harvest is done per-Xe-core rather than per-render-slice. These four are drawn together only so the count is legible; their position is not a claim.",
-    l2Sub: "16 MiB shared across all render slices",
+    l2Sub: "18 MiB shared across all render slices",
     l2Detail:
-      "16 MiB of shared last level, banked into slices tied to the memory controllers rather than the single block drawn here. Intel publishes no L2 capacity for BMG-G21 in the B50's data sheet, so this is the figure the device reports through the driver — see the note under the map.",
-    l2Specs: [["Capacity", "16 MiB"], ["Source", "device-reported, not published by Intel"],
+      "18 MiB of shared last level, banked into slices tied to the memory controllers rather than the single block drawn here. Intel publishes no L2 capacity in the B50's data sheet, so this is the figure the device reports through the driver — and it is the whole die's cache, not a harvested share: the B580, which enables all 20 Xe-cores of the same BMG-G21, is quoted at the same 18 MB.",
+    l2Specs: [["Capacity", "18 MiB"], ["Source", "device-reported, not published by Intel"],
               ["Physically", "banked with the memory controllers"]],
     frontEnd: () => [
       { w: 3, kind: "io", label: "PCIe 5.0 ×8", path: "pcie",
         detail: "The host link. The connector is a mechanical ×16 but only eight lanes are wired, so about 31 GB/s each way — a seventh of the 224 GB/s the card reaches its own GDDR6 at, and half the host bandwidth of the ×16 parts on this site." },
       { w: 3, kind: "sched", label: "Command streamer", sub: "global thread dispatch", path: "cs",
-        detail: "The global front end. It consumes the command buffers the driver builds and dispatches thread groups down to the four render slices, where each Xe-core's own thread dispatcher takes over." },
+        detail: "The global front end. It consumes the command buffers the driver builds and dispatches thread groups down to the render slices, where each Xe-core's own thread dispatcher takes over." },
       { w: 2, kind: "fixed", label: "Display + Media", path: "media",
         detail: "The display engine driving four mini-DisplayPort 2.1 outputs, alongside the fixed-function media block — AV1, HEVC, H.264 and VP9, full encode and decode. Neither participates in inference." },
     ],
     mapNote:
-      "The B50 enables 16 of BMG-G21's 20 Xe-cores, so four are drawn disabled — but their POSITION is not published, and the B570's 18-of-20 shows Intel harvests per-Xe-core, so do not read the grouping here as a whole-slice cut. The count is real; the placement is for legibility. The 16 MiB L2 is the one figure on this page Intel does not publish; it is read from the device.",
+      "The B50 enables 16 of BMG-G21's 20 Xe-cores, so four are drawn disabled — but their POSITION is not published, and the B570's 18-of-20 shows Intel harvests per-Xe-core, so do not read the grouping here as a whole-slice cut. The count is real; the placement is for legibility. The 18 MiB L2 is the one figure on this page Intel does not publish for this card; it is read from the device.",
   }),
 
   root: {
@@ -107,10 +107,10 @@ export default {
     children: [
       ...sliceList(SHAPE),
       {
-        id: "l2", label: "L2 cache — 16 MiB", kind: "cache", span: 2,
-        specs: [["Capacity", "16 MiB"], ["vs BMG-G31 (B70)", "24 MiB"],
+        id: "l2", label: "L2 cache — 18 MiB", kind: "cache", span: 2,
+        specs: [["Capacity", "18 MiB"], ["vs BMG-G31 (B70)", "24 MiB"],
                 ["Source", "device-reported — Intel publishes none"]],
-        note: "16 MiB shared across every render slice and banked with the memory controllers. Intel publishes no L2 figure for BMG-G21, so this is the capacity the device itself reports through the driver. It matters more here than on the B70: with only 224 GB/s behind it, a working set that spills L2 falls a long way, and the B70's extra 8 MiB is one of the two things — with bandwidth — that separates the parts at the same clock",
+        note: "18 MiB shared across every render slice and banked with the memory controllers. Intel publishes no L2 figure for the B50, so this is the capacity the device itself reports through the driver — and it corroborates the 18 MB widely quoted for the B580, which is the same BMG-G21 die with all 20 Xe-cores enabled. Note the die keeps its whole L2 even though four Xe-cores are fused off. It matters more here than on the B70: with only 224 GB/s behind it, a working set that spills L2 falls a long way, and the B70's extra 6 MiB is one of the two things — with bandwidth — that separates the parts at the same clock",
       },
       {
         id: "gddr", label: "GDDR6 memory controllers", kind: "memory", span: 2,
@@ -118,7 +118,7 @@ export default {
         note: "the controllers driving the card's 16 GB of GDDR6 across a 128-bit bus, for 224 GB/s. This is the ceiling that decides what this card is good at: it holds a large model comfortably for its price, but in a memory-bound decode every weight crosses this bus once per token, so it generates at roughly a third the rate of the 608 GB/s B70 on the same weights",
       },
       { id: "cs", label: "Command streamer", kind: "sched",
-        note: "the die-wide front end. It reads the command buffers the driver builds and dispatches thread groups out to the four render slices, where each Xe-core's own thread dispatcher places them on its vector engines. Every kernel launch enters the GPU through this block" },
+        note: "the die-wide front end. It reads the command buffers the driver builds and dispatches thread groups out to the five render slices, where each Xe-core's own thread dispatcher places them on its vector engines. Every kernel launch enters the GPU through this block" },
       { id: "pcie", label: "PCIe 5.0 ×8", kind: "io",
         note: "the host link, and the clearest sign of where this card sits: a mechanical ×16 connector with eight lanes wired, so about 31 GB/s each way instead of 63. Loading weights takes twice as long as on a ×16 card, and any workload that streams from host memory is bounded by half as much",
         specs: [["Lanes", "8 electrical (×16 mechanical)"], ["Generation", "PCIe 5.0"], ["Bandwidth", "~31 GB/s per direction"]] },

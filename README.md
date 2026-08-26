@@ -69,7 +69,7 @@ python3 -m http.server 8080
   Three figures are read from hardware instead, each named as such at the point
   of use: the p300c die-to-die channel pairing (in no document; read from a live
   card's UMD cluster descriptor and cross-checked against a second board), and
-  the **L2 capacities of BMG-G31 and BMG-G21** — 24 MiB and 16 MiB. Intel
+  the **L2 capacities of BMG-G31 and BMG-G21** — 24 MiB and 18 MiB. Intel
   publishes no L2 figure for either die: not in the product specifications, not
   in the B50 data sheet, not in review teardowns, and not statically in Intel's
   own compute-runtime, which fills the field from the driver at runtime. Reading

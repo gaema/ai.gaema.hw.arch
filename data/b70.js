@@ -106,9 +106,9 @@ export default {
       ...sliceList(SHAPE),
       {
         id: "l2", label: "L2 cache — 24 MiB", kind: "cache", span: 2,
-        specs: [["Capacity", "24 MiB"], ["vs BMG-G21 (B50)", "16 MiB"],
+        specs: [["Capacity", "24 MiB"], ["vs BMG-G21 (B50)", "18 MiB"],
                 ["Source", "device-reported — Intel publishes none"]],
-        note: L2_NOTE + ". Anything that misses here goes to GDDR6 at 608 GB/s, so what fits in L2 sets how close a bandwidth-bound kernel gets to peak — and the 50% more of it than the B50 carries is one of the two things (with bandwidth) that separates the two parts at the same clock",
+        note: L2_NOTE + ". Anything that misses here goes to GDDR6 at 608 GB/s, so what fits in L2 sets how close a bandwidth-bound kernel gets to peak — and the 33% more of it than the B50 carries (24 MiB against 18) is one of the two things, with bandwidth, that separates the two parts at the same clock",
       },
       {
         id: "gddr", label: "GDDR6 memory controllers", kind: "memory", span: 2,
