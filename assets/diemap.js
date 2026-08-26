@@ -317,6 +317,13 @@ export function renderDieMap(sku, onOpenPath) {
   if (map.dataflow) {
     const d = el("button", "chip df-toggle", map.dataflow.label || "Trace a read");
     d.type = "button";
+    // The VISIBLE label names the next action ("Trace a read" / "Hide the
+    // read"), which is right on screen and wrong for the accessible name:
+    // aria-pressed reports whether the overlay is SHOWN, so pairing it with an
+    // action name announces the inverse of the truth -- "Hide the read,
+    // pressed" while the read is visible. A stable noun fixes the pairing
+    // without changing anything a sighted reader sees.
+    d.setAttribute("aria-label", "Traced read");
     d.setAttribute("aria-pressed", "false");
     d.addEventListener("click", () => {
       routeOn = !routeOn;
@@ -342,6 +349,11 @@ export function renderDieMap(sku, onOpenPath) {
   if (svg) {
     const t = el("button", "chip ic-toggle", "Hide interconnect");
     t.type = "button";
+    // Same pairing as the traced-read chip above: pressed = the interconnect is
+    // SHOWN, so the accessible name has to be the thing, not the action. This
+    // one announced "Hide interconnect, pressed" on every page load, with the
+    // interconnect fully visible.
+    t.setAttribute("aria-label", "Interconnect");
     t.setAttribute("aria-pressed", "true");
     t.addEventListener("click", () => {
       const on = svg.classList.toggle("off");
