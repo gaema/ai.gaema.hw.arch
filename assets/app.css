@@ -453,7 +453,18 @@ h2.section-h.sub + dl.spec-grid { margin-top: 8px; }
 
 .sku-head { padding: 26px 0 4px; }
 .sku-head h1 { margin: 0 0 8px; font-size: 26px; letter-spacing: -0.02em; }
-.sku-head p { margin: 0; color: var(--ink-mid); max-width: 72ch; }
+/* The lede keeps a reading measure rather than running the full 1140px column.
+   62ch, not 72: `ch` is the width of "0" and the average proportional glyph is
+   narrower, so 72ch rendered ~82 characters per line -- past the comfortable
+   45-75 range. `balance` stops a short tagline from breaking into one long line
+   plus a three-word orphan; it is ignored where unsupported and on the longer
+   taglines, which are paragraphs and want the plain measure. */
+.sku-head p {
+  margin: 0;
+  color: var(--ink-mid);
+  max-width: 62ch;
+  text-wrap: balance;
+}
 
 dl.spec-grid {
   margin: 16px 0 0;

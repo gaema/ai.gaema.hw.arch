@@ -119,12 +119,12 @@ function renderStage(chain) {
   head.append(el("h2", null, chain.length === 1 ? SKU.name : node.label));
   const sub = kids.length
     ? kids.length + (kids.length === 1 ? " block" : " blocks")
-    : "no further detail published";
+    : "lowest level shown";
   head.append(el("span", "sub", sub));
   stage.append(head);
 
   if (!kids.length) {
-    stage.append(el("p", "note", "This block is a leaf here — the vendor does not publish structure below it."));
+    stage.append(el("p", "note", "This block is a leaf — the hierarchy does not go below it."));
   } else {
     const grid = el("div", "grid");
     grid.style.setProperty("--cols", String(node.cols || 4));
