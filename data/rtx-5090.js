@@ -53,7 +53,7 @@ export default {
 
   root: {
     id: "card", label: "GeForce RTX 5090", kind: "compute",
-    note: "one GB202 die with 170 of its 192 SMs enabled, on a PCIe 5.0 ×16 card",
+    note: "one GB202 die on a PCIe 5.0 ×16 card, with 170 of its 192 SMs enabled — the consumer flagship of the Blackwell generation. Same silicon as the RTX PRO 6000, harvested harder and paired with 32 GB of non-ECC GDDR7 instead of 96 GB of ECC, which is the difference that decides which models fit rather than how fast they run",
     cols: 4,
     children: die({
       activeSMs: 170,
@@ -61,7 +61,7 @@ export default {
       mem: "32 GB",
       bus: "512-bit",
       bw: "1,792 GB/s",
-      memNote: "512-bit bus, 32 GB of GDDR7, 1,792 GB/s",
+      memNote: "sixteen 32-bit controllers making a 512-bit interface onto 32 GB of GDDR7, for 1,792 GB/s. In a memory-bound decode this rate, not the FLOPS, sets the floor on time per token — every weight is read once per token — and the 32 GB sets the harder limit of which models fit on the card at all",
     }),
   },
 

@@ -56,7 +56,7 @@ export default {
       { ...asic(120), span: 4 },
       {
         id: "qsfp", label: "4 × QSFP-DD 800G", kind: "io", span: 2,
-        note: "passive ports — link cards together to pool memory across chips",
+        note: "four passive QSFP-DD cages on the board's bracket, carrying 800 GbE each — the card's scale-out path. They extend the same Ethernet fabric the Ethernet tiles speak on-die out to other cards, so a multi-card system is one larger mesh rather than a set of peers coordinating over PCIe and host memory. That is how a model too large for 32 GB is run: its layers are spread across cards and activations cross these ports directly, never touching the host. Eight of the die's twelve usable Ethernet tiles are cabled to them",
       },
       {
         id: "slot", label: "PCIe 5.0 ×16 edge", kind: "io", span: 2,

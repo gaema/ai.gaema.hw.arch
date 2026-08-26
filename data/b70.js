@@ -5,7 +5,7 @@ import { band, field, memBand, MAP_NOTE } from "./_floorplan.js";
 
 const xeCore = {
   id: "xe-core", label: "Xe-core", kind: "compute", count: "32 on the die",
-  note: "8 vector engines + 8 XMX engines behind 256 KB of shared L1/SLM",
+  note: "Intel's equivalent of an SM or a compute unit, and the block a thread group is scheduled onto: eight vector engines, eight XMX matrix engines, a ray tracing unit, and 256 KB of L1 and shared local memory they all sit behind. 32 of them make this die. Everything above is replication of this block; everything below is inside it",
   specs: [
     ["Xe-cores on die", "32"],
     ["Vector engines", "8 × 512-bit"],
@@ -16,7 +16,7 @@ const xeCore = {
   children: [
     {
       id: "ve", label: "Vector Engine ×8", kind: "compute", span: 2,
-      note: "512-bit, SIMD16-native ALUs (SIMD16 and SIMD32 ops)",
+      note: "the general-purpose SIMD ALUs — where ordinary shader and kernel arithmetic runs, everything that is not a matrix multiply. 512 bits wide and SIMD16-native in Xe2 (Alchemist was SIMD8), executing both SIMD16 and SIMD32 operations. Eight per Xe-core, and the reason a kernel with elementwise work between its matrix ops is not stalled waiting on XMX",
       specs: [
         ["Per Xe-core", "8"],
         ["Width", "512-bit"],
@@ -26,7 +26,7 @@ const xeCore = {
     },
     {
       id: "xmx", label: "XMX Engine ×8", kind: "matrix", span: 2,
-      note: "Xe Matrix eXtensions — the systolic array that carries INT8/FP16 matrix work",
+      note: "Xe Matrix eXtensions: a systolic array that takes a whole small matrix multiply-accumulate as one instruction rather than as a loop of vector FMAs. This is where a transformer's dense layers, attention projections and convolutions actually execute, and where the card's INT8 and FP16 headline throughput comes from — the vector engines beside it are an order of magnitude slower at the same work. Eight per Xe-core, 256 on the die",
       specs: [
         ["Per Xe-core", "8"],
         ["On the die", "256"],
@@ -48,7 +48,7 @@ const xeCore = {
 
 const renderSlice = {
   id: "slice", label: "Render Slice", kind: "compute", count: "8 on the die",
-  note: "4 Xe-cores + 4 ray tracing units",
+  note: "the level Intel scales the product line by: four Xe-cores, four ray tracing units, and the geometry and rasterization front end that makes it a RENDER slice rather than just a group of cores. Eight slices make the B70; a smaller part in this family is fewer slices of the same design, not a different one",
   specs: [["Xe-cores", "4"], ["Ray tracing units", "4"]],
   cols: 4,
   children: [
@@ -126,11 +126,11 @@ export default {
     tiles: [
       ...band(0, [
         { w: 5, kind: "io", label: "PCIe 5.0 ×16", path: "pcie",
-          detail: "Host interface. PCIe 5.0 ×16." },
+          detail: "The host link: 16 lanes of PCIe 5.0, about 63 GB/s each way — roughly a tenth of the 608 GB/s the card reaches its own GDDR6 at. Model weights cross here once at load; anything that has to keep crossing it during inference is in a fundamentally slower regime." },
         { w: 6, kind: "sched", label: "Command streamer", sub: "global thread dispatch", path: "cs",
-          detail: "Takes work from the host and dispatches threads across the render slices." },
+          detail: "The global front end. It consumes the command buffers the driver builds and dispatches thread groups down to the render slices, where each Xe-core's own thread dispatcher takes over — a two-level scheme, this being the die-wide half." },
         { w: 5, kind: "fixed", label: "Display + Media", path: "media",
-          detail: "Display engine and the media block — video encode and decode." },
+          detail: "The display engine, which scans finished framebuffers out to the physical outputs, alongside the fixed-function media block that encodes and decodes video without using the Xe-cores. Neither participates in inference." },
       ]),
       ...memBand(1, 4, 16, "GDDR6", () => `1/8 of the bus`,
         "One eighth of the 256-bit GDDR6 interface — 608 GB/s from 256 bits × 19 Gbps. Intel does not publish how that bus is divided into controllers for this die, so the eight blocks are a drawing convenience, NOT a controller count.",
@@ -171,24 +171,26 @@ export default {
 
   root: {
     id: "card", label: "Arc Pro B70", kind: "compute",
-    note: "single Xe2 Battlemage die on a PCIe 5.0 ×16 card",
+    note: "one Xe2 Battlemage die on a PCIe 5.0 ×16 card — the full 32 Xe-core configuration, with 32 GB of GDDR6 and 256 XMX matrix engines. The professional part of the Battlemage line: more memory than the consumer boards, aimed at inference and workstation work",
     cols: 4,
     children: [
       ...slices,
       {
         id: "l2", label: "L2 cache", kind: "cache", span: 2,
-        note: "shared across all render slices; Intel does not publish the capacity for this SKU",
+        note: "the die's shared last level, sitting between the Xe-cores' own 256 KB L1/SLM blocks and the memory controllers, and banked into slices tied to those controllers rather than being one central block. Anything that misses here goes to GDDR6 at 608 GB/s, so what fits in L2 sets how close a bandwidth-bound kernel gets to peak. Intel does not publish the capacity for this SKU, so none is claimed here",
       },
       {
         id: "gddr", label: "GDDR6 memory controllers", kind: "memory", span: 2,
         specs: [["Capacity", "32 GB"], ["Bus", "256-bit"], ["Bandwidth", "608 GB/s"]],
-        note: "256-bit bus, 32 GB, 608 GB/s",
+        note: "the controllers driving the card's 32 GB of GDDR6 — 256 bits at 19 Gbps, so 608 GB/s. This is the number that bounds token generation: in a memory-bound decode every weight is read once per token, so the model's size divided by this rate is the floor on time per token no amount of compute can undercut. Intel does not publish how the bus is split into controllers for this die",
       },
-      { id: "cs", label: "Command streamer", kind: "sched", note: "global thread dispatch" },
+      { id: "cs", label: "Command streamer", kind: "sched",
+        note: "the die-wide front end. It reads the command buffers the driver builds and dispatches thread groups out to the render slices, where each Xe-core's own thread dispatcher places them on its vector engines. Every kernel launch enters the GPU through this block" },
       { id: "pcie", label: "PCIe 5.0 ×16", kind: "io",
         note: "the host link. 16 lanes of PCIe 5.0, about 63 GB/s each way — roughly a tenth of this card's own 608 GB/s",
         specs: [["Lanes", "16"], ["Generation", "PCIe 5.0"], ["Bandwidth", "~63 GB/s per direction"]] },
-      { id: "media", label: "Media engine", kind: "fixed", note: "encode / decode" },
+      { id: "media", label: "Media engine", kind: "fixed",
+        note: "fixed-function video encode and decode, independent of the Xe-cores, so a transcode runs at full rate without spending any compute. Intel's media blocks are the strongest part of these cards outside of graphics, and are entirely unused by inference" },
       { id: "display", label: "Display engine", kind: "io",
         note: "scanout — drives the physical outputs from finished framebuffers. Idle on a card doing only inference" },
     ],

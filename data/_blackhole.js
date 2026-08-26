@@ -25,16 +25,16 @@ export const tensix = {
     },
     {
       id: "matrix", label: "Matrix engine (FPU)", kind: "matrix",
-      note: "the dense matrix unit — what the FP8 and FP16 throughput figures are made of",
+      note: "the dense matrix unit, and where essentially all of a model's arithmetic happens. It multiplies tiles staged in this tile's L1 SRAM and accumulates into a destination register file, one instruction per tile-sized multiply-accumulate rather than a loop of vector operations — so every dense layer, attention projection and convolution lands here. The FP8 and FP16 throughput figures for the card are this engine multiplied by the tile count; BFP8 runs at the same rate as bf16 because the unpacker resolves the shared exponent before the data arrives",
     },
     {
       id: "sfpu", label: "Vector engine (SFPU)", kind: "compute",
-      note: "elementwise and transcendental work",
+      note: "the SIMD unit beside the matrix engine, for everything a matrix multiply cannot express: activations, normalisation, softmax, elementwise arithmetic, and the transcendentals — exponential, reciprocal, square root — those are built from. In a transformer it handles the work between the dense layers, and because it shares the same destination register file as the matrix engine, results can move between the two without a round trip through L1",
     },
     {
       id: "l1", label: "L1 SRAM", kind: "cache", span: 2,
       specs: [["Capacity", "1.5 MB per tile"]],
-      note: "software-managed local store, not a cache — the program places data here explicitly",
+      note: "1.5 MB of scratchpad per tile — and the single biggest architectural difference from a GPU. It is not a cache: there is no tag array, no eviction policy and no hierarchy behind it, so nothing arrives here by accident. The program moves data in over the NOC explicitly, and every operand the compute engines read comes from this block. That makes performance predictable rather than statistical, and it makes data movement the programmer's problem: 120 tiles × 1.5 MB is 180 MB of addressable on-chip memory, but only if the kernel places its tiles there itself",
     },
     { id: "noc0", label: "NoC router 0", kind: "io",
       note: "one of the tile's two independent NoC planes. NoC 0 travels rightwards as far as needed, turns at most once, then travels downwards — dimension-ordered, which is what keeps the mesh free of cyclic-dependency deadlock. The router runs whether or not this tile's compute does, which is why a harvested column still carries traffic",
@@ -148,7 +148,7 @@ export function dieTiles(pathPrefix, opts = {}) {
 
       if (x === 8 && y === 0) {
         tiles.push({ ...base, kind: "sched", label: "ARC",
-          detail: "The management complex — power, telemetry, boot and reset for the whole die.",
+          detail: "The ARC management complex: a small always-on controller that boots the die, runs its firmware, applies the harvesting fuses that decide which Tensix columns and which PCIe tile are live, and reports clock, power, temperature and reset state to the host. It runs no user compute — it is what the host talks to before any kernel exists.",
           path: p("arc") });
       } else if ((x === 2 || x === 11) && y === 0) {
         const off = harv && harv[0] === x && harv[1] === y;
@@ -209,7 +209,7 @@ export function dieTiles(pathPrefix, opts = {}) {
               path: p("tensix") });
       } else {
         tiles.push({ ...base, kind: "io", label: "Rtr",
-          detail: "A router-only tile on the bottom edge: it switches NOC traffic but carries no compute." });
+          detail: "A router-only tile on the bottom edge. It carries the two NOC routers every grid position has, so traffic passes through it exactly as it would through a Tensix, but it has no compute engines and no L1 for a kernel to use. Its purpose is topological: the mesh is a torus and needs a switch at every coordinate, whether or not there is anything there worth computing with." });
       }
     }
   }
@@ -419,7 +419,7 @@ export function asic(activeTensix) {
       {
         id: "gddr", label: "GDDR6 memory", kind: "memory", span: 2,
         specs: [["Capacity", "32 GB"], ["Channels", "8"], ["Data rate", "16 GT/s"], ["Bandwidth", "512 GB/s"]],
-        note: "8 channels, 32 GB, 512 GB/s",
+        note: "32 GB of GDDR6 across 8 channels at 16 GT/s, giving 512 GB/s. The tiles do not reach it through a cache hierarchy — each channel is exposed as NOC tiles in the two memory columns, and a Tensix reads DRAM by addressing those tiles over the mesh, the same way it addresses any other tile. On a memory-bound decode this rate sets the floor on time per token: the weights cross it once per token unless they already live in tile SRAM",
       },
       {
         id: "eth", label: "Ethernet", kind: "link", span: 2,
@@ -429,7 +429,8 @@ export function asic(activeTensix) {
       { id: "pcie", label: "PCIe 5.0 ×16", kind: "io",
         note: "the die's host interface. Two PCIe tiles exist and each is a full ×16 on its own; one is used and the other sits permanently idle on current products, so a card gets its whole ×16 from a single tile rather than splitting the link across both",
         specs: [["Tiles on die", "2, one used"], ["Link", "PCIe 5.0 ×16 from one tile"], ["Bandwidth", "~63 GB/s per direction"]] },
-      { id: "arc", label: "Management complex", kind: "sched", note: "power, telemetry, boot" },
+      { id: "arc", label: "Management complex", kind: "sched",
+        note: "the ARC tile — a small always-on controller that brings the die up, runs its firmware, applies the harvesting fuses that decide which Tensix columns and which PCIe tile are live, and reports clocks, power and temperature to the host. It does no user compute; it is the block the host talks to before any kernel exists, and the one that answers when a tool asks the card what it is" },
     ],
   };
 }

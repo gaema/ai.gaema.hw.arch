@@ -5,7 +5,7 @@ import { band, field, memBand, MAP_NOTE } from "./_floorplan.js";
 
 const simd32 = {
   id: "simd32", label: "SIMD32", kind: "compute", count: "2 per CU",
-  note: "32-lane vector unit",
+  note: "the unit that actually executes a wave. 32 lanes wide, matching wave32 — a wave64 takes two passes. Each CU has two, and the scalar unit and AI accelerators exist to keep them fed",
   specs: [
     ["Lanes", "32"],
     ["Wave modes", "wave32 / wave64"],
@@ -13,9 +13,12 @@ const simd32 = {
   ],
   cols: 3,
   children: [
-    { id: "alu-a", label: "ALU", kind: "compute", note: "FMA / INT" },
-    { id: "alu-b", label: "ALU", kind: "compute", note: "FMA / INT" },
-    { id: "tlu", label: "TLU", kind: "compute", note: "transcendentals" },
+    { id: "alu-a", label: "ALU", kind: "compute",
+      note: "the main arithmetic pipe: fused multiply-add in floating point plus integer work. Ordinary shader and kernel maths lands here" },
+    { id: "alu-b", label: "ALU", kind: "compute",
+      note: "the second arithmetic pipe. Having two lets the SIMD dual-issue compatible operations, which is where the peak FP32 figure comes from — real code reaches it only when the compiler can pair instructions" },
+    { id: "tlu", label: "TLU", kind: "compute",
+      note: "the transcendental unit — reciprocal, square root, exponential, logarithm, sine, cosine. Narrower than the main ALUs, so activation functions and anything softmax-shaped cost more per lane than plain multiply-add; inference kernels try to keep them off the critical path" },
     { id: "vgpr", label: "Vector register file", kind: "cache", span: 3,
       note: "192 KB per SIMD. RDNA 4 allocates it DYNAMICALLY — a kernel takes what it asks for rather than a fixed slice, so a register-hungry kernel runs with fewer waves instead of failing to fit, and a lean one gets more. At 96 or fewer registers per lane all 16 wave slots fill",
       specs: [["Per SIMD", "192 KB"], ["Wave slots", "16"], ["Full occupancy at", "≤96 VGPRs"], ["Allocation", "dynamic (new in RDNA 4)"]] },
@@ -24,7 +27,7 @@ const simd32 = {
 
 const cu = {
   id: "cu", label: "Compute Unit", kind: "compute", count: "64 on the die",
-  note: "2 SIMD32 + 2 AI accelerators + 1 RT core",
+  note: "the smallest block that independently executes a wave: two 32-lane SIMDs, two matrix accelerators, a ray tracing core, a scalar unit and its own L0. 64 of them make this die, and the card's throughput is this block multiplied out",
   specs: [
     ["CUs on die", "64"],
     ["Stream processors / CU", "64"],
@@ -37,7 +40,7 @@ const cu = {
     { ...simd32, id: "simd32-b" },
     {
       id: "ai-acc", label: "AI Accelerator ×2", kind: "matrix",
-      note: "2× RDNA 3 rate at FP16/BF16, 4× at INT8/INT4",
+      note: "the matrix units, and the reason this is an AI card rather than a graphics card with a lot of memory. They execute the small dense matrix multiplies a transformer layer decomposes into, at twice RDNA 3's per-CU rate for FP16 and BF16 and four times for INT8 and INT4 — which is why quantising down pays off more here than on the previous generation",
       specs: [
         ["Per CU", "2"],
         ["On the die", "128"],
@@ -45,12 +48,15 @@ const cu = {
         ["vs RDNA 3, INT8 / INT4", "4× per CU"],
       ],
     },
-    { id: "rt", label: "Ray Tracing core", kind: "fixed", note: "3rd generation" },
-    { id: "scalar", label: "Scalar unit", kind: "sched", note: "uniform work + branch" },
+    { id: "rt", label: "Ray Tracing core", kind: "fixed",
+      note: "third-generation fixed-function ray tracing: it walks the bounding-volume hierarchy and tests rays against boxes and triangles — work that is branch-heavy and cache-hostile on a general vector unit. One per compute unit, 64 on the die. Idle during inference: silicon an AI workload pays for and does not use" },
+    { id: "scalar", label: "Scalar unit", kind: "sched",
+      note: "handles values identical across every lane of a wave — loop counters, base addresses, branch conditions, constants. Keeping uniform work here instead of replicating it 32 times across the vector lanes is a large part of why GPU code is efficient at all" },
     { id: "l0", label: "L0 vector cache", kind: "cache",
       note: "32 KB per compute unit — the first thing a vector memory access hits, about 30 cycles away. RDNA 4 reorganised the L0: 64 KB per WGP in total, against RDNA 3's larger-but-differently-split arrangement",
       specs: [["Per CU", "32 KB"], ["Per WGP", "64 KB"], ["Latency", "~30 cycles"]] },
-    { id: "tex", label: "Texture units", kind: "fixed", note: "4 per CU" },
+    { id: "tex", label: "Texture units", kind: "fixed",
+      note: "address generation, filtering and format conversion for sampled reads, four per CU. A graphics inheritance inference rarely touches directly, though the same addressing hardware serves some buffer loads" },
     { id: "sched-cu", label: "Instruction issue", kind: "sched",
       note: "fetches and issues for the waves resident on this CU, choosing among them each cycle and steering each instruction to the right pipe — vector, scalar, matrix, memory or branch. As on every GPU here, latency is hidden by switching waves rather than by reordering" },
   ],
@@ -58,19 +64,20 @@ const cu = {
 
 const wgp = {
   id: "wgp", label: "Work Group Processor", kind: "compute", count: "32 on the die",
-  note: "a CU pair sharing one LDS",
+  note: "the unit a workgroup is actually scheduled onto: two compute units plus the Local Data Share they share. Because the LDS is per-WGP, two CUs can cooperate on one tile without touching cache — which is why the WGP, not the CU, is the useful granularity for reasoning about occupancy",
   specs: [["Compute units", "2"], ["WGPs on die", "32"]],
   cols: 3,
   children: [
     { ...cu, id: "cu-a", label: "Compute Unit 0", count: null },
     { ...cu, id: "cu-b", label: "Compute Unit 1", count: null },
-    { id: "lds", label: "Local Data Share", kind: "cache", note: "shared by both CUs" },
+    { id: "lds", label: "Local Data Share", kind: "cache",
+      note: "scratchpad memory the program manages itself, shared by the WGP's two compute units. It is how a workgroup exchanges data without going to cache, and where a tiled matrix multiply stages its tiles — the AMD equivalent of CUDA shared memory" },
   ],
 };
 
 const shaderArray = {
   id: "sa", label: "Shader Array", kind: "compute",
-  note: "4 WGPs behind a shared L1",
+  note: "four WGPs — eight compute units — behind one shared L1. The array is where cache is shared before the die-wide L2, so work placed in the same array can reuse its neighbours' fetches",
   specs: [["WGPs", "4"], ["Compute units", "8"]],
   cols: 4,
   children: [
@@ -78,13 +85,14 @@ const shaderArray = {
     { ...wgp, id: "wgp1", label: "WGP 1", count: null },
     { ...wgp, id: "wgp2", label: "WGP 2", count: null },
     { ...wgp, id: "wgp3", label: "WGP 3", count: null },
-    { id: "l1", label: "L1 cache", kind: "cache", span: 4, note: "shared across the array" },
+    { id: "l1", label: "L1 cache", kind: "cache", span: 4,
+      note: "the shader array's shared read cache, between the per-CU L0s and the die-wide L2. It catches data several WGPs in the same array want, so a broadcast weight is fetched once rather than four times" },
   ],
 };
 
 const shaderEngine = {
   id: "se", label: "Shader Engine", kind: "compute", count: "4 on the die",
-  note: "2 shader arrays + geometry front end",
+  note: "sixteen compute units in two arrays, with their own geometry and rasterization front end. Four of these make the die, and the shader engine is the unit AMD scales a product line by: a smaller Navi part is fewer shader engines of the same design",
   specs: [["Shader arrays", "2"], ["WGPs", "8"], ["Compute units", "16"]],
   cols: 2,
   children: [
@@ -153,11 +161,11 @@ export default {
     tiles: [
       ...band(0, [
         { w: 5, kind: "io", label: "PCIe 5.0 ×16", path: "pcie",
-          detail: "Host interface. PCIe 5.0 ×16." },
+          detail: "The host link: 16 lanes of PCIe 5.0, about 63 GB/s each way — roughly a tenth of the 640 GB/s the card reaches its own GDDR6 at. Weights cross here once at load; a working set that has to keep crossing it performs nothing like one that fits in the 32 GB." },
         { w: 6, kind: "sched", label: "Command processor", sub: "+ ACEs", path: "cp",
           detail: "The graphics/compute front end: it takes work from the host and hands it to the shader engines." },
         { w: 5, kind: "fixed", label: "Display + Media", path: "media",
-          detail: "Display engine and the media block — video encode and decode." },
+          detail: "The display engine, which scans finished framebuffers out to the physical outputs, alongside the fixed-function media block that encodes and decodes video without consuming any compute units. Neither is used by inference." },
       ]),
       ...memBand(1, 2, 16, "GDDR6", (i) => `4×16-bit ctrl ${i}`,
         "One of the FOUR memory controllers that make the 256-bit GDDR6 interface. AMD's own block diagram describes them as four 4×16 controllers — 64 bits each — not as eight 32-bit ones. 640 GB/s comes from 256 bits × 20 Gbps.",
@@ -202,7 +210,7 @@ export default {
 
   root: {
     id: "card", label: "Radeon AI PRO R9700", kind: "compute",
-    note: "single Navi 48 die on a PCIe 5.0 ×16 card",
+    note: "one Navi 48 die on a PCIe 5.0 ×16 card — 64 compute units and 32 GB of GDDR6 behind a 64 MB Infinity Cache, aimed at inference and professional visualisation rather than gaming",
     cols: 4,
     children: [
       { ...shaderEngine, count: null, id: "se0", label: "Shader Engine 0" },
@@ -212,23 +220,25 @@ export default {
       {
         id: "l2", label: "L2 cache", kind: "cache", span: 2,
         specs: [["Capacity", "8 MB"]],
-        note: "8 MB, shared by all four shader engines",
+        note: "8 MB shared by all four shader engines — the last level that is a cache in the ordinary sense, backing the per-array L1s. What misses here goes on to the Infinity Cache, and only then to DRAM",
       },
       {
         id: "mall", label: "Infinity Cache", kind: "cache", span: 2,
         specs: [["Capacity", "64 MB"], ["Generation", "3rd"]],
-        note: "64 MB memory-attached last level, in front of GDDR6",
+        note: "64 MB attached to the memory side rather than the core side, so a hit never reaches the GDDR6 bus at all. This is what lets a 256-bit part behave like a much wider one — it turns would-be DRAM traffic into on-die traffic, so the effective bandwidth a kernel sees can exceed 640 GB/s on data that fits",
       },
       {
         id: "gddr", label: "GDDR6 memory controllers", kind: "memory", span: 2,
         specs: [["Capacity", "32 GB"], ["Bus", "256-bit"], ["Bandwidth", "640 GB/s"]],
-        note: "256-bit bus, 32 GB, 640 GB/s",
+        note: "the four controllers driving the card's GDDR6 — 256 bits at 20 Gbps, so 640 GB/s. On a memory-bound decode this sets the ceiling: every weight crosses it once per token unless a cache catches it first",
       },
-      { id: "cp", label: "Command processor", kind: "sched", note: "front end + ACEs" },
+      { id: "cp", label: "Command processor", kind: "sched",
+        note: "the front end. It reads the command buffers the driver writes, and its asynchronous compute engines dispatch workgroups onto the shader engines while tracking dependencies and barriers. Every kernel launch enters the GPU here" },
       { id: "pcie", label: "PCIe 5.0 ×16", kind: "io",
         note: "the host link. 16 lanes of PCIe 5.0, about 63 GB/s each way — roughly a tenth of this card's own 640 GB/s, so anything that has to cross it is a different performance regime from anything that stays in VRAM",
         specs: [["Lanes", "16"], ["Generation", "PCIe 5.0"], ["Bandwidth", "~63 GB/s per direction"]] },
-      { id: "media", label: "Media engine", kind: "fixed", note: "encode / decode" },
+      { id: "media", label: "Media engine", kind: "fixed",
+        note: "fixed-function video encode and decode, independent of the shader array, so transcoding runs without consuming compute. Irrelevant to inference, but the reason these cards turn up in media pipelines" },
       { id: "display", label: "Display engine", kind: "io",
         note: "scanout — reads finished framebuffers and drives the outputs. Idle on a card doing only inference" },
     ],

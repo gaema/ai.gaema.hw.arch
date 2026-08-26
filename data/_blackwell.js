@@ -19,7 +19,7 @@ export const processingBlock = {
       specs: [["Lanes", "32"], ["Warp width", "32 threads"], ["Blocks per SM", "4"]] },
     {
       id: "tc", label: "Tensor Core", kind: "matrix", span: 2,
-      note: "5th generation — the matrix engine behind the card's low-precision throughput",
+      note: "the matrix unit, fifth generation. It executes a small matrix multiply-accumulate as a single instruction — a tile of A times a tile of B added into an accumulator — which is the operation every dense layer, attention projection and convolution decomposes into. One per processing block, four per SM, and essentially all of a transformer's arithmetic lands here rather than on the CUDA cores. Blackwell's addition is native FP4 alongside FP8, which is why this generation's headline numbers are quoted at precisions the previous one could not execute",
       specs: [["Per processing block", "1"], ["Per SM", "4"], ["Generation", "5th"]],
     },
     { id: "warp", label: "Warp scheduler", kind: "sched",
@@ -40,7 +40,7 @@ export function sm(total) {
   return {
     id: "sm", label: "Streaming Multiprocessor", kind: "compute",
     count: total ? total + " enabled on the card" : null,
-    note: "4 processing blocks (128 CUDA cores, 4 Tensor Cores) plus one RT core",
+    note: "the streaming multiprocessor — the unit a CUDA thread block is scheduled onto, and the block NVIDIA counts when it quotes a SKU. Four processing blocks (128 CUDA cores, 4 Tensor Cores), one RT core, and 128 KB of L1 and shared memory the four partitions divide between them. Everything above this level is replication; everything below is one partition's private machinery",
     specs: [
       ["Processing blocks", "4"],
       ["CUDA cores", "128"],
@@ -56,7 +56,8 @@ export function sm(total) {
       { id: "l1", label: "L1 data cache / shared memory", kind: "cache", span: 2,
         note: "one 128 KB block per SM, partitioned between the hardware-managed L1 and programmer-managed shared memory. A CUDA block's shared memory is carved from here, so asking for more of it directly reduces how many blocks fit on the SM",
         specs: [["Per SM", "128 KB"], ["Split", "L1 / shared, configurable"]] },
-      { id: "rt", label: "RT Core", kind: "fixed", note: "4th generation" },
+      { id: "rt", label: "RT Core", kind: "fixed",
+        note: "fourth-generation fixed-function ray tracing, one per SM. It walks the bounding-volume hierarchy and tests rays against boxes and triangles in hardware — a pointer-chasing, divergent search that maps badly onto SIMT lanes, which is why it was given dedicated silicon instead of being left to the CUDA cores. Wholly idle during inference: on an AI workload this is area and power the card spends on nothing" },
       { id: "tex", label: "Texture units ×4", kind: "fixed",
         note: "filtered, interpolated sampling with addressing modes in hardware. Idle in most compute work, but the path is still there and CUDA can reach it through texture objects" },
     ],
@@ -66,7 +67,7 @@ export function sm(total) {
 export function tpc(total) {
   return {
     id: "tpc", label: "Texture Processing Cluster", kind: "compute",
-    note: "an SM pair",
+    note: "a texture processing cluster: two SMs plus the PolyMorph geometry front end they share. It is the granularity NVIDIA harvests at — a die with a defect disables a whole TPC, taking two SMs with it, which is why the enabled-SM counts across this family always move in twos",
     specs: [["SMs", "2"]],
     cols: 2,
     children: [
@@ -83,7 +84,7 @@ export function gpc(total) {
   return {
     id: "gpc", label: "Graphics Processing Cluster", kind: "compute",
     count: "12 on the full GB202 die",
-    note: "8 TPCs (16 SMs) behind a raster engine",
+    note: "a graphics processing cluster: eight TPCs — sixteen SMs — behind their own raster engine. The GPC is very nearly a small GPU in its own right, with its own front end and rasterizer, and twelve of them make GB202. It is also the coarse harvesting unit: a badly-defective die loses a whole GPC rather than scattered SMs",
     specs: [["TPCs", "8"], ["SMs", "16"]],
     cols: 4,
     children: [
@@ -104,7 +105,7 @@ export function die(opts) {
     {
       id: "l2", label: `L2 cache — ${opts.l2}`, kind: "cache", span: 2,
       specs: [["Capacity", opts.l2], ["On the full die", "128 MB"]],
-      note: "shared across every GPC, sliced per memory partition",
+      note: "the last level before DRAM, shared by every GPC and cut into slices — one per memory partition — reached through the GPC⇄L2 crossbar. Any GPC can hit any slice, so the cache behaves as one pool even though it is physically distributed along both memory edges. Blackwell's L2 is large enough that keeping a working set resident here, rather than re-streaming it from GDDR7, is the single biggest lever on a bandwidth-bound kernel",
     },
     {
       id: "mem", label: opts.memLabel, kind: "memory", span: 2,
@@ -115,11 +116,13 @@ export function die(opts) {
       ],
       note: opts.memNote,
     },
-    { id: "gigathread", label: "GigaThread engine", kind: "sched", note: "work distribution" },
+    { id: "gigathread", label: "GigaThread engine", kind: "sched",
+      note: "the die-level scheduler. It takes launched grids from the host, breaks them into thread blocks and assigns those blocks to GPCs and SMs that have room, refilling each SM as blocks retire. It is the reason a kernel launch does not need to know how many SMs the card has — the same binary spreads across 170 SMs or 188 without recompilation — and it is also what makes occupancy matter, since it can only place a block where registers and shared memory are free" },
     { id: "pcie", label: "PCIe 5.0 ×16", kind: "io",
       note: "the host link. 16 lanes of PCIe 5.0, about 63 GB/s each way — roughly 3.5% of this card's own memory bandwidth, which is why a working set that has to stream from host memory performs nothing like one that fits in VRAM",
       specs: [["Lanes", "16"], ["Generation", "PCIe 5.0"], ["Bandwidth", "~63 GB/s per direction"]] },
-    { id: "nvenc", label: "NVENC / NVDEC", kind: "fixed", note: "video encode / decode" },
+    { id: "nvenc", label: "NVENC / NVDEC", kind: "fixed",
+      note: "dedicated video encode (NVENC) and decode (NVDEC) blocks, entirely separate from the SMs — so a transcode runs at full rate while the shader array is busy with something else, and consumes no CUDA cores doing it. Relevant to an AI card mainly at the edges of a pipeline: decoding video frames into a vision model without paying for it in compute" },
     { id: "display", label: "Display engine", kind: "io",
       note: "scanout: reads finished framebuffers and drives the physical outputs, with its own timing and colour pipeline. Entirely idle on a card used only for compute" },
   ];
@@ -148,11 +151,11 @@ export function dieMap(opts) {
     tiles: [
       ...band(0, [
         { w: 4, kind: "io", label: "PCIe 5.0 ×16", path: "pcie",
-          detail: "Host interface. PCIe 5.0 ×16." },
+          detail: "The host link: 16 lanes of PCIe 5.0, about 63 GB/s each way. Every byte the card does not already hold — model weights at load, activations streamed from host memory, results going back — crosses here, at roughly 3.5% of the rate the same data moves once it is in VRAM." },
         { w: 4, kind: "sched", label: "GigaThread engine", sub: "work distribution", path: "gigathread",
-          detail: "Distributes work across the GPCs." },
+          detail: "The die-level scheduler. It splits a launched grid into thread blocks and places them on GPCs and SMs with free registers and shared memory, refilling each SM as blocks retire — which is how one binary spreads across whatever SM count the SKU happens to have." },
         { w: 4, kind: "fixed", label: "NVENC / NVDEC + display", path: "nvenc",
-          detail: "Video encode and decode blocks, and the display engine." },
+          detail: "Fixed-function video encode and decode, plus the display engine that scans finished framebuffers out to the physical outputs. All three are independent of the SMs, so video work costs no CUDA cores — and all three sit idle on a card doing only inference." },
       ]),
       ...memBand(1, 4, 12, "GDDR7", (i) => `2 × 32-bit ctrl`,
         `Two of the SIXTEEN 32-bit memory controllers that make the 512-bit GDDR7 interface. NVIDIA's whitepapers say it verbatim — "sixteen 32-bit memory controllers (512-bit total)" — so this is 16 × 32, not 8 × 64.`,

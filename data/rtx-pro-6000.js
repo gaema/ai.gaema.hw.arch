@@ -54,7 +54,7 @@ export default {
 
   root: {
     id: "card", label: "RTX PRO 6000 Blackwell", kind: "compute",
-    note: "one GB202 die with 188 of its 192 SMs enabled, on a PCIe 5.0 ×16 card",
+    note: "one GB202 die on a PCIe 5.0 ×16 card, with 188 of its 192 SMs enabled — very nearly the whole die, and the largest configuration of this silicon sold. The professional part: 96 GB of ECC GDDR7 against the 5090's 32 GB, which is what lets it hold models the consumer card cannot fit regardless of how fast either one computes",
     cols: 4,
     children: die({
       activeSMs: 188,
@@ -62,7 +62,7 @@ export default {
       mem: "96 GB (ECC)",
       bus: "512-bit",
       bw: "1,792 GB/s",
-      memNote: "512-bit bus, 96 GB of ECC GDDR7, 1,792 GB/s",
+      memNote: "sixteen 32-bit controllers making a 512-bit interface onto 96 GB of ECC GDDR7, for 1,792 GB/s. The capacity is this card's real distinction — three times the 5090's at the same bandwidth — so it holds models the consumer part cannot, and the ECC means a single-bit DRAM fault is corrected rather than silently changing a weight",
     }),
   },
 
