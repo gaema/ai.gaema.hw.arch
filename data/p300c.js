@@ -1,7 +1,7 @@
 // Tenstorrent Blackhole p300c -- two Blackhole ASICs on one card.
 // Every figure here is from a published vendor or press source; see `sources`.
 
-import { asic, dualDieMap } from "./_blackhole.js";
+import { asic, dualDieMap, quietBoxMap } from "./_blackhole.js";
 
 export default {
   id: "p300c",
@@ -56,7 +56,10 @@ export default {
     "Host link": "PCIe 5.0 ×16",
   },
 
-  dieMap: dualDieMap(),
+  // Two maps, two scales. The card is what the hierarchy below describes; the
+  // box is what actually ships, and without it the card map reads as though the
+  // Warp 400 connector joined something on the same PCB.
+  dieMaps: [dualDieMap(), quietBoxMap()],
 
   root: {
     id: "card", label: "Blackhole p300c", kind: "compute",

@@ -316,6 +316,9 @@ export function dualDieMap() {
   // now occupies one column of the band and reads top to bottom in the order the
   // signal travels: ASIC 0's PHY, the PCB trace, ASIC 1's PHY.
   const PHY_X = [4, 10], PHY_W = 4;
+  // Two columns past the die grid: the card edge. Everything at x < EDGE is on
+  // the board; the connectors sit outside the board outline drawn below.
+  const EDGE = 18;
   // Two channels, and the pairing is PUBLIC in two independent places that
   // agree: tt-metal's board.cpp gives the P300's TRACE ports as ASIC 1 channels
   // 8,9 and ASIC 0 channels 3,2, joined internally; UMD's own P300 cluster
@@ -351,14 +354,19 @@ export function dualDieMap() {
     // one connector per die. On the p300c only one is fitted; the other is a
     // populated-on-some-variants footprint, drawn struck through like the
     // harvested Tensix columns, for the same reason: the cut should be visible.
-    { x: 0, y: 12, w: 3, h: 3, kind: "io", label: "Warp 400", sub: "card ⇄ card · fitted",
-      detail: "One of the board's two card-to-card connector positions, and the one a p300c ships with populated. It is NOT a QSFP-DD cage: tt-metal types the P300's off-card ports as WARP400, and Tenstorrent joins the two p300c cards inside a TT-QuietBox 2 with a Samtec ARP6-series high-performance cable. Channels from BOTH dies leave through this one connector — the board definition wires each Warp 400 position to two Ethernet channels on each ASIC, four in all — which is why it is drawn spanning the whole band rather than sitting under one die.",
-      specs: [["Port type", "Warp 400"], ["Cable", "Samtec ARP6 series"], ["Not", "QSFP-DD"], ["Channels", "4 — 2 from each ASIC"], ["Fitted on p300c", "yes"]],
-      path: "link" },
-    { x: 14, y: 12, w: 3, h: 3, kind: "off", label: "Warp 400", sub: "second position · not fitted",
-      detail: "The board's SECOND card-to-card connector position — present in the design, not populated on a p300c. tt-metal's board definition gives the P300 two Warp 400 ports, each wired to two Ethernet channels on each ASIC, and it does not distinguish the variants: p300a and p300c both map to the same board type, so software sees two positions where this card has one. That is why it is drawn here rather than omitted — an absent connector you cannot see looks like a board that never had one, and the eight Ethernet channels it would have driven are idle on this card, not missing.",
+    // The connectors are NOT in the band. They are on the CARD EDGE, in a column
+    // outside the board outline, because what leaves through them leaves the
+    // board entirely -- it goes to the other p300c. Drawing them between the
+    // dies, as this map used to, put a card-to-card link in the same gutter as
+    // the on-PCB die-to-die traces and made the whole thing read as one PCB.
+    { x: EDGE, y: 10, w: 2, h: 3, kind: "io", label: "Warp 400", sub: "fitted · off the card",
+      detail: "A card-to-card connector on the board EDGE — the only way off this card. It is NOT a QSFP-DD cage: tt-metal types the P300's off-card ports as WARP400, and Tenstorrent joins two p300c cards inside a TT-QuietBox 2 with a Samtec ARP6-series high-performance cable. Channels from BOTH dies leave through this one connector — the board definition wires each Warp 400 position to two Ethernet channels on each ASIC, four in all. Nothing on the far side of it is on this board; see the second map for what it reaches.",
+      specs: [["Port type", "Warp 400"], ["Cable", "Samtec ARP6 series"], ["Not", "QSFP-DD"], ["Channels", "4 — 2 from each ASIC"], ["Fitted on p300c", "yes"], ["Goes to", "the other card"]],
+      path: "warp" },
+    { x: EDGE, y: 14, w: 2, h: 3, kind: "off", label: "Warp 400", sub: "2nd position · not fitted",
+      detail: "The board's SECOND card-to-card connector position — present in the design, not populated on a p300c. tt-metal's board definition gives the P300 two Warp 400 ports, each wired to two Ethernet channels on each ASIC, and it does not distinguish the variants: p300a and p300c both map to the same board type, so software sees two positions where this card has one. That is why it is drawn rather than omitted — an absent connector you cannot see looks like a board that never had one, and the Ethernet channels it would have driven are idle on this card, not missing.",
       specs: [["Port type", "Warp 400"], ["Positions on the board", "2"], ["Fitted on p300c", "no"], ["Channels it would carry", "4 — 2 from each ASIC"]],
-      path: "link" },
+      path: "warp" },
   ];
 
   // ETH row -> PHY -> PHY -> ETH row, for each of the two links. The ETH ends
@@ -380,21 +388,28 @@ export function dualDieMap() {
     ];
   });
 
-  // Ethernet also leaves the CARD, through the FITTED Warp 400 connector, from
-  // both dies. Only the fitted one gets runs: the second position has nothing
-  // wired to it on this card, and drawing runs into an empty footprint would say
-  // the opposite of what the struck-through tile says.
+  // Ethernet also leaves the CARD, and these runs go OUTWARD to the edge rather
+  // than inward to the band -- one from each die, meeting at the one fitted
+  // connector, which is what "a connector carries channels from both dies"
+  // means. Only the fitted one gets runs: the second position has nothing wired
+  // to it on this card, and runs into an empty footprint would say the opposite
+  // of what the struck-through tile says.
   linkArcs.push(
-    { from: [1, top.ethRow], to: [1, 13], color: "var(--k-io-ink)", dip: 0.3,
-      label: "ASIC 0 Ethernet → the fitted Warp 400 card-to-card connector" },
-    { from: [1, 13], to: [1, bottom.ethRow], color: "var(--k-io-ink)", dip: 0.3,
-      label: "The fitted Warp 400 connector → ASIC 1 Ethernet" },
+    { from: [16, top.ethRow], to: [EDGE, 11], color: "var(--k-io-ink)", dip: 0.3,
+      label: "ASIC 0 Ethernet → the fitted Warp 400 connector on the card edge" },
+    { from: [16, bottom.ethRow], to: [EDGE, 12], color: "var(--k-io-ink)", dip: 0.3,
+      label: "ASIC 1 Ethernet → the same connector — one connector, channels from both dies" },
   );
 
   return {
-    title: "Die map — both ASICs, the PCB between them, and what leaves the card",
-    cols: 17, rows: 12 + BAND + 12, cell: 54, cellH: 34,
+    title: "One p300c card — both ASICs, the PCB between them, and the edge",
+    cols: EDGE + 2, rows: 12 + BAND + 12, cell: 54, cellH: 34,
     tiles,
+    // The board outline. The connectors are INSIDE it, at its right edge --
+    // they are soldered to this PCB. What is not on the board is the CABLE that
+    // mates with them, and that only appears on the second map, which is where
+    // the thing on the other end of it lives.
+    groups: [{ x0: 0, y0: 0, x1: EDGE + 1, y1: LOWER + 11, label: "One p300c card — one PCB" }],
     // A read that has to cross to the OTHER die: Tensix on ASIC 0, down its own
     // mesh to the Ethernet row, across the link, and on into ASIC 1.
     dataflow: {
@@ -409,9 +424,9 @@ export function dualDieMap() {
     arcs: [...top.arcs, ...bottom.arcs, ...linkArcs],
     // Two closed meshes, one per die — never tied across the band.
     mesh: { torus: true, regions: [{ x0: 0, x1: 16, y0: 0, y1: 11 }, { x0: 0, x1: 16, y0: LOWER, y1: LOWER + 11 }] },
-    lede: GRID_LEDE + " Both of the card's ASICs are drawn, stacked with the link between them, because they are not interchangeable: each fuses off a DIFFERENT one of the two PCIe tiles, so their host interfaces mirror each other.",
+    lede: GRID_LEDE + " This is ONE CARD: everything inside the outline is a single PCB, including the two connectors at its right edge, which are soldered to it. Both ASICs are drawn, stacked with the link between them, because they are not interchangeable — each fuses off a DIFFERENT one of the two PCIe tiles, so their host interfaces mirror each other. Nothing here reaches another board: a p300c is not used alone, and the map below draws the pair it ships as.",
     hint: "Hover a tile for what sits there. Tiles on the upper die open ASIC 0's branch of the hierarchy, tiles on the lower open ASIC 1's.",
-    interconnect: MESH_NOTE + " The band between the dies is BOARD, not silicon, and it holds two different KINDS of thing. In the middle are the TWO die-to-die links, drawn as two columns because that is what they are — read a column downwards and you have the whole path: ASIC 0's MAC/PCS driving 8 SerDes lanes, the differential pairs crossing the PCB, and the same stack in reverse on ASIC 1. Neither link leaves the card. At each end of the band is a Warp 400 card-to-card connector, the only way OFF the card, drawn full height because a single connector carries channels from BOTH dies rather than belonging to one. The board has two such positions and a p300c fits ONE; the second is drawn struck through, like a harvested Tensix column, because a footprint you simply omit reads as a board that never had one. The two dies share no NOC, so every byte between them takes the PCB path.",
+    interconnect: MESH_NOTE + " The band between the dies is BOARD, not silicon: the TWO die-to-die links, drawn as two columns because that is what they are. Read a column downwards and you have the whole path — ASIC 0's MAC/PCS driving 8 SerDes lanes, the differential pairs crossing the PCB, and the same stack in reverse on ASIC 1. Neither link leaves the card, and there is no connector anywhere on that path; tt-metal types them as TRACE ports for exactly that reason. What DOES leave the card is on the right edge, outside the board outline: a Warp 400 connector, taking channels from BOTH dies — which is why the runs to it come outward from each die rather than meeting in the middle. The board has two such positions and a p300c fits ONE; the second is drawn struck through, like a harvested Tensix column, because a footprint you simply omit reads as a board that never had one. The two dies share no NOC, so every byte between them takes the PCB path.",
     note: "Both dies are drawn in the DEFAULT configuration: two Tensix columns disabled on each, and the mirrored PCIe harvest. " + COORD_NOTE + " Each die is its own 17 × 12 coordinate space, so both grids run x = 0…16 and y = 0…11 independently. ASIC 1 is drawn MIRRORED — Y = 0 at its top — so that its Ethernet row faces the link; read each die's tile labels, not the page, for its true orientation.",
     source: SOURCE + ". The band comes from tt-metal's own board definition, which builds the P300 from two TRACE ports joined internally — ASIC 1 channels 8 and 9 against ASIC 0 channels 3 and 2 — plus two Warp 400 ports, each wired to two Ethernet channels on each ASIC. UMD's published P300 cluster-descriptor example agrees channel for channel: chip 0 ch 2 ⇄ chip 1 ch 9, chip 0 ch 3 ⇄ chip 1 ch 8. That same example carries the mirrored PCIe harvest drawn above, one die masking core 1 and the other core 0. Which of the two Warp 400 positions is populated is a property of the BOARD VARIANT and not of that definition, which maps p300a and p300c to one board type",
   };
@@ -460,5 +475,127 @@ export function asic(activeTensix) {
       { id: "arc", label: "Management complex", kind: "sched",
         note: "the ARC tile — a small always-on controller that brings the die up, runs its firmware, applies the harvesting fuses that decide which Tensix columns and which PCIe tile are live, and reports clocks, power and temperature to the host. It does no user compute; it is the block the host talks to before any kernel exists, and the one that answers when a tool asks the card what it is" },
     ],
+  };
+}
+
+// The TT-QuietBox 2: TWO p300c cards, four dies. Deliberately NOT a tile map --
+// drawing four 17x12 NOC grids would be 54 rows of Tensix and would bury the one
+// thing this map exists to say, which is which links stay on a board and which
+// cross between them. A p300c is not sold on its own, so the card map alone
+// describes something nobody has; this is the object that actually ships.
+export function quietBoxMap() {
+  // Two cards, mirrored about the cable. Each card is a column block: die,
+  // the two on-PCB links, die -- the same vertical reading as the card map --
+  // with its connector edge turned toward the middle.
+  // Columns, laid out so nothing overlaps: a tile claims every cell it covers,
+  // so two tiles sharing one column would make the later one win the lookup and
+  // an arc into the earlier one would vanish.
+  //   0..6  card A dies      7..8  card A edge      9  gap
+  //   10..11 the cable
+  //   12 gap                13..14 card B edge     15..21 card B dies
+  const CARD_W = 7;
+  const A = { x: 0, warp: 7 };
+  const CABLE = 10;
+  const B = { x: 15, warp: 13 };
+
+  const dieSpec = [
+    ["Tensix", "120 of 140 enabled"],
+    ["SRAM", "180 MB — 1.5 MB per tile"],
+    ["GDDR6", "32 GB · 512 GB/s"],
+    ["Live PCIe tile", "one of two — mirrored per die"],
+  ];
+
+  const die = (x, y, label, sub, path, note) => ({
+    x, y, w: CARD_W, h: 3, kind: "compute", label, sub,
+    detail: note, specs: dieSpec, ...(path ? { path } : {}),
+  });
+
+  // The on-PCB links, one tile each, sitting between that card's two dies.
+  const trace = (x, i, ch) => ({
+    x: x + i * 4, y: 3, w: 3, h: 1, kind: "link",
+    label: `Link ${i + 1}`, sub: `ch ${ch.a0} ⇄ ${ch.a1} · on the PCB`,
+    detail: `One of the two die-to-die links on this card: eight differential pairs across the board between the two ASICs' SerDes, carrying logical channel ${ch.a0} on one die to channel ${ch.a1} on the other. No connector is involved — tt-metal types these as TRACE ports, distinct from the Warp and QSFP-DD port types, because there is nothing to plug in. Both dies' meshes are closed, so these two links are the ONLY path between them.`,
+    specs: [["Pairing", `ch ${ch.a0} ⇄ ch ${ch.a1}`], ["Lanes", "8 SerDes"], ["Connector", "none — PCB trace"], ["Leaves the card", "no"]],
+  });
+
+  const CH = [{ a0: 3, a1: 8 }, { a0: 2, a1: 9 }];
+
+  const warp = (x, card, fitted) => ({
+    x, y: fitted ? 2 : 5, w: 2, h: fitted ? 3 : 2,
+    kind: fitted ? "io" : "off",
+    label: "Warp 400", sub: fitted ? `card ${card} edge · fitted` : "2nd position · not fitted",
+    detail: fitted
+      ? `The fitted card-to-card connector on card ${card}, soldered to that board's edge. It carries four Ethernet channels — TWO FROM EACH of the card's dies — which is why a single connector serves the whole card rather than belonging to one die. tt-metal types the P300's off-card ports as WARP400.`
+      : `Card ${card}'s SECOND Warp 400 position: present in the board design, not populated on a p300c. tt-metal declares two of them per P300 board and does not distinguish the variants, so software describes a board with two where this card has one.`,
+    specs: fitted
+      ? [["Port type", "Warp 400"], ["Channels", "4 — 2 from each die"], ["On", `card ${card}`], ["Fitted", "yes"]]
+      : [["Port type", "Warp 400"], ["Fitted", "no"], ["Positions per board", "2"]],
+  });
+
+  const tiles = [
+    die(A.x, 0, "ASIC 0", "card A · PCIe (2,0) live", "asic0",
+      "The first of card A's two Blackhole ASICs. Its own closed NOC mesh, its own 32 GB of GDDR6, and one live PCIe tile — the OTHER one of the pair is fused off, mirroring its neighbour."),
+    trace(A.x, 0, CH[0]),
+    trace(A.x, 1, CH[1]),
+    die(A.x, 4, "ASIC 1", "card A · PCIe (11,0) live", "asic1",
+      "The second of card A's ASICs, and the mirror of the first: it fuses off the opposite PCIe tile, so the two dies present their host interfaces at different NOC coordinates."),
+    warp(A.warp, "A", true),
+    warp(A.warp, "A", false),
+
+    { x: CABLE, y: 2, w: 2, h: 3, kind: "link",
+      label: "Samtec ARP6", sub: "cable · card ⇄ card",
+      detail: "The only thing on this map that is NOT on a board: the high-performance cable Tenstorrent uses to join the two p300c cards inside a TT-QuietBox 2. It mates the fitted Warp 400 connector on each card, so it carries four Ethernet channels — two from each of card A's dies to two of card B's. Every byte between the two cards crosses this cable; there is no backplane and no shared memory behind it.",
+      specs: [["Type", "Samtec ARP6 series"], ["Joins", "card A edge ⇄ card B edge"], ["Channels", "4"], ["On a board", "no"]] },
+
+    warp(B.warp, "B", true),
+    warp(B.warp, "B", false),
+    die(B.x, 0, "ASIC 2", "card B · PCIe (2,0) live", null,
+      "Card B's first ASIC. Card B is a second p300c, identical to card A — the hierarchy on this page describes ONE card, and this one is its twin."),
+    trace(B.x, 0, CH[0]),
+    trace(B.x, 1, CH[1]),
+    die(B.x, 4, "ASIC 3", "card B · PCIe (11,0) live", null,
+      "Card B's second ASIC, mirrored from ASIC 2 exactly as card A's pair are mirrored from each other."),
+  ];
+
+  const ink = "var(--k-link-ink)", io = "var(--k-io-ink)";
+  const arcs = [
+    // On-PCB, within each card: die -> link -> die, twice per card.
+    ...[A.x, B.x].flatMap((x) => [0, 1].flatMap((i) => [
+      { from: [x + i * 4 + 1, 2], to: [x + i * 4 + 1, 3], color: ink, dip: 0.2,
+        label: `Upper die → link ${i + 1}, on this card's PCB` },
+      { from: [x + i * 4 + 1, 3], to: [x + i * 4 + 1, 4], color: ink, dip: 0.2,
+        label: `Link ${i + 1} → lower die, on this card's PCB` },
+    ])),
+    // Each card's two dies out to its own edge connector.
+    { from: [A.x + CARD_W - 1, 1], to: [A.warp, 3], color: io, dip: 0.35,
+      label: "Card A ASIC 0 → card A's Warp 400 connector (2 channels)" },
+    { from: [A.x + CARD_W - 1, 5], to: [A.warp, 3], color: io, dip: 0.35,
+      label: "Card A ASIC 1 → the same connector (2 more channels)" },
+    { from: [B.x, 1], to: [B.warp + 1, 3], color: io, dip: 0.35,
+      label: "Card B ASIC 2 → card B's Warp 400 connector (2 channels)" },
+    { from: [B.x, 5], to: [B.warp + 1, 3], color: io, dip: 0.35,
+      label: "Card B ASIC 3 → the same connector (2 more channels)" },
+    // And the two hops that are not on any board.
+    { from: [A.warp + 1, 3], to: [CABLE, 3], color: io, dip: 0.2,
+      label: "Card A's connector → the ARP6 cable — leaving the board" },
+    { from: [CABLE + 1, 3], to: [B.warp, 3], color: io, dip: 0.2,
+      label: "The ARP6 cable → card B's connector — arriving on the other board" },
+  ];
+
+  return {
+    title: "TT-QuietBox 2 — two p300c cards, four dies",
+    cols: B.x + CARD_W, rows: 7, cell: 54, cellH: 40,
+    tiles,
+    groups: [
+      { x0: A.x, y0: 0, x1: A.warp + 1, y1: 6, label: "Card A — one p300c, one PCB" },
+      { x0: B.warp, y0: 0, x1: B.x + CARD_W - 1, y1: 6, label: "Card B — one p300c, one PCB" },
+    ],
+    arcs,
+    lede: "A p300c is not sold on its own — it is the card inside a TT-QuietBox 2, and the box holds TWO of them. That is what this map draws, at board scale rather than tile scale: four Blackhole dies, in two groups of two, and the difference between the links that stay on a board and the one hop that does not. Each card is exactly the map above.",
+    hint: "Hover any block. Card A's dies open the hierarchy below, which describes one card; card B is its twin.",
+    interconnect: "Three kinds of connection, and the whole point of the map is that they are not the same. INSIDE a die, the NOC mesh — not drawn here; the map above draws it. BETWEEN the two dies OF ONE CARD, two Ethernet links routed as differential pairs on that card's PCB, with no connector on the path at all. BETWEEN THE TWO CARDS, a Samtec ARP6 cable running from the fitted Warp 400 connector on one board to the fitted Warp 400 connector on the other — the only hop here that leaves a PCB, and the reason the two cards are drawn as two outlines rather than one. Nothing is shared across it: no NOC, no memory, no address space. Four dies in a box are four devices that talk.",
+    note: "Board scale, so a die is one block: the 17 × 12 NOC grid inside each of these is the map above. The two cards are identical parts; A and B are labels for this drawing, not names the hardware carries. Which of the two Warp 400 positions a board populates is a property of the board variant — tt-metal maps p300a and p300c to a single board type and declares both positions, so software sees two where the card has one.",
+    // The renderer prefixes "Layout source: " itself -- do not repeat it here.
+    source: "tt-metal's own P300 board definition — two WARP400 ports and two TRACE ports per board, each Warp position wired to two Ethernet channels on each ASIC — plus Tenstorrent's p300c documentation for the TT-QuietBox 2 pairing and the Samtec ARP6 cable",
   };
 }

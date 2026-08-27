@@ -180,16 +180,21 @@ function paint(node, kind) {
   node.style.setProperty("--tile-bg", `var(--k-${kind || "io"}-bg)`);
 }
 
+// A SKU may carry more than one map, because more than one thing is worth
+// drawing: the p300c needs its card AND the two-card box that card ships in,
+// and those are different objects at different scales. `dieMap` stays the
+// single-map spelling every other SKU uses.
 export function renderDieMap(sku, onOpenPath) {
   const host = document.getElementById("diemap");
-  if (!host || !sku.dieMap) return;
-  const map = sku.dieMap;
-  const tiles = map.tiles;
-
+  const maps = [].concat(sku.dieMap || [], sku.dieMaps || []);
+  if (!host || !maps.length) return;
   host.textContent = "";
-  // A multi-die map is wider than the reading column; let it break out so both
-  // dies are visible at once instead of behind a scrollbar.
-  host.classList.toggle("wide", map.cols > 20);
+  host.classList.toggle("wide", maps.some((m) => m.cols > 20));
+  for (const map of maps) renderOneMap(host, map, onOpenPath);
+}
+
+function renderOneMap(host, map, onOpenPath) {
+  const tiles = map.tiles;
 
   const head = el("div", "stage-head");
   head.append(el("h2", null, map.title || "Die map"));
@@ -229,6 +234,10 @@ export function renderDieMap(sku, onOpenPath) {
       if (on && focus) c.el.focus();
     }
     for (const t of grid.children) {
+      // A board outline is CONTEXT, not content: it has no kind, so the test
+      // below would dim it under every filter and fade away the one thing
+      // saying which tiles share a PCB.
+      if (t.classList.contains("dgroup")) continue;
       t.classList.toggle("dimmed", kind !== null && t.dataset.kind !== kind);
     }
   }
@@ -274,6 +283,26 @@ export function renderDieMap(sku, onOpenPath) {
 
   const tip = el("div", "map-tip");
   tip.setAttribute("role", "status");
+
+  // --- board groups -------------------------------------------------------
+  // A group says "these tiles are ONE PHYSICAL BOARD". Without it every tile on
+  // a map reads as sitting on the same PCB, which is exactly the error the
+  // p300c map used to make: it drew the card-to-card connector in the same band
+  // as the on-PCB die-to-die traces, so a link between two separate cards
+  // looked like part of the fabric inside one. Drawn behind the tiles and
+  // inert, so it changes nothing about hit-testing or the mesh overlay.
+  // The label straddles the outline's top edge, and .map-scroll clips anything
+  // above the grid (overflow-x:auto forces overflow-y to auto too), so the grid
+  // needs room for it or the label is invisible while still being in the DOM --
+  // which is exactly how it first shipped.
+  if ((map.groups || []).length) grid.classList.add("has-groups");
+  for (const g of map.groups || []) {
+    const box = el("div", "dgroup");
+    box.style.gridColumn = `${g.x0 + 1} / span ${g.x1 - g.x0 + 1}`;
+    box.style.gridRow = `${g.y0 + 1} / span ${g.y1 - g.y0 + 1}`;
+    if (g.label) box.append(el("span", "dgroup-l", g.label));
+    grid.append(box);
+  }
 
   // Tile elements by drawn grid coordinate, so the interconnect overlay can
   // find where each one actually landed.

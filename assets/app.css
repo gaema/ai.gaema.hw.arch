@@ -310,6 +310,34 @@ h2.section-h.sub + dl.spec-grid { margin-top: 8px; }
 
 .map-scroll { overflow-x: auto; padding-bottom: 4px; }
 
+/* A board outline. Inert and behind everything, so it groups without taking
+   part: no hit-testing, no effect on the mesh overlay's cell lookup. The
+   negative margin lets it sit OUTSIDE its tiles rather than crowding them. */
+/* Room for the outline, which sits 7px outside its tiles, and for the label
+   straddling its top edge. Without this the box is flush with the scroller and
+   its border is clipped. */
+.diegrid.has-groups { padding: 14px 8px 8px; }
+
+.dgroup {
+  position: relative;
+  z-index: 0;
+  pointer-events: none;
+  margin: -7px;
+  border: 2px dashed var(--n6);
+  border-radius: 12px;
+}
+.dgroup-l {
+  position: absolute;
+  top: -8px;
+  left: 14px;
+  padding: 0 8px;
+  background: var(--panel);
+  font: 600 11px ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--n11);
+}
+
 .diegrid {
   position: relative;
   display: grid;
