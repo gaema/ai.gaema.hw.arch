@@ -29,7 +29,7 @@ export default {
     "Board power": "600 W TBP",
     "Cooling": "Liquid",
     "Host interface": "PCIe 5.0 ×16",
-    "Scale-out link": "Warp 400 card-to-card — 2 positions on the board, 1 fitted; Samtec ARP6-series cable, no QSFP-DD cages",
+    "Scale-out link": "Warp 400 card-to-card — 2 positions, 1 populated per card so a pair mates offset; Samtec ARP6-series cable, no QSFP-DD cages",
   },
 
   extra: [
@@ -37,7 +37,7 @@ export default {
     ["Baby RISC-V per tile", "5 (RV32IM, 1.35 GHz)"],
     ["Big RISC-V cores", "32 (16 per ASIC) — Tenstorrent's own p300c table still marks this “TBD”"],
     ["Die-to-die link", "2 Ethernet channels on the PCB — ch 3 ⇄ 8 and ch 2 ⇄ 9, no connector"],
-    ["Card-to-card ports", "2 Warp 400 positions on the board — 1 fitted on the p300c"],
+    ["Card-to-card ports", "2 Warp 400 positions — each card fits the one its twin leaves empty, so the pair meet offset"],
     ["PCIe tiles", "2 per die, each ×16-capable — one used, one idle"],
     ["PCIe mirroring", "left die uses (2,0), right die uses (11,0)"],
     ["Availability", "not sold separately — ships in TT-QuietBox 2"],
@@ -81,8 +81,8 @@ export default {
       },
       {
         id: "warp", label: "Warp 400 card-to-card ports", kind: "io", span: 2,
-        specs: [["Positions on the board", "2"], ["Fitted on the p300c", "1"], ["Channels each", "4 — 2 from each ASIC"], ["Cable", "Samtec ARP6 series"], ["QSFP-DD cages", "none"]],
-        note: "the only way OFF the card. The board carries two connector positions and a p300c populates one of them — a single connector takes channels from BOTH dies, not one per die. tt-metal's board definition declares both positions and does not distinguish the variants (p300a and p300c share one board type), so software describes a board with two where this card has one, and the channels the empty position would drive simply idle",
+        specs: [["Positions on the board", "2"], ["Populated per card", "1 — the one its twin leaves empty"], ["Channels each", "4 — 2 from each ASIC"], ["Cable", "Samtec ARP6 series"], ["Cards meet", "offset — diagonally, not face to face"], ["QSFP-DD cages", "none"]],
+        note: "the only way OFF the card, and a single connector takes channels from BOTH dies rather than one per die. The board carries two positions and a card populates ONE — which is what makes a pair work: the two cards in a TT-QuietBox 2 are the same part, so each is built with the position the other leaves empty, and their connectors end up offset from each other rather than face to face. tt-metal's board definition declares both positions and does not distinguish the variants (p300a and p300c share one board type), so software describes a board with two where any one card has one",
       },
       {
         id: "slot", label: "PCIe 5.0 ×16 edge", kind: "io", span: 2,
