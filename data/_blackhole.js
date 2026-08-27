@@ -295,6 +295,24 @@ export function dieMap(pathPrefix) {
   };
 }
 
+// The two Warp 400 positions and the Ethernet channels each is wired to, from
+// tt-metal's P300 board definition. BOTH are known, including the one a given
+// card leaves empty -- the board wires them whether or not the connector is
+// populated, which is why the empty position can still say what it would carry.
+// Per ASIC: 2 channels to the die-to-die trace, 2 to each Warp position. Six of
+// the twelve channels a die has after Ethernet harvesting reach something on
+// this board; the other six have no destination on it.
+const WARP_CH = {
+  1: { a0: [7, 9], a1: [3, 6] },
+  2: { a0: [5, 4], a1: [2, 4] },
+};
+const warpChSpec = (p) => [
+  ["Port", `Warp 400 · port ${p}`],
+  ["ASIC 0 channels", WARP_CH[p].a0.join(", ")],
+  ["ASIC 1 channels", WARP_CH[p].a1.join(", ")],
+  ["Channels total", "4 — 2 from each ASIC"],
+];
+
 // The p300c: two ASICs on one board, drawn together, because the whole point of
 // the card is the pair. They are NOT interchangeable copies -- UMD asserts that
 // the left chip has PCIe (11,0) harvested and the right chip has (2,0)
@@ -361,13 +379,13 @@ export function dualDieMap() {
     // board entirely -- it goes to the other p300c. Drawing them between the
     // dies, as this map used to, put a card-to-card link in the same gutter as
     // the on-PCB die-to-die traces and made the whole thing read as one PCB.
-    { x: WARP_X, y: 12, w: WARP_W, h: 2, kind: "io", label: "Warp 400", sub: "card ⇄ card · fitted here",
-      detail: "The card-to-card connector this board populates — the only way off it. It is NOT a QSFP-DD cage: tt-metal types the P300's off-card ports as WARP400, and Tenstorrent joins two p300c cards inside a TT-QuietBox 2 with a Samtec ARP6-series high-performance cable. Channels from BOTH dies leave through this ONE connector — the board definition wires each Warp 400 position to two Ethernet channels on each ASIC, four in all — which is why the runs into it come from both dies rather than one. What is on the far side of it is not on this board at all; the map below draws it.",
-      specs: [["Port type", "Warp 400"], ["Cable", "Samtec ARP6 series"], ["Not", "QSFP-DD"], ["Channels", "4 — 2 from each ASIC"], ["Goes to", "the other card"]],
+    { x: WARP_X, y: 12, w: WARP_W, h: 2, kind: "io", label: "Warp 400 · port 1", sub: `fitted here · A0 ch ${WARP_CH[1].a0.join("/")} · A1 ch ${WARP_CH[1].a1.join("/")}`,
+      detail: `The card-to-card connector this card populates — the only way off it. It is NOT a QSFP-DD cage: tt-metal types the P300's off-card ports as WARP400, and Tenstorrent joins two p300c cards inside a TT-QuietBox 2 with a Samtec ARP6-series high-performance cable. Its wiring is named in the board definition: ASIC 0 channels ${WARP_CH[1].a0.join(" and ")}, ASIC 1 channels ${WARP_CH[1].a1.join(" and ")} — four channels, TWO FROM EACH DIE, which is why the runs into it come from both. Which of the board's two positions a given card populates is the variant's choice; port 1 is drawn fitted here because the map below pairs this card with one that fits port 2.`,
+      specs: [...warpChSpec(1), ["Cable", "Samtec ARP6 series"], ["Not", "QSFP-DD"], ["Goes to", "the other card"]],
       path: "warp" },
-    { x: WARP_X, y: 14, w: WARP_W, h: 1, kind: "off", label: "Warp 400", sub: "the other position · not fitted",
-      detail: "The board's OTHER Warp 400 position, and the reason there are two. A p300c populates exactly one of them, and WHICH one depends on where the card sits in the box: the two cards in a TT-QuietBox 2 are the same part, so they fit OPPOSITE positions and their connectors end up offset from each other rather than face to face. This one is empty on this card because its twin uses it. That is also why tt-metal declares both and does not distinguish the variants — the board has two, any given card uses one.",
-      specs: [["Port type", "Warp 400"], ["Positions on the board", "2"], ["Populated per card", "1 — the one its twin does not use"], ["Fitted here", "no"]],
+    { x: WARP_X, y: 14, w: WARP_W, h: 1, kind: "off", label: "Warp 400 · port 2", sub: `empty here · A0 ch ${WARP_CH[2].a0.join("/")} · A1 ch ${WARP_CH[2].a1.join("/")}`,
+      detail: `The board's OTHER Warp 400 position, and the reason there are two. WE KNOW WHAT IT WOULD CARRY even though nothing is plugged into it: the board wires it whether or not the connector is populated, to ASIC 0 channels ${WARP_CH[2].a0.join(" and ")} and ASIC 1 channels ${WARP_CH[2].a1.join(" and ")}. It is empty on this card because its twin uses it — the two cards in a TT-QuietBox 2 are the same part, so each populates the position the other leaves free and their connectors end up offset rather than face to face. That is also why tt-metal declares both positions without distinguishing the variants: the board has two, any one card uses one.`,
+      specs: [...warpChSpec(2), ["Populated here", "no"], ["Used by", "the paired card"], ["Positions on the board", "2"]],
       path: "warp" },
   ];
 
@@ -428,7 +446,7 @@ export function dualDieMap() {
     mesh: { torus: true, regions: [{ x0: 0, x1: 16, y0: 0, y1: 11 }, { x0: 0, x1: 16, y0: LOWER, y1: LOWER + 11 }] },
     lede: GRID_LEDE + " This is ONE CARD: everything inside the outline is a single PCB, the two Warp 400 connectors in the band included — they are soldered to this board. Both ASICs are drawn, stacked with the link between them, because they are not interchangeable: each fuses off a DIFFERENT one of the two PCIe tiles, so their host interfaces mirror each other. Nothing here reaches another board; a p300c is not used alone, and the map below draws the pair it ships as.",
     hint: "Hover a tile for what sits there. Tiles on the upper die open ASIC 0's branch of the hierarchy, tiles on the lower open ASIC 1's.",
-    interconnect: MESH_NOTE + " The band between the dies is BOARD, not silicon: the TWO die-to-die links, drawn as two columns because that is what they are. Read a column downwards and you have the whole path — ASIC 0's MAC/PCS driving 8 SerDes lanes, the differential pairs crossing the PCB, and the same stack in reverse on ASIC 1. Neither link leaves the card, and there is no connector anywhere on that path; tt-metal types them as TRACE ports for exactly that reason. What DOES leave the card is at the far end of the same band: a Warp 400 connector, taking channels from BOTH dies — which is why two runs go into it, one from each. The board carries TWO of these positions and a card populates ONE. The empty one is drawn struck through rather than omitted, because it is not dead board area: the two cards in a box are the same part, so they populate OPPOSITE positions and their connectors sit offset from each other instead of face to face. The map below shows what that looks like once there are two boards. The two dies share no NOC, so every byte between them takes the PCB path.",
+    interconnect: MESH_NOTE + " The band between the dies is BOARD, not silicon: the TWO die-to-die links, drawn as two columns because that is what they are. Read a column downwards and you have the whole path — ASIC 0's MAC/PCS driving 8 SerDes lanes, the differential pairs crossing the PCB, and the same stack in reverse on ASIC 1. Neither link leaves the card, and there is no connector anywhere on that path; tt-metal types them as TRACE ports for exactly that reason. What DOES leave the card is at the far end of the same band: a Warp 400 connector, taking channels from BOTH dies — which is why two runs go into it, one from each. The board carries TWO of these positions and a card populates ONE. The empty one is drawn struck through rather than omitted, because it is not dead board area: the two cards in a box are the same part, so they populate OPPOSITE positions and their connectors sit offset from each other instead of face to face. Both positions' wiring is known either way — the board routes port 1 to ASIC 0 channels 7 and 9 and ASIC 1 channels 3 and 6, and port 2 to ASIC 0 channels 5 and 4 and ASIC 1 channels 2 and 4, whether or not a connector is fitted. Add the two each die spends on the die-to-die trace and SIX of a die's twelve post-harvest Ethernet channels reach something on this board; the other six have no destination on it. The two dies share no NOC, so every byte between them takes the PCB path.",
     note: "Both dies are drawn in the DEFAULT configuration: two Tensix columns disabled on each, and the mirrored PCIe harvest. " + COORD_NOTE + " Each die is its own 17 × 12 coordinate space, so both grids run x = 0…16 and y = 0…11 independently. ASIC 1 is drawn MIRRORED — Y = 0 at its top — so that its Ethernet row faces the link; read each die's tile labels, not the page, for its true orientation.",
     source: SOURCE + ". The band comes from tt-metal's own board definition, which builds the P300 from two TRACE ports joined internally — ASIC 1 channels 8 and 9 against ASIC 0 channels 3 and 2 — plus two Warp 400 ports, each wired to two Ethernet channels on each ASIC. UMD's published P300 cluster-descriptor example agrees channel for channel: chip 0 ch 2 ⇄ chip 1 ch 9, chip 0 ch 3 ⇄ chip 1 ch 8. That same example carries the mirrored PCIe harvest drawn above, one die masking core 1 and the other core 0. Which of the two Warp 400 positions is populated is a property of the BOARD VARIANT and not of that definition, which maps p300a and p300c to one board type",
   };
@@ -532,17 +550,24 @@ export function quietBoxMap() {
 
   const CH = [{ a0: 3, a1: 8 }, { a0: 2, a1: 9 }];
 
-  const warp = (x, card, fitted) => ({
-    x, y: fitted ? FITTED_Y[card] : EMPTY_Y[card], w: 1, h: 3,
-    kind: fitted ? "io" : "off",
-    label: "Warp 400", sub: fitted ? "fitted" : "empty",
-    detail: fitted
-      ? `The Warp 400 position card ${card} populates, soldered to that board's edge. It carries four Ethernet channels — TWO FROM EACH of the card's dies — so one connector serves the whole card rather than belonging to a die. Note where the other card's fitted connector is: not opposite this one. Both boards are the same part with two positions, and each takes the one its twin leaves empty, so the pair meet diagonally.`
-      : `The position card ${card} leaves EMPTY — because the other card uses it. This is what the two positions are for: two identical boards can only mate if each populates a different one, which puts the fitted connectors offset from each other rather than face to face. tt-metal declares both positions per P300 board and does not distinguish the variants, so software describes a board with two where any one card has one.`,
-    specs: fitted
-      ? [["Port type", "Warp 400"], ["Channels", "4 — 2 from each die"], ["On", `card ${card}`], ["Opposite the other card's", "no — offset"]]
-      : [["Port type", "Warp 400"], ["Populated here", "no"], ["Used by", "the other card"], ["Positions per board", "2"]],
-  });
+  // Card A populates port 1, card B port 2. That IS the offset: same board, two
+  // positions, each card taking the one its twin leaves free.
+  const PORT = { A: 1, B: 2 };
+  const warp = (x, card, fitted) => {
+    const p = fitted ? PORT[card] : PORT[card === "A" ? "B" : "A"];
+    const ch = WARP_CH[p];
+    return {
+      x, y: fitted ? FITTED_Y[card] : EMPTY_Y[card], w: 1, h: 3,
+      kind: fitted ? "io" : "off",
+      label: `Warp ${p}`, sub: fitted ? "fitted" : "empty",
+      detail: fitted
+        ? `Warp 400 position ${p}, the one card ${card} populates. The board definition names its wiring: ASIC 0 channels ${ch.a0.join(" and ")}, ASIC 1 channels ${ch.a1.join(" and ")} — four channels, two from EACH of the card's dies, so one connector serves the whole card rather than belonging to a die. Note where the other card's fitted connector is: not opposite this one. Both boards are the same part, and each takes the position its twin leaves empty, so the pair meet diagonally.`
+        : `Warp 400 position ${p} — the one card ${card} leaves EMPTY, because the other card populates it. Its wiring is known regardless: the board routes it to ASIC 0 channels ${ch.a0.join(" and ")} and ASIC 1 channels ${ch.a1.join(" and ")} whether or not a connector is fitted. This is what the two positions are for: two identical boards can only mate if each uses a different one.`,
+      specs: fitted
+        ? [...warpChSpec(p), ["On", `card ${card}`], ["Opposite the other card's", "no — offset"]]
+        : [...warpChSpec(p), ["Populated here", "no"], ["Used by", "the other card"]],
+    };
+  };
 
   const tiles = [
     die(A.x, 0, "ASIC 0", "card A · PCIe (2,0) live", "asic0",
@@ -556,8 +581,8 @@ export function quietBoxMap() {
 
     { x: CABLE, y: 1, w: 1, h: 5, kind: "link",
       label: "ARP6", sub: "cable",
-      detail: "The only thing on this map that is NOT on a board: the Samtec ARP6-series high-performance cable Tenstorrent uses to join the two p300c cards inside a TT-QuietBox 2. It mates the fitted Warp 400 connector on each card — and because those two are at OPPOSITE positions, it runs diagonally rather than straight across, which is why it is drawn tall enough to reach both. It carries four Ethernet channels, two from each of card A's dies to two of card B's. Every byte between the cards crosses it; there is no backplane and nothing shared behind it.",
-      specs: [["Type", "Samtec ARP6 series"], ["Joins", "card A's fitted position ⇄ card B's"], ["Runs", "diagonally — the positions are offset"], ["Channels", "4"], ["On a board", "no"]] },
+      detail: `The only thing on this map that is NOT on a board: the Samtec ARP6-series high-performance cable Tenstorrent uses to join the two p300c cards inside a TT-QuietBox 2. It mates card A's port ${PORT.A} to card B's port ${PORT.B} — opposite positions, which is why it runs diagonally rather than straight across and why it is drawn tall enough to reach both. Four Ethernet channels cross it: card A's ASIC 0 channels ${WARP_CH[PORT.A].a0.join(" and ")} and ASIC 1 channels ${WARP_CH[PORT.A].a1.join(" and ")}, meeting card B's ASIC 0 channels ${WARP_CH[PORT.B].a0.join(" and ")} and ASIC 1 channels ${WARP_CH[PORT.B].a1.join(" and ")}. Every byte between the cards crosses it; there is no backplane and nothing shared behind it.`,
+      specs: [["Type", "Samtec ARP6 series"], ["Joins", `card A port ${PORT.A} ⇄ card B port ${PORT.B}`], ["Runs", "diagonally — the positions are offset"], ["Channels", "4 — 2 from each card's two dies"], ["On a board", "no"]] },
 
     warp(B.warp, "B", true),
     warp(B.warp, "B", false),
