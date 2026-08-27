@@ -380,6 +380,15 @@ h2.section-h.sub + dl.spec-grid { margin-top: 8px; }
   stroke-linecap: round;
 }
 
+/* A run to a footprint nothing is soldered to. Dashed and faded rather than
+   absent: the trace is on the board either way, and omitting it would claim the
+   die has no path to that position at all. */
+.ic-arc-unfitted {
+  stroke-dasharray: 5 4;
+  stroke-width: 1.6;
+  opacity: 0.5;
+}
+
 /* One traced read. Drawn above the mesh so the route is followable, with the
    tiles it passes through outlined -- the hops ARE the cost. */
 .ic-route .route-line {

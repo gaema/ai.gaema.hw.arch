@@ -102,8 +102,12 @@ function drawInterconnect(svg, top, grid, cells, map) {
     const amt = (arc.dip || 1) * Math.max(18, (vertical ? Math.abs(dy) : Math.abs(dx)) * 0.18);
     const mx = (a.cx + b.cx) / 2, my = (a.cy + b.cy) / 2;
     const ctl = vertical ? [mx + amt, my] : [mx, my + amt];
+    // `dashed` is for a run that EXISTS but whose far end is not populated --
+    // the board routes traces to an unfitted footprint whether or not anyone
+    // solders a connector on. Leaving those runs out entirely, which this map
+    // used to do, says the wiring is absent when only the part is.
     const p = svgEl("path", {
-      class: "ic-arc",
+      class: "ic-arc" + (arc.dashed ? " ic-arc-unfitted" : ""),
       d: `M ${a.cx} ${a.cy} Q ${ctl[0]} ${ctl[1]} ${b.cx} ${b.cy}`,
       stroke: arc.color || "currentColor",
     });

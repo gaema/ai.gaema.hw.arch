@@ -334,11 +334,13 @@ export function dualDieMap() {
   // now occupies one column of the band and reads top to bottom in the order the
   // signal travels: ASIC 0's PHY, the PCB trace, ASIC 1's PHY.
   const PHY_X = [4, 10], PHY_W = 4;
-  // The connectors go in the band's own spare columns, NOT in a column bolted
-  // onto the side: this map is already 17 wide and 27 tall, and two extra
-  // columns for two small blocks is a lot of width to buy a label. The band is
-  // board area, so they are simply on it, at the far end from the traces.
-  const WARP_X = 14, WARP_W = 3;
+  // One connector at each END of the band, in the columns the two link stacks
+  // leave empty, and full band height because each takes channels from BOTH
+  // dies. No extra columns are bought for them: the band already ran x=0..3 and
+  // x=14..16 empty. Splitting them left and right also stops the pair reading as
+  // one stacked block, which is what they looked like sharing the right end.
+  const WARP_W = 3;
+  const WARP_AT = { 1: 14, 2: 0 };   // port 1 right (fitted here), port 2 left
   // Two channels, and the pairing is PUBLIC in two independent places that
   // agree: tt-metal's board.cpp gives the P300's TRACE ports as ASIC 1 channels
   // 8,9 and ASIC 0 channels 3,2, joined internally; UMD's own P300 cluster
@@ -379,14 +381,21 @@ export function dualDieMap() {
     // board entirely -- it goes to the other p300c. Drawing them between the
     // dies, as this map used to, put a card-to-card link in the same gutter as
     // the on-PCB die-to-die traces and made the whole thing read as one PCB.
-    { x: WARP_X, y: 12, w: WARP_W, h: 2, kind: "io", label: "Warp 400 · port 1", sub: `fitted here · A0 ch ${WARP_CH[1].a0.join("/")} · A1 ch ${WARP_CH[1].a1.join("/")}`,
+    { x: WARP_AT[1], y: 12, w: WARP_W, h: 3, kind: "io", label: "Warp 400 · port 1", sub: `fitted here · A0 ch ${WARP_CH[1].a0.join("/")} · A1 ch ${WARP_CH[1].a1.join("/")}`,
       detail: `The card-to-card connector this card populates — the only way off it. It is NOT a QSFP-DD cage: tt-metal types the P300's off-card ports as WARP400, and Tenstorrent joins two p300c cards inside a TT-QuietBox 2 with a Samtec ARP6-series high-performance cable. Its wiring is named in the board definition: ASIC 0 channels ${WARP_CH[1].a0.join(" and ")}, ASIC 1 channels ${WARP_CH[1].a1.join(" and ")} — four channels, TWO FROM EACH DIE, which is why the runs into it come from both. Which of the board's two positions a given card populates is the variant's choice; port 1 is drawn fitted here because the map below pairs this card with one that fits port 2.`,
       specs: [...warpChSpec(1), ["Cable", "Samtec ARP6 series"], ["Not", "QSFP-DD"], ["Goes to", "the other card"]],
       path: "warp" },
-    { x: WARP_X, y: 14, w: WARP_W, h: 1, kind: "off", label: "Warp 400 · port 2", sub: `empty here · A0 ch ${WARP_CH[2].a0.join("/")} · A1 ch ${WARP_CH[2].a1.join("/")}`,
+    { x: WARP_AT[2], y: 12, w: WARP_W, h: 3, kind: "off", label: "Warp 400 · port 2", sub: `empty here · A0 ch ${WARP_CH[2].a0.join("/")} · A1 ch ${WARP_CH[2].a1.join("/")}`,
       detail: `The board's OTHER Warp 400 position, and the reason there are two. WE KNOW WHAT IT WOULD CARRY even though nothing is plugged into it: the board wires it whether or not the connector is populated, to ASIC 0 channels ${WARP_CH[2].a0.join(" and ")} and ASIC 1 channels ${WARP_CH[2].a1.join(" and ")}. It is empty on this card because its twin uses it — the two cards in a TT-QuietBox 2 are the same part, so each populates the position the other leaves free and their connectors end up offset rather than face to face. That is also why tt-metal declares both positions without distinguishing the variants: the board has two, any one card uses one.`,
       specs: [...warpChSpec(2), ["Populated here", "no"], ["Used by", "the paired card"], ["Positions on the board", "2"]],
       path: "warp" },
+    // The host connection, which this map used to leave out entirely. One edge
+    // connector, TWO endpoints behind it: each die keeps its own live PCIe tile,
+    // so the card presents two devices to the host rather than one.
+    { x: 8, y: 12, w: 2, h: 3, kind: "io", label: "PCIe 5.0 ×16", sub: "card edge · to the host",
+      detail: "The card's edge connector — a board part, not a tile on either die. Both ASICs keep their OWN live PCIe interface, so two endpoints sit behind this one connector and the host enumerates the card as two devices; how the board fans them onto a single ×16 edge is not drawn. Which tile is live differs per die — that is the mirrored harvest this map exists to show — so the two runs into it start at different NOC coordinates: (2,0) on ASIC 0 and (11,0) on ASIC 1.",
+      specs: [["Link", "PCIe 5.0 ×16"], ["Endpoints behind it", "2 — one per ASIC"], ["ASIC 0 tile", "(2,0)"], ["ASIC 1 tile", "(11,0)"]],
+      path: "slot" },
   ];
 
   // ETH row -> PHY -> PHY -> ETH row, for each of the two links. The ETH ends
@@ -414,11 +423,27 @@ export function dualDieMap() {
   // means. Only the fitted one gets runs: the second position has nothing wired
   // to it on this card, and runs into an empty footprint would say the opposite
   // of what the struck-through tile says.
+  // BOTH Warp positions get their runs, not just the fitted one. The board
+  // routes traces to an unfitted footprint exactly as it does to a fitted one,
+  // so drawing only the populated side would say this die has no path to the
+  // other position -- when what it lacks is a soldered connector, not wiring.
+  // The unfitted runs are dashed and faded to carry that difference.
+  for (const p of [1, 2]) {
+    const x = WARP_AT[p] + 1, fitted = p === 1;
+    linkArcs.push(
+      { from: [x, top.ethRow], to: [x, 13], color: "var(--k-io-ink)", dip: 0.3, dashed: !fitted,
+        label: `ASIC 0 Ethernet channels ${WARP_CH[p].a0.join(" and ")} → Warp 400 port ${p}${fitted ? "" : " — wired, but no connector fitted on this card"}` },
+      { from: [x, bottom.ethRow], to: [x, 13], color: "var(--k-io-ink)", dip: 0.3, dashed: !fitted,
+        label: `ASIC 1 Ethernet channels ${WARP_CH[p].a1.join(" and ")} → Warp 400 port ${p} — the same connector takes channels from both dies${fitted ? "" : ", and this one is not populated here"}` },
+    );
+  }
+  // And the host link: one edge connector, one run from each die's LIVE PCIe
+  // tile -- which is at a different coordinate on each, because of the harvest.
   linkArcs.push(
-    { from: [WARP_X + 1, top.ethRow], to: [WARP_X + 1, 12], color: "var(--k-io-ink)", dip: 0.3,
-      label: "ASIC 0 Ethernet → the Warp 400 connector this card populates (2 channels)" },
-    { from: [WARP_X + 1, bottom.ethRow], to: [WARP_X + 1, 13], color: "var(--k-io-ink)", dip: 0.3,
-      label: "ASIC 1 Ethernet → the same connector (2 more) — one connector, both dies" },
+    { from: [2, 11], to: [8, 13], color: "var(--k-io-ink)", dip: 0.35,
+      label: "ASIC 0's live PCIe tile (2,0) → the card's PCIe ×16 edge connector" },
+    { from: [11, LOWER], to: [9, 13], color: "var(--k-io-ink)", dip: 0.35,
+      label: "ASIC 1's live PCIe tile (11,0) → the same edge connector — two endpoints, one connector" },
   );
 
   return {
@@ -592,6 +617,17 @@ export function quietBoxMap() {
     trace(B.x, 1, CH[1]),
     die(B.x, 4, "ASIC 3", "card B · PCIe (11,0) live", null,
       "Card B's second ASIC, mirrored from ASIC 2 exactly as card A's pair are mirrored from each other."),
+
+    // Each card reaches the host on its OWN PCIe edge. The cable joins the two
+    // cards to each other; it is not how either of them talks to the host, and
+    // leaving the host link out made the pair look like one attached device.
+    ...["A", "B"].map((card) => ({
+      x: card === "A" ? A.x : B.x, y: 7, w: CARD_W, h: 1, kind: "io",
+      label: "PCIe 5.0 ×16", sub: `card ${card} edge · to the host`,
+      detail: `Card ${card}'s own edge connector. Both of its ASICs keep a live PCIe tile, so this one connector carries TWO endpoints and the host enumerates the card as two devices — four across the box. The cards do not reach the host through each other: the ARP6 cable joins them to one another, and each still plugs into its own slot.`,
+      specs: [["Link", "PCIe 5.0 ×16"], ["Endpoints", "2 — one per die"], ["Per box", "2 cards, 4 endpoints"]],
+      ...(card === "A" ? { path: "slot" } : {}),
+    })),
   ];
 
   const ink = "var(--k-link-ink)", io = "var(--k-io-ink)";
@@ -603,16 +639,22 @@ export function quietBoxMap() {
       { from: [x + i * 4 + 1, 3], to: [x + i * 4 + 1, 4], color: ink, dip: 0.2,
         label: `Link ${i + 1} → lower die, on this card's PCB` },
     ])),
-    // Each card's two dies out to the position THAT card populates. Both dies
-    // reach the same connector, which is the point: it is a card-level port.
-    { from: [A.x + CARD_W - 1, 1], to: [A.warp, FITTED_Y.A + 1], color: io, dip: 0.35,
-      label: "Card A ASIC 0 → the Warp 400 position card A populates (2 channels)" },
-    { from: [A.x + CARD_W - 1, 5], to: [A.warp, FITTED_Y.A + 1], color: io, dip: 0.35,
-      label: "Card A ASIC 1 → the same connector (2 more channels)" },
-    { from: [B.x, 1], to: [B.warp, FITTED_Y.B + 1], color: io, dip: 0.35,
-      label: "Card B ASIC 2 → the Warp 400 position card B populates (2 channels)" },
-    { from: [B.x, 5], to: [B.warp, FITTED_Y.B + 1], color: io, dip: 0.35,
-      label: "Card B ASIC 3 → the same connector (2 more channels)" },
+    // Each card's two dies out to BOTH of its Warp positions -- the populated
+    // one solid, the empty one dashed. The traces exist either way; only the
+    // connector is missing, and a run left undrawn would say otherwise.
+    ...["A", "B"].flatMap((card) => {
+      const wx = card === "A" ? A.warp : B.warp;
+      const dx = card === "A" ? A.x + CARD_W - 1 : B.x;
+      const dies = card === "A" ? ["ASIC 0", "ASIC 1"] : ["ASIC 2", "ASIC 3"];
+      return [true, false].flatMap((fitted) => {
+        const p = fitted ? PORT[card] : PORT[card === "A" ? "B" : "A"];
+        const y = (fitted ? FITTED_Y[card] : EMPTY_Y[card]) + 1;
+        return [0, 1].map((i) => ({
+          from: [dx, i === 0 ? 1 : 5], to: [wx, y], color: io, dip: 0.35, dashed: !fitted,
+          label: `Card ${card} ${dies[i]} → Warp 400 port ${p}${fitted ? " — the position this card populates" : " — wired, no connector fitted on this card"}`,
+        }));
+      });
+    }),
     // The two hops that are not on any board -- and they are the diagonal,
     // because the two fitted positions are not opposite each other.
     { from: [A.warp, FITTED_Y.A + 1], to: [CABLE, 3], color: io, dip: 0.15,
@@ -623,11 +665,11 @@ export function quietBoxMap() {
 
   return {
     title: "TT-QuietBox 2 — two p300c cards, four dies",
-    cols: B.x + CARD_W, rows: 7, cell: 54, cellH: 40,
+    cols: B.x + CARD_W, rows: 8, cell: 54, cellH: 40,
     tiles,
     groups: [
-      { x0: A.x, y0: 0, x1: A.warp, y1: 6, label: "Card A — one p300c, one PCB" },
-      { x0: B.warp, y0: 0, x1: B.x + CARD_W - 1, y1: 6, label: "Card B — one p300c, one PCB" },
+      { x0: A.x, y0: 0, x1: A.warp, y1: 7, label: "Card A — one p300c, one PCB" },
+      { x0: B.warp, y0: 0, x1: B.x + CARD_W - 1, y1: 7, label: "Card B — one p300c, one PCB" },
     ],
     arcs,
     lede: "A p300c is not sold on its own — it is the card inside a TT-QuietBox 2, and the box holds TWO of them. That is what this map draws, at board scale rather than tile scale: four Blackhole dies in two groups of two, and the difference between the links that stay on a board and the one hop that does not. Each card is exactly the map above. Note where the two fitted connectors are: NOT opposite each other.",
