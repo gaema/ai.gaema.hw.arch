@@ -557,5 +557,50 @@ dl.spec-grid dd { margin: 2px 0 0; font-weight: 600; }
   margin: 0;
 }
 
+/* ---- numeric-format table -------------------------------------------------
+   Reuses table.matrix for structure and only adds what that table has no
+   concept of: an operand-width gutter, and a cell whose meaning is carried by
+   weight rather than by colour. The three non-matrix states are deliberately
+   quiet -- the eye should land on the formats an engine actually takes. */
+#dtypes .bits {
+  color: var(--ink-dim);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  width: 1%;
+  padding-right: 4px;
+}
+#dtypes thead th small.sub {
+  display: block;
+  font-weight: 400;
+  font-size: 11px;
+  color: var(--ink-dim);
+  margin-top: 1px;
+}
+#dtypes td.dt-matrix { color: var(--k-matrix-ink); font-weight: 600; }
+#dtypes td.dt-vector,
+#dtypes td.dt-convert { color: var(--ink-dim); font-weight: 400; }
+#dtypes td.dt-none { color: var(--n6); }
+
+#dtype-notes { margin-top: 14px; }
+details.dtype-note {
+  border-top: 1px solid var(--line);
+  padding: 10px 0 2px;
+  font-size: 13px;
+}
+details.dtype-note summary {
+  cursor: pointer;
+  color: var(--ink-mid);
+  list-style-position: outside;
+}
+details.dtype-note summary strong { color: var(--ink); }
+details.dtype-note p.lede { margin: 8px 0 6px; }
+details.dtype-note ul.srcs {
+  margin: 0 0 8px;
+  padding-left: 18px;
+  font-size: 12.5px;
+  color: var(--ink-dim);
+}
+details.dtype-note ul.srcs li { margin: 2px 0; }
+
 footer.foot { border-top: 1px solid var(--line); padding: 18px 0 34px; color: var(--ink-dim); font-size: 12.5px; }
 footer.foot p { margin: 0 0 4px; }

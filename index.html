@@ -54,6 +54,28 @@
   </section>
 
   <section class="block">
+    <h2>Numeric formats</h2>
+    <p class="lede">
+      What each matrix engine accepts as an operand, smallest first, and what it
+      accumulates into. The accumulator is the column usually left out, and
+      without it a narrow operand reads as narrow arithmetic: almost every
+      engine here multiplies in 4, 6 or 8 bits and adds into 32.
+    </p>
+    <p class="lede">
+      Keyed by architecture rather than by card, because this is an
+      architectural property — the two Blackwell cards answer identically, and
+      so do the two Blackhole cards. A cell reads <strong>vector</strong> where
+      the format is a general ALU type but not a matrix operand, and
+      <strong>convert</strong> where it must be widened before the engine will
+      take it. Both are “supported”; neither runs at matrix rate.
+    </p>
+    <div class="scroll-x">
+      <table class="matrix" id="dtypes"></table>
+    </div>
+    <div id="dtype-notes"></div>
+  </section>
+
+  <section class="block">
     <h2>How to read these diagrams</h2>
     <p class="lede">
       Every page carries two views of the same part, because they answer

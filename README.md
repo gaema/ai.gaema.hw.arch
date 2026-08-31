@@ -40,7 +40,7 @@ assets/theme.js       theme boot + toggle
 assets/app.css        layout
 assets/diemap.js      the die-map renderer (grid + filters + hover detail)
 assets/explorer.js    the drill-down renderer; owns both views on a page
-assets/landing.js     cards + matrix
+assets/landing.js     cards + the two matrices
 assets/nav.js         header nav, built from the registry
 data/index.js         the SKU registry — the one place a card is added
 data/<slug>.js        one card's die map, hierarchy, specs and sources
@@ -48,6 +48,8 @@ data/_floorplan.js    band/field/memBand helpers for hand-placed GPU die maps
 data/_battlemage.js   Xe2 hierarchy + die map, shared by the two Intel cards
 data/_blackwell.js    GB202 hierarchy + die map, shared by the two NVIDIA cards
 data/_blackhole.js    Blackhole hierarchy + die map, shared by the two TT cards
+data/_dtypes.js       numeric formats each matrix engine takes, and what it
+                      accumulates into — keyed by architecture, not by card
 ```
 
 No build step, no dependencies, no bundler — plain ES modules served statically.

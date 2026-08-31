@@ -1,6 +1,7 @@
 // Landing page: the SKU cards and the cross-vendor matrix, both built from
 // the same registry the explorer pages read.
 import { loadAll, COMPARE_ROWS, pageHref } from "../data/index.js";
+import { ROWS as DTYPE_ROWS, ARCH, ARCH_ORDER } from "../data/_dtypes.js";
 
 const el = (tag, cls, text) => {
   const n = document.createElement(tag);
@@ -67,4 +68,76 @@ loadAll().then((skus) => {
     tbody.append(tr);
   }
   table.append(tbody);
+
+  buildDtypes();
 }).catch(fail);
+
+// The numeric-format table. One column per ARCHITECTURE, not per card: which
+// formats an engine takes is a property of the design, so the two cards on each
+// of the NVIDIA and Tenstorrent rows would otherwise be duplicate columns.
+function buildDtypes() {
+  const table = document.getElementById("dtypes");
+  if (!table) return;
+
+  const thead = el("thead");
+  const hr = el("tr");
+  hr.append(el("th", null, "Bits"));
+  hr.append(el("th", null, "Format"));
+  for (const k of ARCH_ORDER) {
+    const th = el("th");
+    th.append(el("span", null, ARCH[k].label));
+    th.append(el("small", "sub", ARCH[k].engine));
+    hr.append(th);
+  }
+  thead.append(hr);
+  table.append(thead);
+
+  const tbody = el("tbody");
+  for (const [key, label, bits] of DTYPE_ROWS) {
+    const tr = el("tr");
+    tr.append(el("td", "bits", String(bits)));
+    tr.append(el("th", null, label));
+    for (const k of ARCH_ORDER) {
+      const d = ARCH[k].dtypes[key] || { level: "none" };
+      const td = el("td", "dt-" + d.level);
+      if (d.level === "matrix") {
+        // The operand is the row; the value in the cell is what it adds into.
+        td.append(el("span", "acc", "→ " + d.acc));
+      } else if (d.level === "vector") {
+        td.textContent = "vector";
+      } else if (d.level === "convert") {
+        td.textContent = "convert";
+      } else {
+        td.textContent = "—";
+      }
+      tr.append(td);
+    }
+    tbody.append(tr);
+  }
+  table.append(tbody);
+
+  // Per-architecture notes + sources, below the table rather than inside it:
+  // the table carries values, and a cell is not the place for a paragraph.
+  const box = document.getElementById("dtype-notes");
+  if (!box) return;
+  for (const k of ARCH_ORDER) {
+    const a = ARCH[k];
+    const d = el("details", "dtype-note");
+    const s = el("summary");
+    s.append(el("strong", null, a.label));
+    s.append(document.createTextNode(" · " + a.engine));
+    d.append(s);
+    d.append(el("p", "lede", a.note));
+    const ul = el("ul", "srcs");
+    for (const [text, href] of a.source) {
+      const li = el("li");
+      const link = el("a", null, text);
+      link.href = href;
+      link.rel = "noopener";
+      li.append(link);
+      ul.append(li);
+    }
+    d.append(ul);
+    box.append(d);
+  }
+}
