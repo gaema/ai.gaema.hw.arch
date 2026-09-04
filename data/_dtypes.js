@@ -1,7 +1,7 @@
 // Numeric formats each matrix engine accepts as an operand, and what it
 // accumulates into. Shared across SKUs the way the other `_`-prefixed modules
 // are: this is an ARCHITECTURE property, so the two Blackwell cards answer
-// identically and so do the two Blackhole cards.
+// identically and so do the four Tenstorrent cards.
 //
 // Every figure is from the vendor's own ISA or extension documentation -- the
 // per-architecture `source` below names it. Rows run smallest operand first.
@@ -157,6 +157,8 @@ export const ARCH = {
     source: [
       ["Tenstorrent — tt-isa-documentation, Blackhole",
        "https://github.com/tenstorrent/tt-isa-documentation/blob/main/BlackholeA0/README.md"],
+      ["Tenstorrent — tt-isa-documentation, Wormhole B0",
+       "https://github.com/tenstorrent/tt-isa-documentation/blob/main/WormholeB0/README.md"],
       ["Tenstorrent — Blackhole & TT-Metalium, Hot Chips 2024 (PDF)",
        "https://hc2024.hotchips.org/assets/program/conference/day1/88_HC2024.Tenstorrent.Jasmina.Davor.v7.pdf"],
     ],
@@ -172,15 +174,17 @@ export const ARCH = {
   },
 };
 
-// Which architecture answers for each SKU. Two cards per architecture on both
-// the NVIDIA and the Tenstorrent side, and they answer identically -- that is
-// the point of keying this by architecture rather than by part.
+// Which architecture answers for each SKU. Two cards per architecture on the
+// NVIDIA side and four on the Tenstorrent side, and they answer identically --
+// that is the point of keying this by architecture rather than by part.
 export const SKU_ARCH = {
   "r9700": "rdna4",
   "b50": "xe2",
   "b70": "xe2",
   "rtx-pro-6000": "blackwell",
   "rtx-5090": "blackwell",
+  "n150d": "tensix",
+  "n300d": "tensix",
   "p150a": "tensix",
   "p300c": "tensix",
 };

@@ -1,6 +1,6 @@
 # arch.hw.gaema.ai — accelerator architecture explorer
 
-Interactive block diagrams of seven AI accelerators, drawn to one structure so
+Interactive block diagrams of nine AI accelerators, drawn to one structure so
 they can be compared like with like:
 
 | Card | Vendor | Architecture |
@@ -10,6 +10,8 @@ they can be compared like with like:
 | Arc Pro B70 | Intel | Xe2 “Battlemage” (BMG-G31) |
 | RTX PRO 6000 Blackwell | NVIDIA | Blackwell (GB202) |
 | GeForce RTX 5090 | NVIDIA | Blackwell (GB202) |
+| Wormhole n150d | Tenstorrent | Wormhole B0 |
+| Wormhole n300d | Tenstorrent | Wormhole B0 |
 | Blackhole p150a | Tenstorrent | Blackhole |
 | Blackhole p300c | Tenstorrent | Blackhole |
 
@@ -47,7 +49,8 @@ data/<slug>.js        one card's die map, hierarchy, specs and sources
 data/_floorplan.js    band/field/memBand helpers for hand-placed GPU die maps
 data/_battlemage.js   Xe2 hierarchy + die map, shared by the two Intel cards
 data/_blackwell.js    GB202 hierarchy + die map, shared by the two NVIDIA cards
-data/_blackhole.js    Blackhole hierarchy + die map, shared by the two TT cards
+data/_blackhole.js    Blackhole hierarchy + die map, shared by the two Blackhole cards
+data/_wormhole.js     Wormhole hierarchy + die map, shared by the two Wormhole cards
 data/_dtypes.js       numeric formats each matrix engine takes, and what it
                       accumulates into — keyed by architecture, not by card
 ```
@@ -84,9 +87,10 @@ python3 -m http.server 8080
 - **A page describes ONE product.** Sibling variants — Max-Q, Server Edition,
   the cut-down part in the same family — are named as separate products or left
   out, never folded into this card's figures.
-- **Say whether a map is real or logical.** Blackhole has a SoC descriptor
-  giving every tile's NOC coordinate, so its map is the actual 17 × 12 grid in
-  the vendor's own coordinates (Y = 0 at the bottom). The three GPUs have block
+- **Say whether a map is real or logical.** Wormhole and Blackhole have SoC
+  descriptors giving every tile's NOC coordinate, so those maps are the actual
+  grids in the vendor's own coordinates (Wormhole 10 × 12, Blackhole 17 × 12;
+  Y = 0 at the bottom on a single-die page). The three GPUs have block
   diagrams but no per-unit geometry, so those maps take the vendor's
   arrangement and lay it out for legibility — not to scale, not to
   physical position — and say so on the page. Never present a hand-placed
@@ -96,11 +100,13 @@ python3 -m http.server 8080
   against 120 of 140 should see the difference rather than read it. WHICH units
   a given card fused off is not something the maps assert: the Blackwell pages
   draw dark TPCs, Blackhole draws a mirrored column pair whose *shape* follows
-  from the harvesting scheme while the specific pair varies per die, and the
-  B50 draws four disabled Xe-cores grouped for legibility. Each says at the
-  point of use that the placement is illustrative.
-- **Draw the interconnect the shape it actually is.** Blackhole has a router in
-  every tile, so its map draws real tile-to-tile links (`mesh: {torus: true}`,
+  from the harvesting scheme while the specific pair varies per die, Wormhole
+  draws harvested Tensix rows the same way, and the B50 draws four disabled
+  Xe-cores grouped for legibility. Each says at the point of use that the
+  placement is illustrative.
+- **Draw the interconnect the shape it actually is.** Wormhole and Blackhole
+  have a router in every tile, so those maps draw real tile-to-tile links
+  (`mesh: {torus: true}`,
   rendered into the grid gaps) plus the QSFP cage runs as arcs. A multi-die card
   stacks its dies vertically with the link band between them, drawing the whole
   chain — Ethernet row → MAC/PCS → 8 SerDes lanes → PCB → back up the other

@@ -1,6 +1,6 @@
 // The SKU registry. Everything else on the site is driven from here.
 
-export const ORDER = ["r9700", "b50", "b70", "rtx-pro-6000", "rtx-5090", "p150a", "p300c"];
+export const ORDER = ["r9700", "b50", "b70", "rtx-pro-6000", "rtx-5090", "n150d", "n300d", "p150a", "p300c"];
 
 // Pages live under their vendor, so a URL says who makes the part before it
 // says which part. `vendorKey` is the short token used for colour tokens;
@@ -20,6 +20,8 @@ const LOADERS = {
   "b70": () => import("./b70.js"),
   "rtx-pro-6000": () => import("./rtx-pro-6000.js"),
   "rtx-5090": () => import("./rtx-5090.js"),
+  "n150d": () => import("./n150d.js"),
+  "n300d": () => import("./n300d.js"),
   "p150a": () => import("./p150a.js"),
   "p300c": () => import("./p300c.js"),
 };
