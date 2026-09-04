@@ -30,7 +30,7 @@ export const tensix = {
     },
     {
       id: "matrix", label: "Matrix engine (FPU)", kind: "matrix",
-      note: "the dense matrix unit, and where essentially all of a model's arithmetic happens. It multiplies tiles staged in this tile's L1 SRAM and accumulates into a destination register file, one instruction per tile-sized multiply-accumulate rather than a loop of vector operations — so every dense layer, attention projection and convolution lands here. The FP8 and FP16 throughput figures for the card are this engine multiplied by the tile count; BFP8 runs at the same rate as bf16 because the unpacker resolves the shared exponent before the data arrives",
+      note: "the dense matrix unit, and where essentially all of a model's arithmetic happens. It multiplies tiles staged in this tile's L1 SRAM and accumulates into a destination register file, one instruction per tile-sized multiply-accumulate rather than a loop of vector operations — so every dense layer, attention projection and convolution lands here. The FP8, BLOCKFP8 and FP16 throughput figures for the card are this engine multiplied by the tile count and the fidelity the format runs at. The unpacker resolves a block-float shared exponent before the data arrives, so BFP8 is not a slower path at the matrix unit itself",
     },
     {
       id: "sfpu", label: "Vector engine (SFPU)", kind: "compute",
@@ -48,8 +48,8 @@ export const tensix = {
       note: "the second plane, and deliberately not a copy: NoC 1 goes upwards then leftwards, the mirror of NoC 0. Two planes with opposite orientation let a program pick the shorter direction for a given transfer, and keep two streams from fighting over the same links",
       specs: [["Routing", "upwards, one turn, leftwards"], ["Relationship to NoC 0", "mirrored orientation"]] },
     { id: "unpack", label: "Unpacker / packer", kind: "io", span: 1,
-      note: "the format engines either side of the compute complex, and the reason block-float costs nothing at the maths. The UNPACKER reads tiles out of L1 and converts them into the layout the engines want, filling SrcA, SrcB and Dst — this is where a shared exponent is resolved, so BFP8 and bf16 reach the matrix unit at the same rate. The PACKER does the reverse, taking results from Dst back into L1. They are driven by different RISC-V cores: TRISC0 runs the unpackers, TRISC2 the packer, so unpack, compute and pack overlap as a three-stage pipeline",
-      specs: [["Unpacker feeds", "SrcA, SrcB, Dst"], ["Packer writes", "Dst → L1"], ["Driven by", "TRISC0 / TRISC2"], ["L1 buffers", "32 circular buffers — 16 in, 16 out"]] },
+      note: "the format engines either side of the compute complex, and the reason block-float is not a slower path at the maths. Two unpackers read tiles out of L1 and convert them into the layout the engines want, filling SrcA, SrcB and Dst — this is where a shared exponent is resolved. Four packers do the reverse, taking results from Dst back into L1. They are driven by different RISC-V cores: T0 runs the unpackers, T2 the packers, so unpack, compute and pack overlap as a three-stage pipeline",
+      specs: [["Unpackers", "2"], ["Packers", "4"], ["Driven by", "T0 unpack / T2 pack"], ["L1 buffers", "32 circular buffers — 16 in, 16 out"]] },
   ],
 };
 
@@ -224,8 +224,11 @@ export function dieMap(pathPrefix) {
   const die = dieTiles(pathPrefix, { harvestedRows: [11], cages: true, pcieLive: true });
   const BOARD = 12;
 
-  const cages = cageBoxes(BOARD);
-  const warp = { port: 1, chans: WARP[1], x: 7, w: 3 };
+  const cages = [
+    { port: 2, chans: QSFP[2], x: 1, w: 2 },
+    { port: 1, chans: QSFP[1], x: 5, w: 2 },
+  ];
+  const warp1 = { port: 1, chans: WARP[1], x: 7, w: 2 };
 
   const boardTiles = [
     { x: 0, y: BOARD, w: 1, h: 1, kind: "io", label: "PCIe ×16 edge", sub: "card connector",
@@ -238,10 +241,15 @@ export function dieMap(pathPrefix) {
       specs: [["Cage", `QSFP-DD ${c.port}`], ["Channels", c.chans.join(" and ")], ["Rate", "200G"]],
       path: "qsfp",
     })),
-    { x: warp.x, y: BOARD, w: Math.max(warp.w, 2), h: 1, kind: "io",
+    { x: 3, y: BOARD, w: 2, h: 1, kind: "io",
+      label: "Warp 100 · port 2", sub: "bridge connector",
+      detail: "The card's second Warp 100 connector. Each Wormhole card takes two Warp 100 bridges. Port 1 is the connector wired to Ethernet channels 14 and 15.",
+      specs: [["Port", "Warp 100 · port 2"], ["Bridges on the card", "2"]],
+      path: "warp" },
+    { x: warp1.x, y: BOARD, w: warp1.w, h: 1, kind: "io",
       label: "Warp 100 · port 1", sub: "bridge connector",
-      detail: `The card's Warp 100 connector, wired to Ethernet channels ${warp.chans.join(" and ")} on row y = 6. Warp 100 is Tenstorrent's short-reach card-to-card link, distinct from the QSFP-DD cages.`,
-      specs: [["Port", "Warp 100 · port 1"], ["Channels", warp.chans.join(" and ")], ["Tiles", "(6,6) and (4,6)"]],
+      detail: `The card's Warp 100 connector wired to Ethernet channels ${warp1.chans.join(" and ")} on row y = 6. Warp 100 is Tenstorrent's short-reach card-to-card link, distinct from the QSFP-DD cages.`,
+      specs: [["Port", "Warp 100 · port 1"], ["Channels", warp1.chans.join(" and ")], ["Tiles", "(6,6) and (4,6)"]],
       path: "warp" },
   ];
 
@@ -251,8 +259,8 @@ export function dieMap(pathPrefix) {
       color: "var(--k-link-ink)", dip: 0.45,
       label: `QSFP-DD cage ${c.port} → Ethernet channel ${ch}`,
     }))),
-    ...warp.chans.map((ch) => ({
-      from: [warp.x, BOARD], to: die.ethTile(ch),
+    ...warp1.chans.map((ch) => ({
+      from: [warp1.x, BOARD], to: die.ethTile(ch),
       color: "var(--k-io-ink)", dip: 0.45,
       label: `Warp 100 port 1 → Ethernet channel ${ch}`,
     })),
@@ -273,9 +281,9 @@ export function dieMap(pathPrefix) {
       from: [0, 11 - 7], to: [8, 11 - 4],
       note: "The packet runs along X to the destination column, turns ONCE, then runs along Y — dimension-ordered routing. Tenstorrent documents that choice and the reason for it: letting packets turn freely reintroduces cyclic-dependency deadlock, where every router waits on the next and none of them moves. Every tile on the way just switches the packet onward; its cores never see it. The route crosses a memory column and, on this drawing, a disabled Tensix row whose compute is off but whose routers are not.",
     },
-    lede: GRID_LEDE + " The bottom row is NOT part of the die: it is the board — the two QSFP-DD cages, the Warp 100 connector, and the PCIe edge connector — drawn where it belongs, outside the grid, with a run to each die tile it is wired to. One Tensix row is drawn disabled to make 72 of 80; the row chosen is illustrative.",
+    lede: GRID_LEDE + " The bottom row is NOT part of the die: it is the board — the two QSFP-DD cages, the two Warp 100 connectors, and the PCIe edge connector — drawn where it belongs, outside the grid, with a run to each die tile it is wired to. One Tensix row is drawn disabled to make 72 of 80; the row chosen is illustrative.",
     hint: "Hover a tile for what sits there. Every tile here opens its block in the hierarchy below.",
-    interconnect: MESH_NOTE + " The runs to the bottom row leave the die entirely: a QSFP-DD cage is a connector on the card, wired to two specific Ethernet channels, the Warp 100 connector takes another pair, and the PCIe edge connector carries the die's one PCIe tile to the host slot.",
+    interconnect: MESH_NOTE + " The runs to the bottom row leave the die entirely: a QSFP-DD cage is a connector on the card, wired to two specific Ethernet channels, a Warp 100 connector takes another pair, and the PCIe edge connector carries the die's one PCIe tile to the host slot.",
     note: COORD_NOTE + " The board row underneath has no NOC coordinates and is not part of the mesh.",
     source: SOURCE,
   };

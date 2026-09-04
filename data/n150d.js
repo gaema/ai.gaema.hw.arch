@@ -11,7 +11,7 @@ export default {
   arch: "Wormhole",
   die: "Wormhole ASIC",
   tagline:
-    "A grid of 72 independent Tensix tiles, each with five RISC-V cores and 1.5 MB of software-managed SRAM — no warp scheduler, no cache hierarchy, and two QSFP-DD ports plus a Warp 100 bridge to bolt cards together.",
+    "A grid of 72 independent Tensix tiles, each with five RISC-V cores and 1.5 MB of software-managed SRAM — no warp scheduler, no cache hierarchy, and two QSFP-DD ports plus two Warp 100 bridges to bolt cards together.",
 
   spec: {
     "Architecture": "Wormhole B0",
@@ -39,7 +39,7 @@ export default {
     ["Big RISC-V cores", "none"],
     ["Ethernet tiles", "16"],
     ["Ethernet rate", "100 GbE per tile · 200 GbE per port"],
-    ["Board Ethernet", "2 × QSFP-DD 200G on channels 6,7 and 0,1 · Warp 100 port 1 on channels 14,15"],
+    ["Board Ethernet", "2 × QSFP-DD 200G on channels 6,7 and 0,1 · Warp 100 port 1 on channels 14,15 · second Warp 100 connector on the card"],
     ["PCIe tiles", "1"],
     ["FP8", "262 TFLOPS"],
     ["BLOCKFP8", "148 TFLOPS"],
@@ -63,7 +63,7 @@ export default {
 
   root: {
     id: "card", label: "Wormhole n150d", kind: "compute",
-    note: "one Wormhole ASIC, actively cooled, with two QSFP-DD 200G ports and a Warp 100 bridge for card-to-card scale-out",
+    note: "one Wormhole ASIC, actively cooled, with two QSFP-DD 200G ports and two Warp 100 bridges for card-to-card scale-out",
     cols: 4,
     children: [
       { ...asic(72), span: 4 },
@@ -72,9 +72,9 @@ export default {
         note: "two QSFP-DD cages on the board's bracket, carrying 200 GbE each — the card's long-reach scale-out path. They extend the same Ethernet fabric the Ethernet tiles speak on-die out to other cards, so a multi-card system is one larger mesh rather than a set of peers coordinating over PCIe and host memory. Each cage pairs two of the die's sixteen 100 GbE tiles",
       },
       {
-        id: "warp", label: "Warp 100", kind: "io",
-        note: "the short-reach card-to-card connector, wired to Ethernet channels 14 and 15. Distinct from the QSFP-DD cages: same fabric, different connector",
-        specs: [["Ports", "Warp 100 · port 1"], ["Channels", "14 and 15"]],
+        id: "warp", label: "2 × Warp 100", kind: "io",
+        note: "the short-reach card-to-card connectors. Each Wormhole card takes two Warp 100 bridges. Port 1 is wired to Ethernet channels 14 and 15",
+        specs: [["Port 1", "channels 14 and 15"], ["Port 2", "second connector on the card"]],
       },
       {
         id: "slot", label: "PCIe 4.0 ×16 edge", kind: "io",
@@ -89,6 +89,7 @@ export default {
     ["Tenstorrent — Wormhole cards", "https://tenstorrent.com/hardware/wormhole"],
     ["Tenstorrent — tt-isa-documentation, Wormhole B0 tile inventory", "https://github.com/tenstorrent/tt-isa-documentation/blob/main/WormholeB0/README.md"],
     ["Tenstorrent — tt-isa-documentation, Wormhole Tensix tile", "https://github.com/tenstorrent/tt-isa-documentation/blob/main/WormholeB0/TensixTile/README.md"],
+    ["Tenstorrent — Warp 100 Bridge (two per card)", "https://docs.tenstorrent.com/aibs/wormhole/warp100.html"],
     ["Tenstorrent — tt-metal, N150 board definition (QSFP-DD + Warp 100)", "https://github.com/tenstorrent/tt-metal/blob/main/tools/scaleout/board/board.cpp"],
     ["Tenstorrent — tt-metal, Wormhole B0 SoC descriptor", "https://github.com/tenstorrent/tt-metal/blob/main/tt_metal/soc_descriptors/wormhole_b0_80_arch.yaml"],
     ["Tenstorrent — Community highlight, Wormhole physicalities (row harvest)", "https://tenstorrent.com/vision/community-highlight-tenstorrent-wormhole-series-part-1-physicalities"],
