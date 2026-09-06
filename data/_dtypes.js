@@ -174,7 +174,7 @@ export const ARCH = {
   },
 };
 
-// Which architecture answers for each SKU. Two cards per architecture on the
+// Which architecture answers for each SKU. Three parts per architecture on the
 // NVIDIA side and four on the Tenstorrent side, and they answer identically --
 // that is the point of keying this by architecture rather than by part.
 export const SKU_ARCH = {
@@ -183,6 +183,7 @@ export const SKU_ARCH = {
   "b70": "xe2",
   "rtx-pro-6000": "blackwell",
   "rtx-5090": "blackwell",
+  "dgx-spark": "blackwell",
   "n150d": "tensix",
   "n300d": "tensix",
   "p150a": "tensix",

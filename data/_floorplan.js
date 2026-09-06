@@ -1,6 +1,6 @@
 // Small helpers for hand-placing a GPU die map.
 //
-// The three GPUs here share a shape: a front-end strip, memory controllers on
+// The GPU parts here share a shape: a front-end strip, memory controllers on
 // the edges, a cache slab, and a field of identical compute tiles in the
 // middle. Blackhole has a SoC descriptor giving every tile's position; these
 // parts have only block diagrams, so the maps below are built from those — the
@@ -44,7 +44,6 @@ export const MAP_NOTE =
   + "arrangement follow the vendor's own block diagram; the geometry does not — "
   + "block sizes and positions here are chosen so every unit is visible and "
   + "labelled, not to scale or to physical location on silicon. In particular "
-  + "the cache bands are drawn as single blocks for legibility: on all three "
-  + "GPUs here the last-level cache is BANKED into slices tied to the memory "
-  + "partitions, so it is physically distributed along the memory edges rather "
-  + "than being one slab in the middle.";
+  + "the cache bands are drawn as single blocks for legibility: on the GPUs "
+  + "here the last-level cache is BANKED into slices, so it is physically "
+  + "distributed rather than being one slab in the middle.";

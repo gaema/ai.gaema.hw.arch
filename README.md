@@ -1,6 +1,6 @@
 # arch.hw.gaema.ai — accelerator architecture explorer
 
-Interactive block diagrams of nine AI accelerators, drawn to one structure so
+Interactive block diagrams of ten AI accelerators, drawn to one structure so
 they can be compared like with like:
 
 | Card | Vendor | Architecture |
@@ -10,6 +10,7 @@ they can be compared like with like:
 | Arc Pro B70 | Intel | Xe2 “Battlemage” (BMG-G31) |
 | RTX PRO 6000 Blackwell | NVIDIA | Blackwell (GB202) |
 | GeForce RTX 5090 | NVIDIA | Blackwell (GB202) |
+| DGX Spark | NVIDIA | Grace Blackwell (GB10) |
 | Wormhole n150d | Tenstorrent | Wormhole B0 |
 | Wormhole n300d | Tenstorrent | Wormhole B0 |
 | Blackhole p150a | Tenstorrent | Blackhole |
@@ -90,7 +91,7 @@ python3 -m http.server 8080
 - **Say whether a map is real or logical.** Wormhole and Blackhole have SoC
   descriptors giving every tile's NOC coordinate, so those maps are the actual
   grids in the vendor's own coordinates (Wormhole 10 × 12, Blackhole 17 × 12;
-  Y = 0 at the bottom on a single-die page). The three GPUs have block
+  Y = 0 at the bottom on a single-die page). The GPU parts have block
   diagrams but no per-unit geometry, so those maps take the vendor's
   arrangement and lay it out for legibility — not to scale, not to
   physical position — and say so on the page. Never present a hand-placed
@@ -111,7 +112,7 @@ python3 -m http.server 8080
   stacks its dies vertically with the link band between them, drawing the whole
   chain — Ethernet row → MAC/PCS → 8 SerDes lanes → PCB → back up the other
   side — and each die's mesh is a separate `regions` entry so nothing ties
-  across the band. The three GPUs
+  across the band. The GPU parts
   do not work that way — their compute reaches cache and memory across a shared
   fabric — so they get a labelled fabric *band*, hatched and dashed so it never reads as another cache
   level. Giving a GPU a mesh it does not have would be the same class of error
