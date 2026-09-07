@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Memory bandwidth across parts — arch.hw.gaema.ai</title>
+<meta name="description" content="Published peak memory bandwidth for ten AI accelerators, with the scope of each figure stated — whole card, per ASIC, or shared with the CPU.">
+<link rel="stylesheet" href="../../assets/theme.css">
+<link rel="stylesheet" href="../../assets/app.css">
+<script src="../../assets/theme.js"></script>
+</head>
+<body data-base="../../" data-view="bandwidth">
+
+<header class="top">
+  <div class="wrap">
+    <span class="brandwrap"><a class="brand" href="../../">arch</a> <a class="brand-home" href="https://gaema.ai">· gaema</a></span>
+    <nav id="nav"></nav>
+    <button class="ghost" id="theme-toggle" type="button">Auto</button>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="hero">
+    <h1 id="page-title">Bandwidth, and what each figure is a figure of</h1>
+    <p id="page-lede">
+      The one rate every part on this site publishes — and the one most easily
+      compared wrongly, because three of these ten figures are not measuring the
+      same thing as the other seven. Two are quoted per ASIC on a card that
+      carries two, and one is not a frame buffer at all but system memory the
+      CPU is reading from at the same time. Each bar says which it is.
+    </p>
+  </div>
+
+  <noscript>
+    <p class="load-error"><strong>This page needs JavaScript.</strong>
+    The table and the bars are both built in the browser from the same data
+    module the rest of the site reads, so with scripting off there is nothing to
+    show. There is no tracking here and no third-party code &mdash; everything is
+    served from this domain.</p>
+  </noscript>
+
+  <div id="view"></div>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <p>Every figure is a published peak &mdash; a ceiling, not a measurement. No performance measurement of ours appears here.</p>
+    <p>Trademarks belong to their respective owners. This site is not affiliated with AMD, Intel, NVIDIA or Tenstorrent.</p>
+  </div>
+</footer>
+
+<script type="module" src="../../assets/nav.js"></script>
+<script type="module" src="../../assets/compare.js"></script>
+</body>
+</html>

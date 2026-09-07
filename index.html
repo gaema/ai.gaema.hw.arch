@@ -50,6 +50,13 @@
       The same ten questions asked of each part. A cell reads “—” where the
       figure is unknown, rather than an estimate.
     </p>
+    <p class="lede">
+      Three of the row labels are links: the rows whose answer is a RATE that
+      more than one vendor publishes open a page comparing that rate across
+      every part, as a table and as bars. The rest stay plain, because a row
+      naming a part has nothing to chart and a row holding a count or a capacity
+      is not a throughput.
+    </p>
     <div class="scroll-x">
       <table class="matrix" id="matrix"></table>
     </div>
@@ -70,6 +77,15 @@
       the format is a general ALU type but not a matrix operand, and
       <strong>convert</strong> where it must be widened before the engine will
       take it. Both are “supported”; neither runs at matrix rate.
+    </p>
+    <p class="lede">
+      A format name is a link where more than one part has a published rate for
+      it. Those pages carry two charts — the vector lanes and the matrix engine,
+      kept apart because a lane's multiply-add and a matrix array's cell are
+      different units of work — with dense and sparse figures on separate charts
+      and the accumulate column carried through from this table. The formats
+      left as plain labels are the ones no vendor publishes a comparable rate
+      for.
     </p>
     <div class="scroll-x">
       <table class="matrix" id="dtypes"></table>

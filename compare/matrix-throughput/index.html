@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Matrix-engine throughput across parts — arch.hw.gaema.ai</title>
+<meta name="description" content="Published peak matrix-engine (systolic) throughput for ten AI accelerators, by operand format, with dense and sparse figures kept on separate charts and every peak's basis stated.">
+<link rel="stylesheet" href="../../assets/theme.css">
+<link rel="stylesheet" href="../../assets/app.css">
+<script src="../../assets/theme.js"></script>
+</head>
+<body data-base="../../" data-view="systolic">
+
+<header class="top">
+  <div class="wrap">
+    <span class="brandwrap"><a class="brand" href="../../">arch</a> <a class="brand-home" href="https://gaema.ai">· gaema</a></span>
+    <nav id="nav"></nav>
+    <button class="ghost" id="theme-toggle" type="button">Auto</button>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="hero">
+    <h1 id="page-title">Matrix engines, compared by what they publish</h1>
+    <p id="page-lede">
+      Every part here has a matrix engine and every vendor quotes a peak for it,
+      but almost never for the same format, never at the same basis, and in two
+      cases only for the sparse case. This page puts each published rate beside
+      the operand it was quoted for, the clock it was quoted at, and whether it
+      is dense or 2:4-sparse — one chart per basis, because a chart that mixed
+      them would rank these parts by which vendor quotes which number.
+    </p>
+  </div>
+
+  <noscript>
+    <p class="load-error"><strong>This page needs JavaScript.</strong>
+    The tables and the bars are both built in the browser from the same data
+    module the rest of the site reads, so with scripting off there is nothing to
+    show. There is no tracking here and no third-party code &mdash; everything is
+    served from this domain.</p>
+  </noscript>
+
+  <div id="view"></div>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <p>Every figure is a published peak &mdash; a ceiling, not a measurement. No performance measurement of ours appears here.</p>
+    <p>Trademarks belong to their respective owners. This site is not affiliated with AMD, Intel, NVIDIA or Tenstorrent.</p>
+  </div>
+</footer>
+
+<script type="module" src="../../assets/nav.js"></script>
+<script type="module" src="../../assets/compare.js"></script>
+</body>
+</html>

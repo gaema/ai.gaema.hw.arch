@@ -2,6 +2,30 @@
 // the same registry the explorer pages read.
 import { loadAll, COMPARE_ROWS, pageHref } from "../data/index.js";
 import { ROWS as DTYPE_ROWS, ARCH, ARCH_ORDER } from "../data/_dtypes.js";
+import { ROW_FORMAT, FORMATS } from "../data/_throughput.js";
+
+// Which matrix rows open a comparison page. Only rows whose answer is a RATE
+// that more than one vendor publishes: a row naming a part ("Execution unit",
+// "Matrix engine") has nothing to chart, and a row that is a capacity or a
+// count ("Units on die", "Last-level cache", "Memory", "Board power") is not a
+// throughput. "Host link" is left plain for a different reason — nine of the
+// ten answer "PCIe 5.0", so a chart of it would be nine identical bars.
+const ROW_PAGE = {
+  "SIMD width": ["compare/vector-throughput/", "vector throughput across parts"],
+  "Matrix engines total": ["compare/matrix-throughput/", "matrix-engine throughput across parts"],
+  "Bandwidth": ["compare/memory-bandwidth/", "memory bandwidth across parts"],
+};
+
+// A row label that has a comparison page behind it; plain text when it does
+// not. Which rows have comparable figures is itself worth seeing.
+function rowLabel(text, href, title) {
+  if (!href) return document.createTextNode(text);
+  const a = document.createElement("a");
+  a.href = href;
+  a.textContent = text;
+  a.title = "Compare " + title;
+  return a;
+}
 
 const el = (tag, cls, text) => {
   const n = document.createElement(tag);
@@ -63,7 +87,10 @@ loadAll().then((skus) => {
   const tbody = el("tbody");
   for (const row of COMPARE_ROWS) {
     const tr = el("tr");
-    tr.append(el("th", null, row));
+    const th = el("th");
+    const page = ROW_PAGE[row];
+    th.append(rowLabel(row, page && page[0], page && page[1]));
+    tr.append(th);
     for (const s of skus) tr.append(el("td", null, s.compare[row] || "—"));
     tbody.append(tr);
   }
@@ -96,7 +123,13 @@ function buildDtypes() {
   for (const [key, label, bits] of DTYPE_ROWS) {
     const tr = el("tr");
     tr.append(el("td", "bits", String(bits)));
-    tr.append(el("th", null, label));
+    const fk = ROW_FORMAT[key];
+    const th = el("th");
+    th.append(rowLabel(
+      label,
+      fk && "formats/" + fk + "/",
+      fk && FORMATS[fk].label + " throughput across parts"));
+    tr.append(th);
     for (const k of ARCH_ORDER) {
       const d = ARCH[k].dtypes[key] || { level: "none" };
       const td = el("td", "dt-" + d.level);

@@ -38,12 +38,20 @@ index.html            landing page: SKU cards + the cross-vendor matrix
 <vendor>/<slug>/      one explorer page per card (a thin shell), grouped by
                       vendor: amd/ intel/ nvidia/ tenstorrent/
 <slug>/index.html     redirect stub at the old flat path, preserving the hash
+compare/<view>/       one comparison page per rate: vector-throughput,
+                      matrix-throughput, memory-bandwidth. A thin shell that
+                      names its view in `data-view`
+formats/<key>/        one page per numeric format with more than one published
+                      rate: fp4, bfp8, fp8, int8, fp16, fp32. A thin shell that
+                      names its format in `data-format`
 assets/theme.css      colour tokens, light / dark / auto
 assets/theme.js       theme boot + toggle
 assets/app.css        layout
 assets/diemap.js      the die-map renderer (grid + filters + hover detail)
 assets/explorer.js    the drill-down renderer; owns both views on a page
 assets/landing.js     cards + the two matrices
+assets/compare.js     the comparison renderer: tables + CSS bars, shared by
+                      every compare/ and formats/ page
 assets/nav.js         header nav, built from the registry
 data/index.js         the SKU registry — the one place a card is added
 data/<slug>.js        one card's die map, hierarchy, specs and sources
@@ -54,6 +62,9 @@ data/_blackhole.js    Blackhole hierarchy + die map, shared by the two Blackhole
 data/_wormhole.js     Wormhole hierarchy + die map, shared by the two Wormhole cards
 data/_dtypes.js       numeric formats each matrix engine takes, and what it
                       accumulates into — keyed by architecture, not by card
+data/_throughput.js   every published peak rate, with the basis it was quoted
+                      at — the one home for the numbers behind both the
+                      comparison tables and the bars drawn from them
 ```
 
 No build step, no dependencies, no bundler — plain ES modules served statically.
@@ -119,6 +130,33 @@ python3 -m http.server 8080
   as inventing a harvest pattern.
 - **Colours come from `assets/theme.css`, never from a literal.** The page must
   read correctly in light, dark, and system-default.
+- **A rate is never drawn without its basis.** A peak is lanes × operations per
+  lane × clock, so a bar with no stated basis cannot be checked by the person
+  reading it. Every record in `data/_throughput.js` carries the sentence that
+  reconstructs it, and where the vendor published no clock the sentence says so
+  rather than being left off. A figure quoted with no basis at all — NVIDIA's
+  bare "AI TOPS", which names no format, no accumulate and no sparsity — is
+  QUOTED in a table of its own and kept out of every chart, because a bar
+  nobody can reconstruct cannot be compared with one that can.
+- **Dense and sparse never share a chart.** A 2:4-sparse figure is roughly
+  double its own dense figure, and two of these four vendors quote sparse
+  figures while two do not — so one chart across both would rank parts by
+  vendor marketing convention. Each chart says its basis in the caption.
+- **The operand and the accumulator are two axes.** A rate is quoted for what
+  goes in; what the engine adds into lives in `data/_dtypes.js`, keyed by
+  architecture, and the comparison pages join the two rather than picking one.
+  On RDNA 4 and on Tensix a 16-bit float product can land in 16 bits or in 32
+  and the published rate does not say which, which is a fact worth showing
+  rather than one to resolve by guessing.
+- **Two kinds of empty cell, two symbols.** `∅` is a format the silicon has no
+  path for; `—` is one it supports whose rate nobody published. Collapsing them
+  would turn "this part cannot do it" and "we do not know how fast" into the
+  same claim.
+- **Charts are CSS bars over the site's own data, and the table is the data.**
+  No chart library, nothing loaded from another origin, and no second copy of
+  the numbers in chart code — a chart and a table that can disagree eventually
+  will. The bars are `aria-hidden` because the table beside them is the
+  accessible reading of the same rows, not a fallback for them.
 
 ## Adding a card
 
@@ -142,6 +180,13 @@ python3 -m http.server 8080
    the `<title>` and the description. `pageHref()` in `data/index.js` derives
    the URL from `vendorKey` via `VENDOR_DIR`, so nav, cards and matrix all
    follow automatically — a new vendor needs one entry there.
+
+4. If the vendor publishes a peak rate for the part, add one record per rate to
+   `FIGURES` in `data/_throughput.js` and one to `BANDWIDTH`, each with its
+   `sparsity`, its `basis` sentence and its `src`. Nothing else needs touching:
+   the comparison pages and the format pages both read that array, and a format
+   whose row gains a second published part becomes worth its own page — add it
+   to `FORMATS` and `FORMAT_ORDER` with a shell under `formats/<key>/`.
 
 `kind` is one of `compute`, `matrix`, `cache`, `memory`, `sched`, `fixed`,
 `io`, `link`, `off` — it picks the tile colour and the legend label.
