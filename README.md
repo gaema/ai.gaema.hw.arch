@@ -1,13 +1,16 @@
 # arch.hw.gaema.ai — accelerator architecture explorer
 
-Interactive block diagrams of ten AI accelerators, drawn to one structure so
+Interactive block diagrams of thirteen AI accelerators, drawn to one structure so
 they can be compared like with like:
 
 | Card | Vendor | Architecture |
 |---|---|---|
 | Radeon AI PRO R9700 | AMD | RDNA 4 (Navi 48) |
+| Radeon 610M (gfx1036 iGPU) | AMD | RDNA 2 (integrated) |
 | Arc Pro B50 | Intel | Xe2 “Battlemage” (BMG-G21) |
 | Arc Pro B70 | Intel | Xe2 “Battlemage” (BMG-G31) |
+| Arc A370M | Intel | Xe-HPG (DG2-128) |
+| Arc Graphics 140V | Intel | Xe2-LPG (Lunar Lake, integrated) |
 | RTX PRO 6000 Blackwell | NVIDIA | Blackwell (GB202) |
 | GeForce RTX 5090 | NVIDIA | Blackwell (GB202) |
 | DGX Spark | NVIDIA | Grace Blackwell (GB10) |

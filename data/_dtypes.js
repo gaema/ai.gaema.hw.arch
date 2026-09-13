@@ -1,6 +1,6 @@
 // Numeric formats each matrix engine accepts as an operand, and what it
 // accumulates into. Shared across SKUs the way the other `_`-prefixed modules
-// are: this is an ARCHITECTURE property, so the two Blackwell cards answer
+// are: this is an ARCHITECTURE property, so the three Blackwell parts answer
 // identically and so do the four Tenstorrent cards.
 //
 // Every figure is from the vendor's own ISA or extension documentation -- the
@@ -114,16 +114,73 @@ export const ARCH = {
     },
   },
 
+  rdna2: {
+    label: "RDNA 2",
+    engine: "no matrix engine — vector dots",
+    note:
+      "The one architecture here whose graphics units have no matrix engine at "
+      + "all: WMMA arrives with RDNA 3 and MFMA stayed on CDNA, so RDNA 2 "
+      + "multiplies matrices the way CPUs do — short dot products issued on the "
+      + "vector lanes. The integer dots are real hardware instructions "
+      + "(V_DOT4 over four 8-bit values, V_DOT8 over eight 4-bit ones), the "
+      + "fp16 dot pairs two, and everything narrower or float-8 waits for the "
+      + "next generations. The matrix column of this table is the matrix rate "
+      + "this part does not have; its vector dots still run at ALU rate.",
+    source: [
+      ["AMD — RDNA 2 “Shader” Instruction Set Architecture Reference Guide",
+       "https://docs.amd.com/v/u/en-US/rdna2-shader-instruction-set-architecture"],
+    ],
+    dtypes: {
+      int1: n, int2: n,
+      int4: v,
+      fp4e2m1: n, nvfp4: n, mxfp4: n, bfp4: n,
+      fp6e3m2: n, fp6e2m3: n, mxfp6: n,
+      int8: v, uint8: v,
+      fp8e4m3: n, fp8e5m2: n, mxfp8: n, bfp8: n,
+      fp16: v, bf16: n, tf32: n,
+      fp32: v, fp64: v,
+    },
+  },
+
+  xehpg: {
+    label: "Xe-HPG (Alchemist)",
+    engine: "XMX matrix engine (DPAS, SIMD8 sub-group)",
+    note:
+      "The DPAS matrix path one generation before Xe2, at sub-group size 8 "
+      + "rather than 16: half the output columns per instruction, so the same "
+      + "GEMM needs twice the dispatches. The published extension list at SIMD8 "
+      + "covers 8-bit and 4-bit integers in signed, unsigned and mixed pairings "
+      + "plus fp16; the 2-bit and wider mixed-sign pairings are confirmed on "
+      + "the silicon without being in that list. What Xe2 later ADDED to this "
+      + "surface — bf16, tf32 — the hardware here does not have, and neither "
+      + "does it take 8-bit float: the bf16 shape the extension family "
+      + "documents at SIMD8 is for devices that implement it, and these do not.",
+    source: [
+      ["Khronos — cl_intel_subgroup_matrix_multiply_accumulate",
+       "https://registry.khronos.org/OpenCL/extensions/intel/cl_intel_subgroup_matrix_multiply_accumulate.html"],
+    ],
+    dtypes: {
+      int1: n, int2: m("INT32"), int4: m("INT32"),
+      fp4e2m1: n, nvfp4: n, mxfp4: n, bfp4: n,
+      fp6e3m2: n, fp6e2m3: n, mxfp6: n,
+      int8: m("INT32"), uint8: m("INT32"),
+      fp8e4m3: n, fp8e5m2: n, mxfp8: n, bfp8: n,
+      fp16: m("FP32"), bf16: n, tf32: n,
+      fp32: v, fp64: v,
+    },
+  },
+
   xe2: {
     label: "Xe2 (Battlemage)",
     engine: "XMX systolic array",
     note:
-      "The integer specialist. It is the only architecture here with a 2-bit "
-      + "matrix operand, and it carries an unusually wide set of unsigned and "
-      + "mixed-sign integer pairings — signed against unsigned, 8-bit against "
-      + "4-bit — as separate instructions rather than as a single signed form. "
-      + "Against that, it is the only matrix engine here with no 8-bit float at "
-      + "all: low precision on this part means integer.",
+      "The integer specialist. It carries a 2-bit matrix operand beside the 4- "
+      + "and 8-bit ones, and an unusually wide set of unsigned and mixed-sign "
+      + "integer pairings — signed against unsigned, 8-bit against 4-bit — as "
+      + "separate instructions rather than as a single signed form. "
+      + "Against that, it has no 8-bit float matrix path at all, a limit it "
+      + "shares with its predecessor: low precision on these parts means "
+      + "integer.",
     source: [
       ["Khronos — cl_intel_subgroup_matrix_multiply_accumulate",
        "https://registry.khronos.org/OpenCL/extensions/intel/cl_intel_subgroup_matrix_multiply_accumulate.html"],
@@ -176,11 +233,16 @@ export const ARCH = {
 
 // Which architecture answers for each SKU. Three parts per architecture on the
 // NVIDIA side and four on the Tenstorrent side, and they answer identically --
-// that is the point of keying this by architecture rather than by part.
+// and the integrated Xe2-LPG part answers with the two discrete Xe2 cards,
+// whose matrix surface it repeats -- that is the point of keying this by
+// architecture rather than by part.
 export const SKU_ARCH = {
   "r9700": "rdna4",
+  "gfx1036": "rdna2",
   "b50": "xe2",
   "b70": "xe2",
+  "a370m": "xehpg",
+  "lnl-arc140v": "xe2",
   "rtx-pro-6000": "blackwell",
   "rtx-5090": "blackwell",
   "dgx-spark": "blackwell",
@@ -191,4 +253,4 @@ export const SKU_ARCH = {
 };
 
 // Column order for the table: one column per architecture, not per SKU.
-export const ARCH_ORDER = ["rdna4", "xe2", "blackwell", "tensix"];
+export const ARCH_ORDER = ["rdna4", "rdna2", "xehpg", "xe2", "blackwell", "tensix"];

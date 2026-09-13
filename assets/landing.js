@@ -9,7 +9,7 @@ import { ROW_FORMAT, FORMATS } from "../data/_throughput.js";
 // "Matrix engine") has nothing to chart, and a row that is a capacity or a
 // count ("Units on die", "Last-level cache", "Memory", "Board power") is not a
 // throughput. "Host link" is left plain for a different reason — nine of the
-// ten answer "PCIe 5.0", so a chart of it would be nine identical bars.
+// thirteen answer "PCIe 5.0", so a chart of it would be nine identical bars.
 const ROW_PAGE = {
   "SIMD width": ["compare/vector-throughput/", "vector throughput across parts"],
   "Matrix engines total": ["compare/matrix-throughput/", "matrix-engine throughput across parts"],

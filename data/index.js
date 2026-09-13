@@ -1,6 +1,6 @@
 // The SKU registry. Everything else on the site is driven from here.
 
-export const ORDER = ["r9700", "b50", "b70", "rtx-pro-6000", "rtx-5090", "dgx-spark", "n150d", "n300d", "p150a", "p300c"];
+export const ORDER = ["r9700", "gfx1036", "b50", "b70", "a370m", "lnl-arc140v", "rtx-pro-6000", "rtx-5090", "dgx-spark", "n150d", "n300d", "p150a", "p300c"];
 
 // Pages live under their vendor, so a URL says who makes the part before it
 // says which part. `vendorKey` is the short token used for colour tokens;
@@ -16,8 +16,11 @@ export function pageHref(sku) {
 // Static specifiers so the modules resolve without a bundler.
 const LOADERS = {
   "r9700": () => import("./r9700.js"),
+  "gfx1036": () => import("./gfx1036.js"),
   "b50": () => import("./b50.js"),
   "b70": () => import("./b70.js"),
+  "a370m": () => import("./a370m.js"),
+  "lnl-arc140v": () => import("./lnl-arc140v.js"),
   "rtx-pro-6000": () => import("./rtx-pro-6000.js"),
   "rtx-5090": () => import("./rtx-5090.js"),
   "dgx-spark": () => import("./dgx-spark.js"),

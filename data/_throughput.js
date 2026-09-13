@@ -44,6 +44,8 @@ const NV_SPARK = ["NVIDIA — DGX Spark specifications",
   "https://www.nvidia.com/en-us/products/workstations/dgx-spark/"];
 const TT_BLACKHOLE = ["Tenstorrent — Blackhole cards",
   "https://tenstorrent.com/hardware/blackhole"];
+const INTEL_A370M = ["Intel — Arc A370M product specifications (SKU 228342)",
+  "https://www.intel.com/content/www/us/en/products/sku/228342/specifications.html"];
 
 const vendor = (s) => ({ cls: "vendor", text: s[0], href: s[1] });
 const site = { cls: "site" };
@@ -108,9 +110,9 @@ export const FORMATS = {
       "The one operand on this site with both a published vector rate and a "
       + "published matrix rate on the same part, which is what makes it the "
       + "clearest illustration of the gap between the two classes. It is also "
-      + "where the accumulate axis bites hardest: two of these four "
-      + "architectures will add an FP16 product into either FP16 or FP32, and "
-      + "not one of the published rates says which it is for.",
+      + "where the accumulate axis bites hardest: two of the five architectures "
+      + "here that own a matrix engine will add an FP16 product into either "
+      + "FP16 or FP32, and not one of the published rates says which it is for.",
   },
   fp8: {
     label: "FP8",
@@ -125,7 +127,7 @@ export const FORMATS = {
     label: "INT8",
     rows: ["int8"],
     lede:
-      "The most widely published operand of the set: three of the four "
+      "The most widely published operand of the set: three of the six "
       + "architectures quote a whole-part INT8 matrix rate, and it is the format "
       + "on which the Intel parts are quoted at all — Xe2 has no 8-bit float "
       + "matrix path, so low precision on those parts means integer.",
@@ -148,9 +150,10 @@ export const FORMATS = {
     lede:
       "Block float — a block of values sharing one exponent — and the only "
       + "format on this site where the empty cells mean something stronger than "
-      + "“unpublished”. Three of these four architectures have no hardware path "
-      + "for it at all, so this page compares three Tenstorrent cards against "
-      + "three genuine absences rather than three unknowns.",
+      + "“unpublished”. Of the five architectures that own a matrix engine, "
+      + "only Tensix takes it, so this page compares three Tenstorrent cards "
+      + "against the rest of the parts' genuine absences rather than three "
+      + "unknowns.",
   },
 };
 
@@ -298,6 +301,11 @@ export const UNSTATED = [
     quoted: "Tensor Cores (AI) — 5th Generation, 3352 AI TOPS",
     why: "NVIDIA's GeForce specification page carries no footnote defining AI TOPS: it names no operand format, no accumulate width and no sparsity basis. The professional part on the same die publishes its comparable figure as “Theoretical FP4 TOPS using sparsity”, but that footnote is on the other page and is not this one's.",
     src: vendor(NV_5090) },
+  { sku: "lnl-arc140v", value: 60, unit: "TOPS (vendor floor)",
+    quoted: "Xe2 GPU — “delivering more than 60 tera-operations per second (TOPS)”",
+    why: "Intel's Lunar Lake architecture fact sheet attributes this to the Xe2 GPU of the platform generally, and names no operand format, no accumulate width, no sparsity basis and no clock. It is quoted as a vendor floor (“more than 60”), not drawn as a bar: a figure nobody can reconstruct cannot be compared with one that can.",
+    src: vendor(["Intel — Lunar Lake architecture fact sheet (newsroom, June 2024)",
+      "https://download.intel.com/newsroom/2024/client-computing/Lunar-Lake-Architecture-Fact-Sheet.pdf"]) },
 ];
 
 // Memory bandwidth, the one rate every part on the site publishes. `scope` is
@@ -309,6 +317,10 @@ export const BANDWIDTH = [
     basis: "256-bit GDDR6." },
   { sku: "b50", value: 224, scope: "whole card", src: site, basis: "128-bit GDDR6." },
   { sku: "b70", value: 608, scope: "whole card", src: site, basis: "256-bit GDDR6 at 19 Gbps." },
+  { sku: "a370m", value: 112, scope: "whole card", src: vendor(INTEL_A370M),
+    basis: "64-bit GDDR6 at 14 Gbps — the narrow bus is the point of this part: an eighth of the width the discrete Xe2 cards on this site run." },
+  { sku: "lnl-arc140v", value: 136.5, scope: "shared with the CPU", src: site,
+    basis: "128-bit LPDDR5X at 8,533 MT/s, on the package. This is system memory, not a frame buffer: the CPU cores on the tile are drawing from the same figure." },
   { sku: "rtx-pro-6000", value: 1792, scope: "whole card", src: vendor(NV_PRO_6000),
     basis: "512-bit GDDR7 with ECC." },
   { sku: "rtx-5090", value: 1792, scope: "whole card", src: vendor(NV_5090),
