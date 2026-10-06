@@ -105,7 +105,7 @@ export default {
       {
         id: "l2", label: "L2 cache — 24 MiB", kind: "cache", span: 2,
         specs: [["Capacity", "24 MiB"], ["vs BMG-G21 (B50)", "18 MiB"]],
-        note: L2_NOTE + ". Anything that misses here goes to GDDR6 at 608 GB/s, so what fits in L2 sets how close a bandwidth-bound kernel gets to peak — and the 33% more of it than the B50 carries (24 MiB against 18) is one of the two things, with bandwidth, that separates the two parts at the same clock",
+        note: L2_NOTE + ". Anything that misses here goes to GDDR6 at 608 GB/s, so what fits in L2 sets how close a bandwidth-bound kernel gets to peak — and the 33% more of it than the B50 carries (24 MiB against 18) is one of the two things, with bandwidth, that separates the two parts. Their clocks differ: 2,280 MHz graphics and 2,800 MHz max dynamic here, 1,700 MHz and 2,600 MHz on the B50",
       },
       {
         id: "gddr", label: "GDDR6 memory controllers", kind: "memory", span: 2,

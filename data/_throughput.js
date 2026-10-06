@@ -131,7 +131,7 @@ export const FORMATS = {
     label: "INT8",
     rows: ["int8"],
     lede:
-      "The most widely published operand of the set: three of the six "
+      "The most widely published operand of the set: two of the six "
       + "architectures quote a whole-part INT8 matrix rate, and it is the format "
       + "on which the Intel parts are quoted at all — Xe2 has no 8-bit float "
       + "matrix path, so low precision on those parts means integer.",

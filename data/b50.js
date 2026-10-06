@@ -107,7 +107,7 @@ export default {
       {
         id: "l2", label: "L2 cache — 18 MiB", kind: "cache", span: 2,
         specs: [["Capacity", "18 MiB"], ["vs BMG-G31 (B70)", "24 MiB"]],
-        note: "18 MiB shared across every render slice and banked with the memory controllers — the same 18 MB the B580 carries, since it is the same BMG-G21 die with all 20 Xe-cores enabled. The die keeps its whole L2 even though four Xe-cores are fused off. It matters more here than on the B70: with only 224 GB/s behind it, a working set that spills L2 falls a long way, and the B70's extra 6 MiB is one of the two things — with bandwidth — that separates the parts at the same clock",
+        note: "18 MiB shared across every render slice and banked with the memory controllers — the same 18 MB the B580 carries, since it is the same BMG-G21 die with all 20 Xe-cores enabled. The die keeps its whole L2 even though four Xe-cores are fused off. It matters more here than on the B70: with only 224 GB/s behind it, a working set that spills L2 falls a long way, and the B70's extra 6 MiB is one of the two things — with bandwidth — that separates the parts. Their clocks differ: 1,700 MHz graphics and 2,600 MHz max dynamic here, 2,280 MHz and 2,800 MHz on the B70",
       },
       {
         id: "gddr", label: "GDDR6 memory controllers", kind: "memory", span: 2,
