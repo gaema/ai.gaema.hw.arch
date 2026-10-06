@@ -1,8 +1,7 @@
 // AMD Radeon 610M (gfx1036) — RDNA 2 integrated graphics, 2 compute units.
 // The graphics block found inside the Ryzen Raphael / Granite Ridge desktop
 // packages, and branded Radeon 610M in its mobile form. Every figure here is
-// from a published vendor document or from a capability read of the silicon
-// itself; see `sources`.
+// from a published vendor document; see `sources`.
 //
 // This is the site's first iGPU drawn as such: the part is a block inside a
 // processor package, so Board power, Cooling and Host interface describe a
@@ -133,7 +132,7 @@ export default {
       }),
     ],
     note: "This map draws the graphics block, not the processor package: the CPU cores and DDR5 controllers this iGPU lives beside are represented only by the host-memory edge, because they are not on the block being drawn. Nothing is disabled — two compute units is the whole design of this part. " + MAP_NOTE,
-    source: "AMD's RDNA 2 instruction-set guide, with the cache, wave and dot-product facts confirmed by capability reads of the silicon",
+    source: "AMD's RDNA 2 instruction-set guide",
   },
 
   root: {

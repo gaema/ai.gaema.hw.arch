@@ -8,8 +8,8 @@ import { ROW_FORMAT, FORMATS } from "../data/_throughput.js";
 // that more than one vendor publishes: a row naming a part ("Execution unit",
 // "Matrix engine") has nothing to chart, and a row that is a capacity or a
 // count ("Units on die", "Last-level cache", "Memory", "Board power") is not a
-// throughput. "Host link" is left plain for a different reason — nine of the
-// thirteen answer "PCIe 5.0", so a chart of it would be nine identical bars.
+// throughput. "Host link" is left plain for a different reason — seven of the
+// thirteen answer PCIe 5.0, and six of those seven are the same ×16 width.
 const ROW_PAGE = {
   "SIMD width": ["compare/vector-throughput/", "vector throughput across parts"],
   "Matrix engines total": ["compare/matrix-throughput/", "matrix-engine throughput across parts"],

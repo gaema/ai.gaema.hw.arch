@@ -1,6 +1,6 @@
 // Intel Arc Graphics 140V — the Xe2-LPG integrated GPU in Lunar Lake
-// (Core Ultra Series 2). Every figure here is from a published vendor document
-// or from a capability read of the silicon itself; see `sources`.
+// (Core Ultra Series 2). Every figure here is from a published vendor document;
+// see `sources`.
 //
 // The Xe2 cores here are the same design as the discrete Battlemage parts, so
 // the matrix surface answers identically — but the package geometry does not:
@@ -70,9 +70,9 @@ export default {
     "Units enabled": "8 Xe-cores / 64 vector engines",
     "Matrix engines": "64 XMX engines (8 per Xe-core)",
     "On-chip memory": "192 KB L1/SLM per Xe-core · 8 MiB L2",
-    "Memory": "LPDDR5X on the package — shared with the CPU, no frame buffer",
-    "Memory bus": "128-bit (on-package)",
-    "Memory bandwidth": "136.5 GB/s package peak — shared with the CPU",
+    "Memory": "Up to LPDDR5X 8533 MT/s, on package, shared with the CPU",
+    "Memory bus": "—",
+    "Memory bandwidth": "—",
     "Board power": "— (the power budget is the processor package's)",
     "Cooling": "— (cooled with the processor)",
     "Host interface": "None — the GPU is in the CPU package",
@@ -82,7 +82,7 @@ export default {
   extra: [
     ["Vector engines", "64 (8 per Xe-core)"],
     ["Sub-group (DPAS)", "SIMD16"],
-    ["Boost clock", "up to 2,050 MHz (reported by the part)"],
+    ["Graphics max dynamic frequency", "2.05 GHz on Core Ultra 9 288V. Other Arc 140V bins publish 2.00 GHz (266V, 268V) or 1.95 GHz (256V, 258V)."],
     ["GPU AI throughput (vendor)", "“more than 60 TOPS” — Intel names neither the operand format nor a clock"],
     ["Launch price", "—"],
   ],
@@ -95,7 +95,7 @@ export default {
     "Matrix engines total": "64",
     "Last-level cache": "8 MiB L2",
     "Memory": "LPDDR5X on package (shared)",
-    "Bandwidth": "136.5 GB/s (shared with the CPU)",
+    "Bandwidth": "Up to LPDDR5X 8533 MT/s (shared)",
     "Board power": "—",
     "Host link": "None — in the CPU package",
   },
@@ -123,13 +123,12 @@ export default {
           detail: "Lunar Lake's new display and media engine microarchitecture — the block that drives panels and transcodes video without spending compute. Neither participates in inference." },
       ]),
       ...memBand(1, 2, 8, "LPDDR5X", () => "on package · shared with the CPU",
-        "The 128-bit LPDDR5X interface soldered into the package — 136.5 GB/s at the part's 8,533 MT/s, and that is the whole machine's figure, not the GPU's alone: the CPU cores draw from it too. The blocks are a drawing convenience, NOT a controller count.",
+        "LPDDR5X soldered into the package, up to 8533 MT/s, shared with the CPU. Intel does not print a bit width or a GB/s for this interface. The blocks are a drawing convenience, NOT a controller count.",
         [["This block", "1 of 2 drawn — not a controller count"],
-         ["Its share of bandwidth", "— (split not published)"],
-         ["Whole memory subsystem", "128-bit on-package LPDDR5X, 136.5 GB/s peak"],
+         ["Whole memory subsystem", "on-package LPDDR5X, up to 8533 MT/s"],
          ["Owned by", "the package — GPU, CPU and NPU share it; capacity is the processor SKU's"]], "lpddr"),
       ...band(2, [{ w: 8, kind: "cache", label: "L2 cache — 8 MiB", sub: "shared across the GPU block · banked", path: "l2",
-        detail: "8 MiB of shared last level — the GPU's own, and the last stop before the on-package memory the rest of the tile also reads. With 136 GB/s behind it rather than discrete-card figures of it, what fits here decides how often a kernel is memory-bound.",
+        detail: "8 MiB of shared last level — the GPU's own, and the last stop before the on-package memory the rest of the tile also reads. What fits here decides how often a kernel is memory-bound.",
         specs: [["Capacity", "8 MiB"], ["Physically", "banked, not one slab"]] }]),
       ...band(3, [{ w: 8, kind: "link", label: "Xe fabric", sub: "Xe-cores ⇄ L2 ⇄ package memory",
         detail: "The on-block interconnect. Every Xe-core reaches L2 and the package-memory path across it. Drawn as a band rather than a specific topology.",
@@ -145,12 +144,12 @@ export default {
       }),
     ],
     note: "Nothing here is drawn as disabled: 8 Xe-cores is what this product exposes, and Intel does not publish a larger enabled count on the tile to mark a harvest against. The map draws the GPU block; the CPU cores and NPU it shares the tile with are represented by the one edge they meet at, the package memory. " + MAP_NOTE,
-    source: "Intel's Lunar Lake architecture fact sheet and its Xe-architecture documentation for the DPAS surface, with the enabled-unit and matrix facts confirmed by capability reads of the silicon",
+    source: "Intel's Lunar Lake architecture fact sheet, the Core Ultra 9 288V specification page, and Intel's Xe-architecture documentation for the DPAS surface",
   },
 
   root: {
     id: "card", label: "Arc Graphics 140V", kind: "compute",
-    note: "the Xe2 graphics block on the Lunar Lake compute tile — 8 Xe-cores, 64 XMX engines and 8 MiB of L2 in front of LPDDR5X soldered into the package. The interesting difference from the discrete cards is what is not here: no frame buffer, no PCIe endpoint, no power socket. The CPU beside it is its host and its competitor for the same 136.5 GB/s",
+    note: "the Xe2 graphics block on the Lunar Lake compute tile — 8 Xe-cores, 64 XMX engines and 8 MiB of L2 in front of LPDDR5X soldered into the package. The interesting difference from the discrete cards is what is not here: no frame buffer, no PCIe endpoint, no power socket. The CPU beside it is its host and shares the same package memory",
     cols: 4,
     children: [
       xeCore(0), xeCore(1), xeCore(2), xeCore(3),
@@ -158,12 +157,12 @@ export default {
       {
         id: "l2", label: "L2 cache — 8 MiB", kind: "cache", span: 2,
         specs: [["Capacity", "8 MiB"]],
-        note: "the shared last level of the GPU block, banked rather than sitting as one slab. Anything that misses here goes to the on-package LPDDR5X at the whole package's 136.5 GB/s — which the CPU is using too, so an L2 miss on a unified part costs more than the same miss on a discrete card",
+        note: "the shared last level of the GPU block, banked rather than sitting as one slab. Anything that misses here goes to the on-package LPDDR5X, which the CPU is using too, so an L2 miss on a unified part costs more than the same miss on a discrete card",
       },
       {
         id: "lpddr", label: "LPDDR5X on the package", kind: "memory", span: 2,
-        specs: [["Bus", "128-bit, on-package"], ["Bandwidth", "136.5 GB/s peak"], ["Owned by", "GPU + CPU + NPU, coherently"]],
-        note: "memory soldered into the same package, addressed by the CPU cores beside this GPU as naturally as by the GPU itself — no device allocation, no transfer, no second copy of the weights, and no private pool to budget either: capacity is the laptop's, shared with the operating system. This is the figure a decode loop is really bound by",
+        specs: [["Rate", "Up to LPDDR5X 8533 MT/s"], ["Bus width", "—"], ["Owned by", "GPU + CPU + NPU, coherently"]],
+        note: "memory soldered into the same package, addressed by the CPU cores beside this GPU as naturally as by the GPU itself — no device allocation, no transfer, no second copy of the weights, and no private pool to budget either: capacity is the laptop's, shared with the operating system. Intel prints the rate as up to LPDDR5X 8533 MT/s and does not print a GB/s",
       },
       {
         id: "pkg", label: "CPU cores + NPU (same tile)", kind: "sched",
@@ -179,6 +178,7 @@ export default {
   },
 
   sources: [
+    ["Intel — Core Ultra 9 288V specifications (Arc 140V, top bin)", "https://www.intel.com/content/www/us/en/products/sku/240961/intel-core-ultra-9-processor-288v-12m-cache-up-to-5-10-ghz/specifications.html"],
     ["Intel — Lunar Lake architecture fact sheet (newsroom, June 2024)", "https://download.intel.com/newsroom/2024/client-computing/Lunar-Lake-Architecture-Fact-Sheet.pdf"],
     ["Intel — 2024 Technology Tour Taiwan: Lunar Lake AI hardware accelerators", "https://cdrdv2-public.intel.com/824436/2024_Intel_Tech%20Tour%20TW_Lunar%20Lake%20AI%20Hardware%20Accelerators.pdf"],
     ["Intel — oneAPI GPU Optimization Guide: Intel Xe GPU architecture", "https://www.intel.com/content/www/us/en/docs/oneapi/optimization-guide-gpu/2025-2/intel-xe-gpu-architecture.html"],

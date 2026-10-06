@@ -46,6 +46,10 @@ const TT_BLACKHOLE = ["Tenstorrent — Blackhole cards",
   "https://tenstorrent.com/hardware/blackhole"];
 const INTEL_A370M = ["Intel — Arc A370M product specifications (SKU 228342)",
   "https://www.intel.com/content/www/us/en/products/sku/228342/specifications.html"];
+const INTEL_B50 = ["Intel — Arc Pro B50 specifications (SKU 242615)",
+  "https://www.intel.com/content/www/us/en/products/sku/242615/intel-arc-pro-b50-graphics/specifications.html"];
+const INTEL_B70 = ["Intel — Arc Pro B70 specifications (SKU 245797)",
+  "https://www.intel.com/content/www/us/en/products/sku/245797/intel-arc-pro-b70-graphics/specifications.html"];
 
 const vendor = (s) => ({ cls: "vendor", text: s[0], href: s[1] });
 const site = { cls: "site" };
@@ -175,61 +179,61 @@ export const FIGURES = [
   { sku: "r9700", cls: "vector", format: "fp32", sparsity: "dense",
     value: 47.8, unit: "TFLOPS",
     quoted: "Peak Single Precision (FP32 Vector) Performance",
-    basis: "4,096 stream processors in 64 CUs at up to 2,920 MHz boost. Reconstructs as 4,096 lanes × 2 FLOP × 2 (dual-issue) × 2.92 GHz.",
+    basis: "AMD quotes 47.8 TFLOPS. 4,096 × 2 × 2 × 2.92 GHz = 47.84 TFLOPS, from 4,096 stream processors, dual-issue, and a boost of up to 2,920 MHz on the same page.",
     src: vendor(AMD_R9700) },
   { sku: "r9700", cls: "vector", format: "fp16", sparsity: "dense",
     value: 47.8, unit: "TFLOPS",
     quoted: "Peak Half Precision (FP16 Vector) Performance",
-    basis: "The same 4,096 lanes at up to 2,920 MHz — the vector FP16 rate on this part equals its FP32 rate rather than doubling it.",
+    basis: "AMD prints 47.8 TFLOPS for the FP16 vector rate, the same figure as the FP32 vector rate on this page.",
     src: vendor(AMD_R9700) },
   { sku: "r9700", cls: "systolic", format: "fp16", sparsity: "dense",
     value: 191, unit: "TFLOPS",
     quoted: "Peak Half Precision (FP16 Matrix) Performance",
-    basis: "128 AI Accelerators in 64 CUs at up to 2,920 MHz. Reconstructs as 64 CU × 1,024 FLOP per clock × 2.92 GHz.",
+    basis: "AMD quotes 191 TFLOPS. 64 × 1,024 × 2.92 GHz = 191.37 TFLOPS, from 64 compute units and a boost of up to 2,920 MHz on the same page.",
     src: vendor(AMD_R9700) },
   { sku: "r9700", cls: "systolic", format: "fp16", sparsity: "sparse",
     value: 383, unit: "TFLOPS",
     quoted: "Peak Half Precision (FP16 Matrix) Performance with Structured Sparsity",
-    basis: "The dense figure doubled by skipping half the operands; same clock and same engines.",
+    basis: "AMD quotes 383 TFLOPS. Twice the dense FP16 matrix quote is 2 × 191 = 382. Twice the unrounded dense product is 2 × 64 × 1,024 × 2.92 GHz = 382.73 TFLOPS.",
     src: vendor(AMD_R9700) },
   { sku: "r9700", cls: "systolic", format: "fp8", sparsity: "dense",
     value: 383, unit: "TFLOPS",
     quoted: "Peak 8-bit Precision (FP8 Matrix) Performance (E5M2, E4M3)",
-    basis: "128 AI Accelerators at up to 2,920 MHz — twice the FP16 matrix rate, and quoted for both 8-bit float encodings together.",
+    basis: "AMD quotes 383 TFLOPS for both 8-bit float encodings together. Twice the FP16 matrix quote is 2 × 191 = 382. Twice the unrounded FP16 matrix product is 2 × 64 × 1,024 × 2.92 GHz = 382.73 TFLOPS.",
     src: vendor(AMD_R9700) },
   { sku: "r9700", cls: "systolic", format: "fp8", sparsity: "sparse",
     value: 766, unit: "TFLOPS",
     quoted: "Peak 8-bit Precision (FP8 Matrix) Performance with Structured Sparsity (E5M2, E4M3)",
-    basis: "The dense 8-bit float figure doubled by structured sparsity.",
+    basis: "AMD quotes 766 TFLOPS. The dense FP8 quote doubled is 2 × 383 = 766.",
     src: vendor(AMD_R9700) },
   { sku: "r9700", cls: "systolic", format: "int8", sparsity: "dense",
     value: 383, unit: "TOPS",
     quoted: "Peak 8-bit Precision (INT8 Matrix) Performance",
-    basis: "128 AI Accelerators at up to 2,920 MHz. Reconstructs as 64 CU × 2,048 ops per clock × 2.92 GHz.",
+    basis: "AMD quotes 383 TOPS. 64 × 2,048 × 2.92 GHz = 382.73 TOPS, from 64 compute units and a boost of up to 2,920 MHz on the same page.",
     src: vendor(AMD_R9700) },
   { sku: "r9700", cls: "systolic", format: "int8", sparsity: "sparse",
     value: 766, unit: "TOPS",
     quoted: "Peak 8-bit Precision (INT8 Matrix) Performance with Structured Sparsity",
-    basis: "The dense INT8 figure doubled by structured sparsity.",
+    basis: "AMD quotes 766 TOPS. The dense INT8 quote doubled is 2 × 383 = 766.",
     src: vendor(AMD_R9700) },
 
   // --- Intel, Xe2 --------------------------------------------------------
   { sku: "b50", cls: "vector", format: "fp32", sparsity: "dense",
     value: 10.65, unit: "TFLOPS",
-    basis: "16 Xe-cores enabled at 2,600 MHz max dynamic frequency. Reconstructs as 16 × 256 FLOP per clock × 2.6 GHz.",
-    src: site },
+    basis: "Intel prints 10.65 TFLOPS at a graphics max dynamic frequency of 2,600 MHz. 16 × 256 × 2.6 GHz = 10.65 TFLOPS.",
+    src: vendor(INTEL_B50) },
   { sku: "b50", cls: "systolic", format: "int8", sparsity: "dense",
     value: 170, unit: "TOPS",
-    basis: "128 XMX arrays in 16 Xe-cores at 2,600 MHz max dynamic frequency, which puts it within a quarter of a percent of 4,096 ops per Xe-core per clock — the same per-core rate the B70 reconstructs to exactly.",
-    src: site },
+    basis: "Intel prints 170 TOPS at 2,600 MHz max dynamic frequency, with 128 XMX engines. That rate sits within a quarter of a percent of 4,096 ops per Xe-core per clock, the same per-core rate the B70 reconstructs exactly.",
+    src: vendor(INTEL_B50) },
   { sku: "b70", cls: "vector", format: "fp32", sparsity: "dense",
-    value: 22.9, unit: "TFLOPS",
-    basis: "32 Xe-cores at 2,800 MHz max dynamic frequency. Reconstructs as 32 × 256 FLOP per clock × 2.8 GHz.",
-    src: site },
+    value: 22.94, unit: "TFLOPS",
+    basis: "Intel prints 22.94 TFLOPS at a graphics max dynamic frequency of 2,800 MHz. 32 × 256 × 2.8 GHz = 22.94 TFLOPS. The graphics clock on the same page is 2,280 MHz and is not this peak.",
+    src: vendor(INTEL_B70) },
   { sku: "b70", cls: "systolic", format: "int8", sparsity: "dense",
     value: 367, unit: "TOPS",
-    basis: "256 XMX arrays in 32 Xe-cores at 2,800 MHz max dynamic frequency. Reconstructs as 32 × 4,096 ops per clock × 2.8 GHz.",
-    src: site },
+    basis: "Intel prints 367 TOPS. 32 × 4,096 × 2.8 GHz = 367 TOPS, at the 2,800 MHz max dynamic frequency.",
+    src: vendor(INTEL_B70) },
 
   // --- NVIDIA, Blackwell -------------------------------------------------
   { sku: "rtx-pro-6000", cls: "vector", format: "fp32", sparsity: "dense",
@@ -243,9 +247,9 @@ export const FIGURES = [
     basis: "2:4 sparse, by NVIDIA's own footnote. No clock is published for this part, so the figure names none; the dense rate is not published either.",
     src: vendor(NV_PRO_6000) },
   { sku: "rtx-5090", cls: "vector", format: "fp32", sparsity: "dense",
-    value: 104.9, unit: "TFLOPS",
-    basis: "21,760 CUDA cores × 2 FLOP × 2.41 GHz boost = 104.9 TFLOPS. Both inputs are on NVIDIA's specification page; the product is not, so this bar is arithmetic rather than a quotation.",
-    src: derived("21,760 × 2 × 2.41 GHz", NV_5090) },
+    value: 104.88, unit: "TFLOPS",
+    basis: "21,760 × 2 × 2.41 GHz = 104.88 TFLOPS. NVIDIA prints 21,760 CUDA cores and a 2.41 GHz boost on the specification page and does not print an FP32 rate, so the bar is this product.",
+    src: derived("21,760 × 2 × 2.41 GHz = 104.88 TFLOPS", NV_5090) },
   { sku: "dgx-spark", cls: "vector", format: "fp32", sparsity: "dense",
     value: 31, unit: "TFLOPS",
     basis: "No GPU clock is published for GB10, so the figure names none.",
@@ -288,7 +292,7 @@ export const FIGURES = [
   { sku: "p150a", cls: "systolic", format: "bfp8", sparsity: "dense",
     value: 664, unit: "TFLOPS",
     quoted: "TeraFLOPS (BLOCKFP8) — 664",
-    basis: "120 Tensix at the 1.35 GHz AI clock, which puts it within a tenth of a percent of 4,096 FLOP per tile per clock — twice Wormhole's block-float rate on the same axis.",
+    basis: "120 Tensix at the 1.35 GHz AI clock, which puts it within a tenth of a percent of 4,096 FLOP per tile per clock.",
     src: vendor(TT_BLACKHOLE) },
 ];
 
@@ -308,19 +312,19 @@ export const UNSTATED = [
       "https://download.intel.com/newsroom/2024/client-computing/Lunar-Lake-Architecture-Fact-Sheet.pdf"]) },
 ];
 
-// Memory bandwidth, the one rate every part on the site publishes. `scope` is
-// load-bearing: two of these cards are two ASICs, and the vendor quotes the
-// figure PER ASIC. Drawing that against a single-die card's whole-card figure
-// without saying so would be a different chart than it looks like.
+// Memory bandwidth in GB/s. Eleven of the thirteen parts publish one. The
+// Radeon 610M publishes none. Arc 140V publishes up to LPDDR5X 8533 MT/s and
+// no GB/s, so it is not a row here. `scope` is load-bearing: two of these
+// cards are two ASICs, and the vendor quotes the figure PER ASIC.
 export const BANDWIDTH = [
   { sku: "r9700", value: 640, scope: "whole card", src: vendor(AMD_R9700),
-    basis: "256-bit GDDR6." },
-  { sku: "b50", value: 224, scope: "whole card", src: site, basis: "128-bit GDDR6." },
-  { sku: "b70", value: 608, scope: "whole card", src: site, basis: "256-bit GDDR6 at 19 Gbps." },
+    basis: "AMD prints a 256-bit interface and 640 GB/s. That pair is 20 Gbps exactly: 640 × 8 / 256 = 20." },
+  { sku: "b50", value: 224, scope: "whole card", src: vendor(INTEL_B50),
+    basis: "Intel prints 128-bit, 14 Gbps and 224 GB/s. 128 × 14 / 8 = 224." },
+  { sku: "b70", value: 608, scope: "whole card", src: vendor(INTEL_B70),
+    basis: "Intel prints a 256-bit interface and 608 GB/s. That pair is 19 Gbps exactly: 608 × 8 / 256 = 19." },
   { sku: "a370m", value: 112, scope: "whole card", src: vendor(INTEL_A370M),
-    basis: "64-bit GDDR6 at 14 Gbps — the narrow bus is the point of this part: an eighth of the width the discrete Xe2 cards on this site run." },
-  { sku: "lnl-arc140v", value: 136.5, scope: "shared with the CPU", src: site,
-    basis: "128-bit LPDDR5X at 8,533 MT/s, on the package. This is system memory, not a frame buffer: the CPU cores on the tile are drawing from the same figure." },
+    basis: "64 × 14 / 8 = 112. The narrow bus is the point of this part: an eighth of the width the discrete Xe2 cards on this site run." },
   { sku: "rtx-pro-6000", value: 1792, scope: "whole card", src: vendor(NV_PRO_6000),
     basis: "512-bit GDDR7 with ECC." },
   { sku: "rtx-5090", value: 1792, scope: "whole card", src: vendor(NV_5090),

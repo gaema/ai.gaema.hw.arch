@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Matrix-engine throughput across parts — arch.hw.gaema.ai</title>
-<meta name="description" content="Published peak matrix-engine (systolic) throughput for ten AI accelerators, by operand format, with dense and sparse figures kept on separate charts and every peak's basis stated.">
+<meta name="description" content="Published peak matrix-engine (systolic) throughput for thirteen parts, by operand format, with dense and sparse figures kept on separate charts and every peak's basis stated.">
 <link rel="stylesheet" href="../../assets/theme.css">
 <link rel="stylesheet" href="../../assets/app.css">
 <script src="../../assets/theme.js"></script>
@@ -23,12 +23,14 @@
   <div class="hero">
     <h1 id="page-title">Matrix engines, compared by what they publish</h1>
     <p id="page-lede">
-      Every part here has a matrix engine and every vendor quotes a peak for it,
-      but almost never for the same format, never at the same basis, and in two
-      cases only for the sparse case. This page puts each published rate beside
-      the operand it was quoted for, the clock it was quoted at, and whether it
-      is dense or 2:4-sparse — one chart per basis, because a chart that mixed
-      them would rank these parts by which vendor quotes which number.
+      Twelve of the thirteen parts have a matrix engine. The Radeon 610M does not.
+      Of the twelve, the Arc A370M and the Blackhole p300c publish no peak. The
+      other ten quote one, almost never for the same format and never at the
+      same basis, and two of those quotes are only for the sparse case. This
+      page puts each published rate beside the operand it was quoted for, the
+      clock it was quoted at, and whether it is dense or 2:4-sparse — one chart
+      per basis, because a chart that mixed them would rank these parts by which
+      vendor quotes which number.
     </p>
   </div>
 

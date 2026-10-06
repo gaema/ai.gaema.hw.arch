@@ -41,10 +41,10 @@ function fail(err) {
   box.append(p);
 }
 
-// Keep a fractional digit below four figures: rounding 104.9 to 105 in the bar
-// while the basis line under it shows the arithmetic that gives 104.9 makes the
+// Keep a fractional digit below four figures: rounding 104.88 to 105 in the bar
+// while the basis line under it shows the arithmetic that gives 104.88 makes the
 // page disagree with itself.
-const fmtNum = (v) =>
+export const fmtNum = (v) =>
   v.toLocaleString("en-US", { maximumFractionDigits: v >= 1000 ? 0 : 2 });
 
 // A source cell. `site` points at the part's own page here, which lists where
@@ -242,13 +242,15 @@ function bandwidthView(skus) {
   const byId = new Map(skus.map((s) => [s.id, s]));
   const s = section(
     "Memory bandwidth",
-    "The one rate every part here publishes, and the one that sets the floor on "
-    + "time per token in a memory-bound decode: every weight is read once per "
-    + "token, so this figure divides into the model size to give the fastest a "
-    + "part can go regardless of its arithmetic. Two of these cards are two "
-    + "ASICs and their vendor quotes the figure PER ASIC — those bars say so, "
-    + "and are not silently doubled into a card figure the vendor does not "
-    + "claim.");
+    "Eleven of the thirteen parts publish a GB/s figure, and that rate sets the "
+    + "floor on time per token in a memory-bound decode: every weight is read "
+    + "once per token, so this figure divides into the model size to give the "
+    + "fastest a part can go regardless of its arithmetic. Eight figures are a "
+    + "whole card. Two of these cards are two ASICs and their vendor quotes the "
+    + "figure per ASIC — those bars say so, and are not combined into a card "
+    + "figure the vendor does not claim. One figure is system memory shared with "
+    + "the CPU. The Radeon 610M publishes none, and Arc 140V publishes up to "
+    + "LPDDR5X 8533 MT/s rather than a GB/s, so neither is a bar here.");
 
   const rows = BANDWIDTH.map((b) => {
     const sku = byId.get(b.sku);

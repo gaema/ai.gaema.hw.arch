@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Memory bandwidth across parts — arch.hw.gaema.ai</title>
-<meta name="description" content="Published peak memory bandwidth for ten AI accelerators, with the scope of each figure stated — whole card, per ASIC, or shared with the CPU.">
+<meta name="description" content="Published peak memory bandwidth for thirteen parts, with the scope of each figure stated — whole card, per ASIC, or shared with the CPU.">
 <link rel="stylesheet" href="../../assets/theme.css">
 <link rel="stylesheet" href="../../assets/app.css">
 <script src="../../assets/theme.js"></script>
@@ -23,11 +23,13 @@
   <div class="hero">
     <h1 id="page-title">Bandwidth, and what each figure is a figure of</h1>
     <p id="page-lede">
-      The one rate every part on this site publishes — and the one most easily
-      compared wrongly, because three of these ten figures are not measuring the
-      same thing as the other seven. Two are quoted per ASIC on a card that
-      carries two, and one is not a frame buffer at all but system memory the
-      CPU is reading from at the same time. Each bar says which it is.
+      Eleven of the thirteen parts publish a GB/s figure, and that rate sets the
+      floor on time per token in a memory-bound decode. Eight figures are a
+      whole card. Two of these cards are two ASICs and their vendor quotes the
+      figure per ASIC — those bars say so, and are not combined into a card
+      figure. One figure is system memory shared with the CPU. The Radeon 610M
+      publishes none, and Arc 140V publishes up to LPDDR5X 8533 MT/s rather
+      than a GB/s, so neither is a bar here.
     </p>
   </div>
 

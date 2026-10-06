@@ -138,7 +138,7 @@ export default {
     ["Stream processors", "4,096"],
     ["Ray tracing cores", "64 (3rd gen)"],
     ["Memory controllers", "4 × (4×16-bit)"],
-    ["Memory speed", "20 Gbps"],
+    ["Memory speed", "20 Gbps (640 × 8 / 256 = 20)"],
   ],
 
   // Rows the cross-vendor matrix on the landing page reads.
@@ -178,7 +178,7 @@ export default {
           detail: "The display engine, which scans finished framebuffers out to the physical outputs, alongside the fixed-function media block that encodes and decodes video without consuming any compute units. Neither is used by inference." },
       ]),
       ...memBand(1, 2, 16, "GDDR6", (i) => `4×16-bit ctrl ${i}`,
-        "One of the FOUR memory controllers that make the 256-bit GDDR6 interface. AMD's own block diagram describes them as four 4×16 controllers — 64 bits each — not as eight 32-bit ones. 640 GB/s comes from 256 bits × 20 Gbps.",
+        "One of the FOUR memory controllers that make the 256-bit GDDR6 interface. AMD's own block diagram describes them as four 4×16 controllers — 64 bits each — not as eight 32-bit ones. AMD prints 256-bit and 640 GB/s, which is 20 Gbps exactly (640 × 8 / 256 = 20). Each controller's share is 640 / 4 = 160 GB/s.",
         [["This block", "1 of 4 · 4×16-bit (64-bit)"], ["Its share of bandwidth", "160 GB/s"],
          ["Whole memory subsystem", "four 4×16 controllers, 256-bit, 640 GB/s"], ["DRAM on the board", "32 GB GDDR6"]]),
       ...band(2, [{ w: 16, kind: "cache", label: "Infinity Cache — 64 MB", sub: "3rd generation, memory-attached · banked", path: "mall",
@@ -208,14 +208,14 @@ export default {
         detail: "The compute field is drawn between two runs of the same fabric because it reaches both memory edges — the two bands are one interconnect, not two.",
         specs: [["Reaches", "all 32 WGPs"], ["Ties together", "L2, Infinity Cache, memory, front end"]] }]),
       ...memBand(10, 2, 16, "GDDR6", (i) => `4×16-bit ctrl ${2 + i}`,
-        "One of the FOUR memory controllers that make the 256-bit GDDR6 interface. AMD's own block diagram describes them as four 4×16 controllers — 64 bits each — not as eight 32-bit ones. 640 GB/s comes from 256 bits × 20 Gbps.",
+        "One of the FOUR memory controllers that make the 256-bit GDDR6 interface. AMD's own block diagram describes them as four 4×16 controllers — 64 bits each — not as eight 32-bit ones. AMD prints 256-bit and 640 GB/s, which is 20 Gbps exactly (640 × 8 / 256 = 20). Each controller's share is 640 / 4 = 160 GB/s.",
         [["This block", "1 of 4 · 4×16-bit (64-bit)"], ["Its share of bandwidth", "160 GB/s"],
          ["Whole memory subsystem", "four 4×16 controllers, 256-bit, 640 GB/s"], ["DRAM on the board", "32 GB GDDR6"]]),
       ...band(11, [{ w: 16, kind: "fixed", label: "Geometry + rasterizers", sub: "one front end per shader engine",
         detail: "The fixed-function graphics front end of each shader engine — geometry setup and rasterization." }]),
     ],
     note: "Nothing on this die is drawn as disabled, and that is the fact rather than an omission: the R9700 takes all 64 of Navi 48's compute units, so unlike the Blackwell and Blackhole parts here it is a full die with no harvest to mark. " + MAP_NOTE,
-    source: "AMD's RDNA 4 architecture material (Hot Chips 2025) and the R9700 datasheet",
+    source: "AMD's RDNA 4 architecture material (Hot Chips 2025) and the Radeon AI PRO R9700 product page",
   },
 
   root: {
@@ -240,7 +240,7 @@ export default {
       {
         id: "gddr", label: "GDDR6 memory controllers", kind: "memory", span: 2,
         specs: [["Capacity", "32 GB"], ["Bus", "256-bit"], ["Bandwidth", "640 GB/s"]],
-        note: "the four controllers driving the card's GDDR6 — 256 bits at 20 Gbps, so 640 GB/s. On a memory-bound decode this sets the ceiling: every weight crosses it once per token unless a cache catches it first",
+        note: "the four controllers driving the card's GDDR6. AMD prints a 256-bit interface and 640 GB/s, which is 20 Gbps exactly (640 × 8 / 256 = 20). On a memory-bound decode this sets the ceiling: every weight crosses it once per token unless a cache catches it first",
       },
       { id: "cp", label: "Command processor", kind: "sched",
         note: "the front end. It reads the command buffers the driver writes, and its asynchronous compute engines dispatch workgroups onto the shader engines while tracking dependencies and barriers. Every kernel launch enters the GPU here" },
@@ -255,7 +255,7 @@ export default {
   },
 
   sources: [
-    ["AMD — Radeon AI PRO R9700 datasheet (PDF)", "https://www.amd.com/content/dam/amd/en/documents/partner-hub/radeon-pro/radeon-ai-pro-r9700-datasheet.pdf"],
+    ["AMD — Radeon AI PRO R9700 product page", "https://www.amd.com/en/products/graphics/workstations/radeon-ai-pro/ai-9000-series/amd-radeon-ai-pro-r9700.html"],
     ["AMD — RDNA 4 architecture, Hot Chips 2025 (PDF)", "https://hc2025.hotchips.org/assets/program/conference/day1/8_amd_pomianowski_final.pdf"],
     ["VideoCardz — AMD introduces Radeon AI PRO R9700", "https://videocardz.com/newz/amd-introduces-radeon-ai-pro-r9700-with-32gb-vram-and-navi-48-gpu"],
   ],

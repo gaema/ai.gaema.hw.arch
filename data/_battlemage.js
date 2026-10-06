@@ -101,13 +101,17 @@ export function dieMap(opts) {
   const off = new Set(opts.disabledIndices || []);
   const memBlocks = opts.memBlocksPerBand;
   const fractionLabel = `1/${memBlocks * 2} of the bus`;
-  const memDetail = `One ${memBlocks * 2 === 8 ? "eighth" : "quarter"} of the ${opts.bus} ${opts.dram} interface — ${opts.bw} from ${opts.busBits} bits × ${opts.memSpeed}. The blocks are a drawing convenience, NOT a controller count.`;
+  const memArith = opts.memArith
+    || `${opts.bw} at ${opts.memSpeed} on the ${opts.bus} bus`;
+  const memDetail = `One ${memBlocks * 2 === 8 ? "eighth" : "quarter"} of the ${opts.bus} ${opts.dram} interface — ${memArith}. The blocks are a drawing convenience, NOT a controller count.`;
   const memSpecs = [
     ["This block", `1 of ${memBlocks * 2} drawn — not a controller count`],
-    ["Its share of bandwidth", opts.shareOfBw],
     ["Whole memory subsystem", `${opts.bus}, ${opts.bw}`],
     ["DRAM on the board", `${opts.mem} ${opts.dram}`],
   ];
+  if (opts.shareOfBw) {
+    memSpecs.splice(1, 0, ["Its share of bandwidth", opts.shareOfBw]);
+  }
   const fabricSpecs = [["Reaches", `all ${opts.xeCores} Xe-cores`]];
 
   return {

@@ -1,6 +1,5 @@
 // Intel Arc A370M — Xe-HPG (Alchemist), DG2-128 / ACM-G11.
-// Every figure here is from a published vendor source or from a capability
-// read of the silicon itself; see `sources`.
+// Every figure here is from a published vendor source; see `sources`.
 
 import { band, field, memBand, MAP_NOTE } from "./_floorplan.js";
 
@@ -126,7 +125,7 @@ export default {
           detail: "The display engine, which scans finished framebuffers out to the panel and external outputs, alongside the fixed-function media block that encodes and decodes video without spending any compute. Neither participates in inference." },
       ]),
       ...memBand(1, 2, 8, "GDDR6", () => "controller split not published",
-        "The 64-bit GDDR6 interface — 112 GB/s, which is 64 bits × 14 Gbps. Intel does not publish how the bus splits across controllers on this configuration, so the two blocks are a drawing convenience, NOT a controller count.",
+        "The 64-bit GDDR6 interface — 112 GB/s, which is 64 × 14 / 8 = 112. Intel does not publish how the bus splits across controllers on this configuration, so the two blocks are a drawing convenience, NOT a controller count.",
         [["This block", "1 of 2 drawn — not a controller count"],
          ["Its share of bandwidth", "— (split not published)"],
          ["Whole memory subsystem", "64-bit, 112 GB/s"],
@@ -150,7 +149,7 @@ export default {
         detail: "The fixed-function graphics front end. It carries this part from an AI accelerator back to being a laptop GPU — screens, video, games. Idle during inference." }]),
     ],
     note: "Nothing here is drawn as disabled: 8 Xe-cores is the whole configuration this product ships, and Intel does not publish a larger enabled count for DG2-128 to mark a harvest against. " + MAP_NOTE,
-    source: "Intel's Arc A370M product specifications and its Xe-HPG DPAS extension documentation, with the enabled-unit and matrix facts confirmed by capability reads of the silicon",
+    source: "Intel's Arc A370M product specifications and its Xe-HPG DPAS extension documentation",
   },
 
   root: {

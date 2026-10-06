@@ -17,8 +17,8 @@ const SHAPE = {
   busBits: 256,
   bw: "608 GB/s",
   memSpeed: "19 Gbps",
+  memArith: "608 GB/s on a 256-bit bus, which is 19 Gbps exactly (608 × 8 / 256 = 19)",
   memBlocksPerBand: 4,
-  shareOfBw: "76 GB/s",
 };
 
 const L2_NOTE =
@@ -59,8 +59,8 @@ export default {
     ["Ray tracing units", "32"],
     ["Graphics clock", "2,280 MHz"],
     ["Max dynamic frequency", "2,800 MHz"],
-    ["Memory speed", "19 Gbps"],
-    ["FP32", "22.9 TFLOPS"],
+    ["Memory speed", "19 Gbps (608 × 8 / 256 = 19)"],
+    ["FP32", "22.94 TFLOPS"],
     ["INT8", "367 TOPS"],
     ["Launch price", "$949"],
   ],
@@ -110,7 +110,7 @@ export default {
       {
         id: "gddr", label: "GDDR6 memory controllers", kind: "memory", span: 2,
         specs: [["Capacity", "32 GB"], ["Bus", "256-bit"], ["Bandwidth", "608 GB/s"]],
-        note: "the controllers driving the card's 32 GB of GDDR6 — 256 bits at 19 Gbps, so 608 GB/s. This is the number that bounds token generation: in a memory-bound decode every weight is read once per token, so the model's size divided by this rate is the floor on time per token no amount of compute can undercut",
+        note: "the controllers driving the card's 32 GB of GDDR6 — 608 GB/s on a 256-bit bus, which is 19 Gbps exactly (608 × 8 / 256 = 19). This is the number that bounds token generation: in a memory-bound decode every weight is read once per token, so the model's size divided by this rate is the floor on time per token no amount of compute can undercut",
       },
       { id: "cs", label: "Command streamer", kind: "sched",
         note: "the die-wide front end. It reads the command buffers the driver builds and dispatches thread groups out to the render slices, where each Xe-core's own thread dispatcher places them on its vector engines. Every kernel launch enters the GPU through this block" },

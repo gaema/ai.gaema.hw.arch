@@ -18,8 +18,8 @@ const SHAPE = {
   busBits: 128,
   bw: "224 GB/s",
   memSpeed: "14 Gbps",
+  memArith: "224 GB/s, which is 128 × 14 / 8 = 224",
   memBlocksPerBand: 2,
-  shareOfBw: "56 GB/s",
 };
 
 export default {
@@ -53,7 +53,7 @@ export default {
 
   extra: [
     ["Render slices", "5 on the die"],
-    ["Base clock", "1,700 MHz"],
+    ["Graphics clock", "1,700 MHz"],
     ["Vector engines", "128 (8 per Xe-core)"],
     ["Ray tracing units", "16"],
     ["Max dynamic frequency", "2,600 MHz"],

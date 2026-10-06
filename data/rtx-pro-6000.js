@@ -38,7 +38,7 @@ export default {
     ["GPCs enabled", "12 of 12"],
     ["TPCs enabled", "94 of 96"],
     ["Memory controllers", "16 × 32-bit"],
-    ["FP32", "~125 TFLOPS"],
+    ["FP32", "125 TFLOPS"],
   ],
 
   compare: {
