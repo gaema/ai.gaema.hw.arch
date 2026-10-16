@@ -42,7 +42,7 @@ export default {
     ["Board Ethernet", "2 × QSFP-DD 200G on channels 6,7 and 0,1 · Warp 100 port 1 on channels 14,15 · second Warp 100 connector on the card"],
     ["PCIe tiles", "1"],
     ["FP8", "262 TFLOPS"],
-    ["BLOCKFP8", "148 TFLOPS"],
+    ["Block float (BLOCKFP8)", "148 TFLOPS"],
     ["FP16", "74 TFLOPS"],
   ],
 

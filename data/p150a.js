@@ -40,7 +40,7 @@ export default {
     ["Ethernet rate", "400 GbE per tile · 800 GbE per port"],
     ["Board Ethernet", "4 × QSFP-DD 800G — 8 of the 12 cabled, because the live PCIe ×16 tile consumes the SerDes of the other 4"],
     ["PCIe tiles", "2 on the die, each ×16-capable — one used, one idle"],
-    ["BLOCKFP8", "664 TFLOPS"],
+    ["Block float (BLOCKFP8)", "664 TFLOPS"],
   ],
 
   compare: {

@@ -149,11 +149,13 @@ export const FORMATS = {
       + "the NVFP4 rows of the format table point here.",
   },
   bfp8: {
-    label: "BFP8",
+    label: "block float 8",
     rows: ["bfp8"],
     lede:
-      "Block float — a block of values sharing one exponent — and the only "
-      + "format on this site where the empty cells mean something stronger than "
+      "Block float, abbreviated BFP. A block of values shares one exponent, "
+      + "and Tenstorrent prints the 8-bit form as BLOCKFP8. It is a different "
+      + "format from FP8, which has its own page. It is also the only format "
+      + "on this site where the empty cells mean something stronger than "
       + "“unpublished”. Of the five architectures that own a matrix engine, "
       + "only Tensix takes it, so this page compares three Tenstorrent cards "
       + "against the rest of the parts' genuine absences rather than three "
@@ -268,8 +270,8 @@ export const FIGURES = [
     src: site },
   { sku: "n150d", cls: "systolic", format: "bfp8", sparsity: "dense",
     value: 148, unit: "TFLOPS",
-    quoted: "BLOCKFP8",
-    basis: "72 Tensix at the 1 GHz AI clock, which puts it within half a percent of 2,048 FLOP per tile per clock.",
+    quoted: "BLOCKFP8 — block float",
+    basis: "Block float, the vendor's BLOCKFP8 row: a shared exponent across a block, distinct from the FP8 figure on the same card. 72 Tensix at the 1 GHz AI clock, which puts it within half a percent of 2,048 FLOP per tile per clock.",
     src: site },
   { sku: "n150d", cls: "systolic", format: "fp16", sparsity: "dense",
     value: 74, unit: "TFLOPS",
@@ -282,8 +284,8 @@ export const FIGURES = [
     src: site },
   { sku: "n300d", cls: "systolic", format: "bfp8", sparsity: "dense",
     value: 262, unit: "TFLOPS",
-    quoted: "BLOCKFP8",
-    basis: "128 Tensix across two ASICs at the 1 GHz AI clock. Whole-card.",
+    quoted: "BLOCKFP8 — block float",
+    basis: "Block float, the vendor's BLOCKFP8 row, distinct from the FP8 row on the same card. 128 Tensix across two ASICs at the 1 GHz AI clock. Whole-card.",
     src: site },
   { sku: "n300d", cls: "systolic", format: "fp16", sparsity: "dense",
     value: 131, unit: "TFLOPS",
@@ -291,8 +293,8 @@ export const FIGURES = [
     src: site },
   { sku: "p150a", cls: "systolic", format: "bfp8", sparsity: "dense",
     value: 664, unit: "TFLOPS",
-    quoted: "TeraFLOPS (BLOCKFP8) — 664",
-    basis: "120 Tensix at the 1.35 GHz AI clock, which puts it within a tenth of a percent of 4,096 FLOP per tile per clock.",
+    quoted: "TeraFLOPS (BLOCKFP8) — 664, block float",
+    basis: "Block float, the vendor's BLOCKFP8 row, which is the matrix rate published for this card. FP8 is a separate format. 120 Tensix at the 1.35 GHz AI clock, which puts it within a tenth of a percent of 4,096 FLOP per tile per clock.",
     src: vendor(TT_BLACKHOLE) },
 ];
 

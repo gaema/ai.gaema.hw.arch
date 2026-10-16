@@ -25,7 +25,7 @@ export const tensix = {
     },
     {
       id: "matrix", label: "Matrix engine (FPU)", kind: "matrix",
-      note: "the dense matrix unit, and where essentially all of a model's arithmetic happens. It multiplies tiles staged in this tile's L1 SRAM and accumulates into a destination register file, one instruction per tile-sized multiply-accumulate rather than a loop of vector operations — so every dense layer, attention projection and convolution lands here. The FP8 and FP16 throughput figures for the card are this engine multiplied by the tile count; BFP8 runs at the same rate as bf16 because the unpacker resolves the shared exponent before the data arrives",
+      note: "the dense matrix unit, and where essentially all of a model's arithmetic happens. It multiplies tiles staged in this tile's L1 SRAM and accumulates into a destination register file, one instruction per tile-sized multiply-accumulate rather than a loop of vector operations — so every dense layer, attention projection and convolution lands here. Block float — abbreviated BFP, and printed by Tenstorrent as BLOCKFP8 — is a shared-exponent operand this unit multiplies once the unpacker has resolved the exponent. FP8 and FP16 are separate per-element formats on the same unit",
     },
     {
       id: "sfpu", label: "Vector engine (SFPU)", kind: "compute",
@@ -43,7 +43,7 @@ export const tensix = {
       note: "the second plane, and deliberately not a copy: NoC 1 goes upwards then leftwards, the mirror of NoC 0. Two planes with opposite orientation let a program pick the shorter direction for a given transfer, and keep two streams from fighting over the same links",
       specs: [["Routing", "upwards, one turn, leftwards"], ["Relationship to NoC 0", "mirrored orientation"]] },
     { id: "unpack", label: "Unpacker / packer", kind: "io", span: 1,
-      note: "the format engines either side of the compute complex, and the reason block-float costs nothing at the maths. The UNPACKER reads tiles out of L1 and converts them into the layout the engines want, filling SrcA, SrcB and Dst — this is where a shared exponent is resolved, so BFP8 and bf16 reach the matrix unit at the same rate. The PACKER does the reverse, taking results from Dst back into L1. They are driven by different RISC-V cores: TRISC0 runs the unpackers, TRISC2 the packer, so unpack, compute and pack overlap as a three-stage pipeline",
+      note: "the format engines either side of the compute complex, and the reason block float costs nothing at the maths. The UNPACKER reads tiles out of L1 and converts them into the layout the engines want, filling SrcA, SrcB and Dst — this is where a shared exponent is resolved, so block float (BFP8) arrives already expanded, on the same path bf16 takes. The PACKER does the reverse, taking results from Dst back into L1. They are driven by different RISC-V cores: TRISC0 runs the unpackers, TRISC2 the packer, so unpack, compute and pack overlap as a three-stage pipeline",
       specs: [["Unpacker feeds", "SrcA, SrcB, Dst"], ["Packer writes", "Dst → L1"], ["Driven by", "TRISC0 / TRISC2"], ["L1 buffers", "32 circular buffers — 16 in, 16 out"]] },
   ],
 };

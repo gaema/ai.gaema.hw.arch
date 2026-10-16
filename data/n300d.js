@@ -44,7 +44,7 @@ export default {
     ["Ethernet tiles", "16 per die"],
     ["PCIe tiles", "1 per die — only ASIC 0 is the host path"],
     ["FP8", "466 TFLOPS"],
-    ["BLOCKFP8", "262 TFLOPS"],
+    ["Block float (BLOCKFP8)", "262 TFLOPS"],
     ["FP16", "131 TFLOPS"],
   ],
 

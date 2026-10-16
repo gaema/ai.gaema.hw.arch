@@ -80,6 +80,11 @@ python3 -m http.server 8080
 
 ## Conventions
 
+- **BFP means block float.** A block of values sharing one exponent. Tenstorrent's
+  product tables print the same format as BLOCKFP8 (and BLOCKFP4, BLOCKFP2).
+  The letters mean that format on every page, including the Blackhole cards.
+  Blackhole's FP8 and FP16 stay under those names; they are per-element
+  floats, and a Blackhole page that quotes only BLOCKFP8 is quoting block float.
 - **State the figure; don't narrate its sourcing.** Every number comes from
   vendor documentation, published analysis, or the silicon itself, and every
   page lists its sources at the bottom. The page body carries the VALUE — a

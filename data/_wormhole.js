@@ -30,7 +30,7 @@ export const tensix = {
     },
     {
       id: "matrix", label: "Matrix engine (FPU)", kind: "matrix",
-      note: "the dense matrix unit, and where essentially all of a model's arithmetic happens. It multiplies tiles staged in this tile's L1 SRAM and accumulates into a destination register file, one instruction per tile-sized multiply-accumulate rather than a loop of vector operations — so every dense layer, attention projection and convolution lands here. The FP8, BLOCKFP8 and FP16 throughput figures for the card are this engine multiplied by the tile count and the fidelity the format runs at. The unpacker resolves a block-float shared exponent before the data arrives, so BFP8 is not a slower path at the matrix unit itself",
+      note: "the dense matrix unit, and where essentially all of a model's arithmetic happens. It multiplies tiles staged in this tile's L1 SRAM and accumulates into a destination register file, one instruction per tile-sized multiply-accumulate rather than a loop of vector operations — so every dense layer, attention projection and convolution lands here. The FP8, block float (BLOCKFP8) and FP16 throughput figures for the card are this engine multiplied by the tile count and the fidelity the format runs at. FP8 is the per-element 8-bit float; block float, abbreviated BFP, is the shared-exponent format. The unpacker resolves that shared exponent before the data arrives, so block float is not a slower path at the matrix unit itself",
     },
     {
       id: "sfpu", label: "Vector engine (SFPU)", kind: "compute",
@@ -48,7 +48,7 @@ export const tensix = {
       note: "the second plane, and deliberately not a copy: NoC 1 goes upwards then leftwards, the mirror of NoC 0. Two planes with opposite orientation let a program pick the shorter direction for a given transfer, and keep two streams from fighting over the same links",
       specs: [["Routing", "upwards, one turn, leftwards"], ["Relationship to NoC 0", "mirrored orientation"]] },
     { id: "unpack", label: "Unpacker / packer", kind: "io", span: 1,
-      note: "the format engines either side of the compute complex, and the reason block-float is not a slower path at the maths. Two unpackers read tiles out of L1 and convert them into the layout the engines want, filling SrcA, SrcB and Dst — this is where a shared exponent is resolved. Four packers do the reverse, taking results from Dst back into L1. They are driven by different RISC-V cores: T0 runs the unpackers, T2 the packers, so unpack, compute and pack overlap as a three-stage pipeline",
+      note: "the format engines either side of the compute complex, and the reason block float (BFP) is not a slower path at the maths. Two unpackers read tiles out of L1 and convert them into the layout the engines want, filling SrcA, SrcB and Dst — this is where a shared exponent is resolved. Four packers do the reverse, taking results from Dst back into L1. They are driven by different RISC-V cores: T0 runs the unpackers, T2 the packers, so unpack, compute and pack overlap as a three-stage pipeline",
       specs: [["Unpackers", "2"], ["Packers", "4"], ["Driven by", "T0 unpack / T2 pack"], ["L1 buffers", "32 circular buffers — 16 in, 16 out"]] },
   ],
 };

@@ -32,7 +32,7 @@ export const ROWS = [
   ["fp4e2m1", "FP4 E2M1", 4],
   ["nvfp4", "NVFP4", 4],
   ["mxfp4", "MXFP4", 4],
-  ["bfp4", "BFP4", 4],
+  ["bfp4", "BFP4 block float", 4],
   ["fp6e3m2", "FP6 E3M2", 6],
   ["fp6e2m3", "FP6 E2M3", 6],
   ["mxfp6", "MXFP6", 6],
@@ -41,7 +41,7 @@ export const ROWS = [
   ["fp8e4m3", "FP8 E4M3", 8],
   ["fp8e5m2", "FP8 E5M2", 8],
   ["mxfp8", "MXFP8", 8],
-  ["bfp8", "BFP8", 8],
+  ["bfp8", "BFP8 block float", 8],
   ["fp16", "FP16", 16],
   ["bf16", "BF16", 16],
   ["tf32", "TF32", 19],
@@ -202,11 +202,13 @@ export const ARCH = {
     label: "Tensix",
     engine: "Tensix matrix unit (FPU)",
     note:
-      "The odd one out in two ways. Its native narrow formats are BLOCK FLOAT "
-      + "— a block of values sharing one exponent, each element carrying a sign "
-      + "and mantissa — so an element's width is its share of a block rather "
-      + "than a standalone number, and neither BFP8 nor BFP4 maps onto any "
-      + "scalar column. And its accumulator is not fixed by the instruction: "
+      "The odd one out in two ways. Its native narrow formats are block float, "
+      + "abbreviated BFP — a block of values sharing one exponent, each element "
+      + "carrying a sign and mantissa. Tenstorrent prints those formats as "
+      + "BLOCKFP2, BLOCKFP4 and BLOCKFP8. An element's width is its share of a "
+      + "block rather than a standalone number, so the BFP8 and BFP4 rows are "
+      + "those shared-exponent formats, and the FP8 row beside them is the "
+      + "per-element 8-bit float. And its accumulator is not fixed by the instruction: "
       + "results land in the DEST register file, which holds twice as many "
       + "entries in 16-bit mode as in 32-bit, making accumulator width a "
       + "per-kernel choice with a capacity cost rather than a property of the "
