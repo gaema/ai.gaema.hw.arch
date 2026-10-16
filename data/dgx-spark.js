@@ -39,7 +39,7 @@ export default {
     "Board power": "140 W SoC TDP — 240 W system power supply",
     "Cooling": "Active — integrated in a 150 × 150 × 50.5 mm desktop chassis",
     "Host interface": "None — the CPU is on the package, over NVLink-C2C",
-    "Scale-out link": "ConnectX-7 NIC at 200 Gb/s, on PCIe 5.0 ×8 from the SoC",
+    "Scale-out link": "ConnectX-7 NIC — 2 QSFP ports, up to 200 Gb/s each, on two PCIe 5.0 ×4 links from the SoC",
   },
 
   extra: [
@@ -82,7 +82,8 @@ export default {
       "NVLink-C2C joins the two dies, and the memory fabric above both of them "
       + "carries every access to the LPDDR5X on the package. The GPU's 24 MB L2 "
       + "is the last level before that fabric. Off the box, the only path is the "
-      + "ConnectX-7 NIC, hung off the SoC on PCIe 5.0 ×8.",
+      + "ConnectX-7 NIC, joined to the SoC by two independent PCIe 5.0 ×4 links "
+      + "rather than one ×8.",
     dataflow: {
       label: "Traced read",
       title: "One read: SM → L2 → memory fabric → LPDDR5X",
@@ -99,8 +100,9 @@ export default {
     },
     tiles: [
       ...band(0, [
-        { w: 4, kind: "io", label: "ConnectX-7 NIC", sub: "200 Gb/s", path: "nic",
-          detail: "The scale-out link, and the only high-rate path off the box: a ConnectX-7 NIC at 200 Gb/s, attached to the SoC over PCIe 5.0 ×8." },
+        { w: 4, kind: "io", label: "ConnectX-7 NIC", sub: "2 × QSFP · 2 × PCIe 5.0 ×4", path: "nic",
+          detail: "The scale-out link, and the only high-rate path off the box: a ConnectX-7 NIC with two QSFP ports of up to 200 Gb/s each, attached to the SoC over two independent PCIe 5.0 ×4 links. Each port is wired to both links, so it appears as two network interfaces, and a single cable reaches its full rate only with traffic on both halves.",
+          specs: [["Ports", "2 × QSFP, up to 200 Gb/s each"], ["Host side", "2 × PCIe 5.0 ×4"], ["Host-side ceiling", "≈ 252 Gb/s per direction for the whole NIC"]] },
         { w: 4, kind: "io", label: "NVMe storage", sub: "4 TB, self-encrypting", path: "nvme",
           detail: "4 TB of self-encrypting NVMe. On a part whose memory is measured in tens of gigabytes rather than hundreds, the weights of anything larger start here." },
         { w: 4, kind: "io", label: "Display + USB-C", sub: "HDMI 2.1a · 3 × DP over USB-C", path: "display",
@@ -206,8 +208,9 @@ export default {
         note: "the system memory, and the GPU's memory, and the same bytes. 256 bits wide for 273 GB/s. Budgeting it as a private GPU pool is the mistake this part invites: the operating system and every process on the box are drawing from the same 128 GB, and the CPU's traffic and the GPU's share one 273 GB/s",
         specs: [["Capacity", "128 GB"], ["Bus", "256-bit"], ["Bandwidth", "273 GB/s"], ["Owned by", "both dies, coherently"]],
       },
-      { id: "nic", label: "ConnectX-7 NIC — 200 Gb/s", kind: "io",
-        note: "the scale-out link, attached to the SoC over PCIe 5.0 ×8. It is how two of these are paired, and the only high-rate path off the box" },
+      { id: "nic", label: "ConnectX-7 NIC — 2 × 200 Gb/s QSFP", kind: "io",
+        note: "the scale-out link, and the only high-rate path off the box. The NIC reaches the SoC through two independent PCIe 5.0 ×4 links instead of one ×8, and each QSFP port is wired to both, so every port appears as two network interfaces, each with its own RDMA device, and one cable runs at its full rate only with traffic on both halves. Two consequences follow from the parts rather than from any measurement. First, the host side, not the ports, bounds the NIC: one PCIe 5.0 ×4 link carries 32 GT/s × 4 lanes × 128/130 ≈ 126 Gb/s each way, so the two together come to about 252 Gb/s per direction before protocol overhead — more than one port's 200 Gb/s, short of two ports' 400. Second, the network is a small fraction of the memory: one port's 25 GB/s is 9.2% of the 273 GB/s LPDDR5X behind it, so anything split across several units pays for every byte it exchanges at roughly a tenth of the rate it reads its own memory. With two ports a unit can cable to two neighbours: two units pair directly, three cabled to each other form a ring that is also a full mesh, and four or more without a switch can only form a longer ring, whose far side is n/2 hops away and reached through the units in between. NVIDIA's own setup supports up to three units cabled directly and up to four through a switch",
+        specs: [["Ports", "2 × QSFP, up to 200 Gb/s each"], ["Host side", "2 × PCIe 5.0 ×4 — each port appears as two interfaces"], ["Host-side ceiling", "≈ 252 Gb/s per direction (2 × 32 GT/s × 4 lanes × 128/130)"], ["One port vs memory", "25 GB/s = 9.2% of 273 GB/s"], ["Direct cabling", "2 or 3 units — 3 as a ring"], ["Through a switch", "up to 4 units in NVIDIA's setup"]] },
       { id: "nvme", label: "NVMe — 4 TB", kind: "io",
         note: "4 TB of self-encrypting NVMe storage" },
       { id: "display", label: "Display outputs", kind: "io",
@@ -224,5 +227,7 @@ export default {
     ["NVIDIA — CUDA Programming Guide: compute capabilities, architecture- and family-specific targets", "https://docs.nvidia.com/cuda/cuda-programming-guide/05-appendices/compute-capabilities.html"],
     ["ServeTheHome — NVIDIA outlines the GB10 SoC architecture at Hot Chips 2025", "https://www.servethehome.com/nvidia-outlines-gb10-soc-architecture-at-hot-chips-2025/"],
     ["Chips and Cheese — Analyzing NVIDIA GB10's GPU", "https://chipsandcheese.com/p/analyzing-nvidia-gb10s-gpu"],
+    ["NVIDIA — DGX Spark User Guide: Spark Stacking", "https://docs.nvidia.com/dgx/dgx-spark/spark-clustering.html"],
+    ["NVIDIA — Sync Cluster Assistant for ConnectX-7 multi-node clusters", "https://docs.nvidia.com/sync/latest/cluster-assistant.html"],
   ],
 };
