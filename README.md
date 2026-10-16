@@ -64,7 +64,9 @@ data/_blackwell.js    GB202 hierarchy + die map, shared by the two NVIDIA cards
 data/_blackhole.js    Blackhole hierarchy + die map, shared by the two Blackhole cards
 data/_wormhole.js     Wormhole hierarchy + die map, shared by the two Wormhole cards
 data/_dtypes.js       numeric formats each matrix engine takes, and what it
-                      accumulates into — keyed by architecture, not by card
+                      accumulates into — keyed by architecture, not by card.
+                      The landing page's "private to one column" list is
+                      derived from these cells
 data/_throughput.js   every published peak rate, with the basis it was quoted
                       at — the one home for the numbers behind both the
                       comparison tables and the bars drawn from them

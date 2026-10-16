@@ -28,6 +28,7 @@ export const LEVEL = {
 export const ROWS = [
   ["int1", "INT1", 1],
   ["int2", "INT2", 2],
+  ["bfp2", "BFP2 block float", 2],
   ["int4", "INT4", 4],
   ["fp4e2m1", "FP4 E2M1", 4],
   ["nvfp4", "NVFP4", 4],
@@ -77,7 +78,7 @@ export const ARCH = {
     ],
     dtypes: {
       int1: c, int2: c, int4: c,
-      fp4e2m1: m("FP32"), nvfp4: m("FP32"), mxfp4: m("FP32"), bfp4: n,
+      fp4e2m1: m("FP32"), nvfp4: m("FP32"), mxfp4: m("FP32"), bfp2: n, bfp4: n,
       fp6e3m2: m("FP32"), fp6e2m3: m("FP32"), mxfp6: m("FP32"),
       int8: m("INT32"), uint8: m("INT32"),
       fp8e4m3: m("FP32"), fp8e5m2: m("FP32"), mxfp8: m("FP32"), bfp8: n,
@@ -105,7 +106,7 @@ export const ARCH = {
     ],
     dtypes: {
       int1: c, int2: c, int4: m("INT32"),
-      fp4e2m1: c, nvfp4: n, mxfp4: n, bfp4: n,
+      fp4e2m1: c, nvfp4: n, mxfp4: n, bfp2: n, bfp4: n,
       fp6e3m2: c, fp6e2m3: c, mxfp6: n,
       int8: m("INT32"), uint8: m("INT32"),
       fp8e4m3: m("FP32"), fp8e5m2: m("FP32"), mxfp8: n, bfp8: n,
@@ -133,7 +134,7 @@ export const ARCH = {
     dtypes: {
       int1: n, int2: n,
       int4: v,
-      fp4e2m1: n, nvfp4: n, mxfp4: n, bfp4: n,
+      fp4e2m1: n, nvfp4: n, mxfp4: n, bfp2: n, bfp4: n,
       fp6e3m2: n, fp6e2m3: n, mxfp6: n,
       int8: v, uint8: v,
       fp8e4m3: n, fp8e5m2: n, mxfp8: n, bfp8: n,
@@ -161,7 +162,7 @@ export const ARCH = {
     ],
     dtypes: {
       int1: n, int2: m("INT32"), int4: m("INT32"),
-      fp4e2m1: n, nvfp4: n, mxfp4: n, bfp4: n,
+      fp4e2m1: n, nvfp4: n, mxfp4: n, bfp2: n, bfp4: n,
       fp6e3m2: n, fp6e2m3: n, mxfp6: n,
       int8: m("INT32"), uint8: m("INT32"),
       fp8e4m3: n, fp8e5m2: n, mxfp8: n, bfp8: n,
@@ -189,7 +190,7 @@ export const ARCH = {
     ],
     dtypes: {
       int1: c, int2: m("INT32"), int4: m("INT32"),
-      fp4e2m1: c, nvfp4: n, mxfp4: n, bfp4: n,
+      fp4e2m1: c, nvfp4: n, mxfp4: n, bfp2: n, bfp4: n,
       fp6e3m2: c, fp6e2m3: c, mxfp6: n,
       int8: m("INT32"), uint8: m("INT32"),
       fp8e4m3: c, fp8e5m2: c, mxfp8: n, bfp8: n,
@@ -223,7 +224,7 @@ export const ARCH = {
     ],
     dtypes: {
       int1: c, int2: c, int4: c,
-      fp4e2m1: n, nvfp4: n, mxfp4: n, bfp4: m("FP16 / FP32"),
+      fp4e2m1: n, nvfp4: n, mxfp4: n, bfp2: m("FP16 / FP32"), bfp4: m("FP16 / FP32"),
       fp6e3m2: n, fp6e2m3: n, mxfp6: n,
       int8: m("INT32"), uint8: m("INT32"),
       fp8e4m3: c, fp8e5m2: c, mxfp8: n, bfp8: m("FP16 / FP32"),
@@ -256,3 +257,21 @@ export const SKU_ARCH = {
 
 // Column order for the table: one column per architecture, not per SKU.
 export const ARCH_ORDER = ["rdna4", "rdna2", "xehpg", "xe2", "blackwell", "tensix"];
+
+// Formats whose only path is one architecture, read off the cells above.
+// `none` is an empty column. `convert` and `vector` both count as a path, so
+// a format another architecture only widens is not private. The landing page
+// prints this; it is not a second catalogue.
+export function privateFormats() {
+  const out = {};
+  for (const k of ARCH_ORDER) out[k] = [];
+  for (const row of ROWS) {
+    const key = row[0];
+    const holders = ARCH_ORDER.filter((k) => {
+      const d = ARCH[k].dtypes[key] || { level: "none" };
+      return d.level !== "none";
+    });
+    if (holders.length === 1) out[holders[0]].push(row);
+  }
+  return out;
+}

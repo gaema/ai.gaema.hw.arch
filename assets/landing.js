@@ -1,7 +1,7 @@
 // Landing page: the SKU cards and the cross-vendor matrix, both built from
 // the same registry the explorer pages read.
 import { loadAll, COMPARE_ROWS, pageHref } from "../data/index.js";
-import { ROWS as DTYPE_ROWS, ARCH, ARCH_ORDER } from "../data/_dtypes.js";
+import { ROWS as DTYPE_ROWS, ARCH, ARCH_ORDER, privateFormats } from "../data/_dtypes.js";
 import { ROW_FORMAT, FORMATS } from "../data/_throughput.js";
 
 // Which matrix rows open a comparison page. Only rows whose answer is a RATE
@@ -148,6 +148,45 @@ function buildDtypes() {
     tbody.append(tr);
   }
   table.append(tbody);
+
+  // Private-to-one-column list. Same cells, filtered: a row lands here only
+  // when every other architecture's cell is empty.
+  const privTable = document.getElementById("private-dtypes");
+  if (privTable) {
+    const priv = privateFormats();
+    const phead = el("thead");
+    const phr = el("tr");
+    phr.append(el("th", null, "Architecture"));
+    phr.append(el("th", null, "Formats only this column has"));
+    phead.append(phr);
+    privTable.append(phead);
+    const pbody = el("tbody");
+    for (const k of ARCH_ORDER) {
+      const tr = el("tr");
+      const th = el("th");
+      th.append(el("span", null, ARCH[k].label));
+      th.append(el("small", "sub", ARCH[k].engine));
+      tr.append(th);
+      const td = el("td");
+      const rows = priv[k];
+      if (!rows.length) {
+        td.textContent = "—";
+      } else {
+        rows.forEach((row, i) => {
+          if (i) td.append(document.createTextNode(", "));
+          const [key, label] = row;
+          const fk = ROW_FORMAT[key];
+          td.append(rowLabel(
+            label,
+            fk && "formats/" + fk + "/",
+            fk && FORMATS[fk].label + " throughput across parts"));
+        });
+      }
+      tr.append(td);
+      pbody.append(tr);
+    }
+    privTable.append(pbody);
+  }
 
   // Per-architecture notes + sources, below the table rather than inside it:
   // the table carries values, and a cell is not the place for a paragraph.

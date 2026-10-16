@@ -154,6 +154,7 @@ button.ghost:hover { border-color: var(--accent); color: var(--accent); }
 
 section.block { padding: 30px 0; }
 section.block > h2 { margin: 0 0 4px; font-size: 20px; letter-spacing: -0.015em; }
+section.block > h3 { margin: 22px 0 4px; font-size: 16px; letter-spacing: -0.01em; }
 section.block > p.lede { margin: 0 0 16px; color: var(--ink-mid); text-wrap: balance; }
 
 .scroll-x { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); }
@@ -569,7 +570,8 @@ dl.spec-grid dd { margin: 2px 0 0; font-weight: 600; }
   width: 1%;
   padding-right: 4px;
 }
-#dtypes thead th small.sub {
+#dtypes thead th small.sub,
+#private-dtypes th small.sub {
   display: block;
   font-weight: 400;
   font-size: 11px;
