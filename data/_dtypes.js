@@ -91,23 +91,27 @@ export const ARCH = {
     label: "RDNA 4",
     engine: "WMMA matrix cores",
     note:
-      "The only architecture here that will accumulate a 16-bit float into a "
-      + "16-bit float: FP16 and BF16 each have a narrow-accumulate form beside "
-      + "the FP32 one, halving accumulator traffic at the cost of range. It "
-      + "keeps a real 4-bit INTEGER matrix operand — in two shapes, one packing "
-      + "twice the depth per lane — and adds both 8-bit float encodings, "
-      + "including the mixed pairing of one against the other. No block-scaled "
-      + "format and no 4-bit float.",
+      "The OCP systolic operands are the 8-bit floats, E4M3 and E5M2, "
+      + "multiplied into FP32, including the mixed pairing of one against the "
+      + "other. FP16 and BF16 each accumulate into their own width as well as "
+      + "into FP32; the BF16 accumulator is this column alone, and FP16 into "
+      + "FP16 is also a destination width on Tensix. INT4 is a matrix operand "
+      + "in two shapes, one packing twice the depth per lane. FP6 (E2M3 and "
+      + "E3M2) and FP4 (E2M1) have no instruction on this unit, matrix or "
+      + "convert. The scaled matrix instruction that selects those element "
+      + "types is not in this ISA, and neither is a block-scaled format.",
     source: [
       ['AMD — "RDNA 4" Instruction Set Architecture Reference Guide',
        "https://gpuopen.com/learn/rdna4-isa-guide/"],
       ["AMD — RDNA 4 architecture, Hot Chips 2025 (PDF)",
        "https://hc2025.hotchips.org/assets/program/conference/day1/8_amd_pomianowski_final.pdf"],
+      ["AMD — rocWMMA precision support",
+       "https://rocm.docs.amd.com/projects/rocWMMA/en/develop/api-reference/data-type-support.html"],
     ],
     dtypes: {
       int1: c, int2: c, int4: m("INT32"),
-      fp4e2m1: c, nvfp4: n, mxfp4: n, bfp2: n, bfp4: n,
-      fp6e3m2: c, fp6e2m3: c, mxfp6: n,
+      fp4e2m1: n, nvfp4: n, mxfp4: n, bfp2: n, bfp4: n,
+      fp6e3m2: n, fp6e2m3: n, mxfp6: n,
       int8: m("INT32"), uint8: m("INT32"),
       fp8e4m3: m("FP32"), fp8e5m2: m("FP32"), mxfp8: n, bfp8: n,
       fp16: m("FP16 / FP32"), bf16: m("BF16 / FP32"), tf32: n,
