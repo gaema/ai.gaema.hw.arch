@@ -256,7 +256,7 @@ export const SKU_ARCH = {
 };
 
 // Column order for the table: one column per architecture, not per SKU.
-export const ARCH_ORDER = ["rdna4", "rdna2", "xehpg", "xe2", "blackwell", "tensix"];
+export const ARCH_ORDER = ["rdna2", "rdna4", "xehpg", "xe2", "blackwell", "tensix"];
 
 // Formats whose only path is one architecture, read off the cells above.
 // `none` is an empty column. `convert` and `vector` both count as a path, so
