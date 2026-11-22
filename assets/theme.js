@@ -51,7 +51,29 @@
     btn.setAttribute("aria-label", title(m));
   }
 
+  // The site's mark: favicon.svg (switches with the OS scheme) as the icon, and the light and
+  // dark drawings before the site name in the bar, switched in CSS by the same three states as
+  // the colours. Paths come from this script's own URL, so every page depth resolves them.
+  var ASSETS = (document.currentScript && document.currentScript.src || "").replace(/[^/]*$/, "");
+  if (ASSETS && !document.querySelector("link[rel~='icon']")) {
+    var icon = document.createElement("link");
+    icon.rel = "icon"; icon.type = "image/svg+xml"; icon.href = ASSETS + "favicon.svg";
+    document.head.appendChild(icon);
+  }
+  function mark() {
+    var brand = document.querySelector(".brand");
+    if (!ASSETS || !brand || brand.querySelector(".brand-mark")) return;
+    ["light", "dark"].forEach(function (v) {
+      var img = document.createElement("img");
+      img.className = "brand-mark " + (v === "light" ? "lt" : "dk");
+      img.src = ASSETS + "mark-" + v + ".svg"; img.alt = "";
+      brand.appendChild(img);
+    });
+    brand.appendChild(brand.firstChild);          // the name text after the two marks
+  }
+
   window.addEventListener("DOMContentLoaded", function () {
+    mark();
     var btn = document.getElementById("theme-toggle");
     if (!btn) return;
     label();

@@ -46,7 +46,22 @@ code, .mono {
   color: var(--ink);
   text-decoration: none;
   white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  vertical-align: middle;
 }
+
+/* The site's mark before its name (theme.js adds it): a light and a dark drawing,
+   switched by the same three states as the colours. Same rule on every site. */
+.brand-mark { width: 22px; height: 22px; flex: none; }
+.brand-mark.dk { display: none; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .brand-mark.lt { display: none; }
+  :root:not([data-theme="light"]) .brand-mark.dk { display: block; }
+}
+:root[data-theme="dark"] .brand-mark.lt { display: none; }
+:root[data-theme="dark"] .brand-mark.dk { display: block; }
 
 /* The wordmark is two links, not one: the site name goes to this site's root,
    and "· gaema" goes to gaema.ai. Same shape on viz, so the family reads as a
