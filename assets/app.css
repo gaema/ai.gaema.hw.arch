@@ -42,7 +42,10 @@ code, .mono {
   flex-wrap: wrap;
 }
 
-.brandwrap { white-space: nowrap; }
+/* The wordmark is one flex row, every item centred: the name link holds the mark, and an
+   inline-flex box with an image does not sit on the text baseline, so centring both texts (same
+   size, same line height) is what puts their baselines on one line. The gap is the space. */
+.brandwrap { white-space: nowrap; display: inline-flex; align-items: center; gap: .3em; }
 
 .brand {
   font-weight: 650;
@@ -53,7 +56,6 @@ code, .mono {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  vertical-align: middle;
 }
 
 /* The site's mark before its name (theme.js adds it): a light and a dark drawing,
