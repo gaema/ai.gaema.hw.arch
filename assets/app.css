@@ -602,7 +602,7 @@ dl.spec-grid dd { margin: 2px 0 0; font-weight: 600; }
 #dtypes td.dt-matrix { color: var(--k-matrix-ink); font-weight: 600; }
 #dtypes td.dt-vector,
 #dtypes td.dt-convert { color: var(--ink-dim); font-weight: 400; }
-#dtypes td.dt-none { color: var(--n6); }
+#dtypes td.dt-none { color: var(--n7); }
 
 #dtype-notes { margin-top: 14px; }
 details.dtype-note {
