@@ -70,7 +70,15 @@ data/_dtypes.js       numeric formats each matrix engine takes, and what it
 data/_throughput.js   every published peak rate, with the basis it was quoted
                       at — the one home for the numbers behind both the
                       comparison tables and the bars drawn from them
+robots.txt            open to every crawler, AI crawlers included; names the sitemap
+sitemap.xml, llms.txt written by tools/gen-static.mjs, as is the card list in
+                      index.html that a reader without JavaScript sees
+tools/gen-static.mjs  writes those three from data/index.js; `--check` fails
+                      when any of them is out of date
 ```
+
+After changing `data/` or adding a page, run `node tools/gen-static.mjs` (Node
+22 or later) and commit what it writes. Serving the site needs none of that.
 
 No build step, no dependencies, no bundler — plain ES modules served statically.
 Open `index.html` over any static server (module imports need `http://`, not

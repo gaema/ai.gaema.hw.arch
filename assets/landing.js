@@ -52,6 +52,9 @@ function fail(err) {
 
 loadAll().then((skus) => {
   const cards = document.getElementById("cards");
+  // The HTML ships a plain list of the same cards for readers without
+  // scripting (written by tools/gen-static.mjs); the full cards replace it.
+  cards.replaceChildren();
   for (const s of skus) {
     const a = el("a", "card");
     a.href = pageHref(s);

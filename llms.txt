@@ -1,0 +1,31 @@
+# arch.hw.gaema.ai
+
+> Interactive architecture diagrams of thirteen AI accelerators from AMD, Intel, NVIDIA and Tenstorrent, each drawn to the same structure: a die map showing where every block sits, and a hierarchy that opens from the card down to the unit that does the multiply. Comparison pages set the published throughput, memory bandwidth and numeric formats of every part side by side. Every figure comes from published specifications; no measurements of our own appear here.
+
+## Accelerators
+
+- [AMD Radeon AI PRO R9700](https://arch.hw.gaema.ai/amd/r9700/): AMD's first RDNA 4 professional card: 64 compute units, 128 second-generation AI accelerators, and 32 GB of GDDR6 behind a 64 MB Infinity Cache.
+- [AMD Radeon 610M (gfx1036)](https://arch.hw.gaema.ai/amd/gfx1036/): The two-compute-unit RDNA 2 block inside the Ryzen Raphael / Granite Ridge packages: 128 stream processors, 256 KiB of L2, no matrix engine at all — RDNA 2 predates WMMA, so the closest thing to one is the vector dot4 instruction.
+- [Intel Arc Pro B50](https://arch.hw.gaema.ai/intel/b50/): The small half of the Battlemage professional line: 16 Xe-cores and 16 GB of GDDR6 inside 70 W, on a half-height card with no power connector at all — the same Xe-core as the B70, at half the width.
+- [Intel Arc Pro B70](https://arch.hw.gaema.ai/intel/b70/): The largest discrete Xe2 part: 32 Xe-cores, 256 XMX engines and 32 GB of GDDR6, at 367 INT8 TOPS.
+- [Intel Arc A370M](https://arch.hw.gaema.ai/intel/a370m/): The smallest first-generation Arc: 8 Xe-cores and 4 GB of GDDR6 across a 64-bit bus — the same DPAS matrix path as the bigger Alchemist cards, at an eighth of the memory width.
+- [Intel Arc Graphics 140V](https://arch.hw.gaema.ai/intel/lnl-arc140v/): The Xe2 graphics block inside Lunar Lake: eight Xe2 cores with the same XMX matrix surface as the discrete Battlemage cards, reading the LPDDR5X soldered into the package — memory shared with the CPU, not a frame buffer.
+- [NVIDIA RTX PRO 6000 Blackwell](https://arch.hw.gaema.ai/nvidia/rtx-pro-6000/): The largest shipping GB202: 188 of 192 SMs enabled, 24,064 CUDA cores, 752 fifth-generation Tensor Cores, and 96 GB of GDDR7.
+- [NVIDIA GeForce RTX 5090](https://arch.hw.gaema.ai/nvidia/rtx-5090/): The consumer GB202: 170 of 192 SMs, 21,760 CUDA cores, and 32 GB of GDDR7 on the same 512-bit bus as its workstation sibling.
+- [NVIDIA DGX Spark](https://arch.hw.gaema.ai/nvidia/dgx-spark/): Two 3 nm dies on one package — twenty Arm cores and a 48-SM Blackwell GPU — reading the same 128 GB of LPDDR5X.
+- [Tenstorrent Wormhole n150d](https://arch.hw.gaema.ai/tenstorrent/n150d/): A grid of 72 independent Tensix tiles, each with five RISC-V cores and 1.5 MB of software-managed SRAM — no warp scheduler, no cache hierarchy, and two QSFP-DD ports plus two Warp 100 bridges to bolt cards together.
+- [Tenstorrent Wormhole n300d](https://arch.hw.gaema.ai/tenstorrent/n300d/): Two Wormhole ASICs on one actively cooled board — 128 Tensix tiles and 24 GB of GDDR6 at 300 W — joined by two Ethernet links routed across the PCB, not by a shared NOC.
+- [Tenstorrent Blackhole p150a](https://arch.hw.gaema.ai/tenstorrent/p150a/): A grid of 120 independent Tensix tiles, each with five RISC-V cores and 1.5 MB of software-managed SRAM — no warp scheduler, no cache hierarchy, and four QSFP-DD ports to bolt cards together.
+- [Tenstorrent Blackhole p300c](https://arch.hw.gaema.ai/tenstorrent/p300c/): Two Blackhole ASICs on one liquid-cooled board — 240 Tensix tiles and 64 GB of GDDR6 at 600 W — joined by two Ethernet links routed across the PCB, not by a shared NOC.
+
+## Comparisons
+
+- [Matrix-engine throughput across parts](https://arch.hw.gaema.ai/compare/matrix-throughput/)
+- [Memory bandwidth across parts](https://arch.hw.gaema.ai/compare/memory-bandwidth/)
+- [Vector throughput across parts](https://arch.hw.gaema.ai/compare/vector-throughput/)
+- [block float 8 throughput across parts](https://arch.hw.gaema.ai/formats/bfp8/)
+- [FP16 throughput across parts](https://arch.hw.gaema.ai/formats/fp16/)
+- [FP32 throughput across parts](https://arch.hw.gaema.ai/formats/fp32/)
+- [4-bit float throughput across parts](https://arch.hw.gaema.ai/formats/fp4/)
+- [FP8 throughput across parts](https://arch.hw.gaema.ai/formats/fp8/)
+- [INT8 throughput across parts](https://arch.hw.gaema.ai/formats/int8/)
