@@ -2,12 +2,14 @@
 // registry the pages read, so they cannot drift from the site:
 //
 //   index.html   the card list between the sku-index markers (landing.js
-//                replaces it with the full cards once it runs)
+//                replaces it with the full cards once it runs), and the
+//                site's WebSite JSON-LD between the page-meta markers
 //   sitemap.xml  every page with its own URL; redirect stubs are left out
 //   llms.txt     a short plain-text index of the site
 //   <page>/index.html, for every sitemap page but the home page:
 //                a canonical link (and a description if the shell has none)
-//                between the page-meta markers, and the page's content as
+//                and the page's JSON-LD (TechArticle; a part page's names the
+//                accelerator) between the page-meta markers, and its content as
 //                plain HTML between the page-static markers -- a part's spec
 //                card, or a comparison page's tables. explorer.js and
 //                compare.js remove that block once they have built the page.
@@ -116,7 +118,10 @@ function indexHtml(current) {
   const a = current.indexOf(START);
   const b = current.indexOf(END);
   if (a < 0 || b < a) throw new Error("index.html: sku-index markers not found");
-  return current.slice(0, a) + cardsHtml() + current.slice(b + END.length);
+  const html = current.slice(0, a) + cardsHtml() + current.slice(b + END.length);
+  const metaRegion = `${META_START}\n${ldScript(homeLd())}\n${META_END}`;
+  return splice(html, META_START, META_END, metaRegion,
+    (h) => h.replace(/(\n)(<link rel="stylesheet")/, `$1${metaRegion}\n$2`), "index.html");
 }
 
 // sitemap.xml
@@ -313,20 +318,78 @@ function splice(html, start, end, region, fallback, file) {
   return out;
 }
 
+// ---------------------------------------------------------------------------
+// JSON-LD: a type for every page, so a crawler knows a part page describes one
+// accelerator and a comparison page compares them, and that both belong to one
+// site published by gaema.
+
+const PUBLISHER = { "@type": "Organization", name: "gaema", url: "https://gaema.ai/" };
+const WEBSITE = { "@type": "WebSite", name: "arch.hw.gaema.ai", url: ORIGIN, publisher: PUBLISHER };
+
+// "<" is escaped so no string in the data can close the script element.
+const ldScript = (obj) => `<script type="application/ld+json">`
+  + JSON.stringify({ "@context": "https://schema.org", ...obj }).replace(/</g, "\\u003c")
+  + `</script>`;
+
+const shellDescription = (html) => {
+  const m = /<meta name="description" content="([^"]*)"/.exec(html);
+  return m ? m[1].replace(/&quot;/g, '"').replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&") : "";
+};
+
+function pageLd(page, sku, description) {
+  const base = {
+    "@type": "TechArticle",
+    url: ORIGIN + page.path,
+    description,
+    inLanguage: "en",
+    isAccessibleForFree: true,
+    isPartOf: WEBSITE,
+    publisher: PUBLISHER,
+  };
+  if (!sku) return { ...base, headline: page.title };
+  return {
+    ...base,
+    headline: `${sku.vendor} ${sku.name} architecture`,
+    about: {
+      "@type": "Product",
+      name: `${sku.vendor} ${sku.name}`,
+      brand: { "@type": "Brand", name: sku.vendor },
+      category: "AI accelerator",
+    },
+  };
+}
+
+function homeLd() {
+  return {
+    ...WEBSITE,
+    description: "Interactive architecture diagrams of AI accelerators, each drawn to the same structure.",
+    inLanguage: "en",
+    mainEntity: {
+      "@type": "ItemList",
+      itemListElement: skus.map((s, i) => ({
+        "@type": "ListItem", position: i + 1, name: `${s.vendor} ${s.name}`, url: ORIGIN + pageHref(s),
+      })),
+    },
+  };
+}
+
 function deepPage(page, current) {
   const file = page.path + "index.html";
   const base = "../".repeat(page.path.split("/").filter(Boolean).length);
   const sku = skus.find((s) => pageHref(s) === page.path);
   const block = sku ? skuBlock(sku) : compareBlock(page.path, current, base);
 
-  // Head: canonical, plus a description only when the shell has none of its own.
+  // Head: canonical, plus a description only when the shell has none of its own,
+  // plus the page's JSON-LD.
   const unmarked = current.replace(
     new RegExp(`${META_START}[\\s\\S]*?${META_END}`), "");
   const meta = [`<link rel="canonical" href="${esc(ORIGIN + page.path)}">`];
-  if (!/<meta name="description"/.test(unmarked)) {
+  const ownDescription = shellDescription(unmarked);
+  if (!ownDescription) {
     if (!block.description) throw new Error(`${file}: no description in the shell and none in the registry`);
     meta.push(`<meta name="description" content="${esc(block.description)}">`);
   }
+  meta.push(ldScript(pageLd(page, sku, ownDescription || block.description)));
   const metaRegion = `${META_START}\n${meta.join("\n")}\n${META_END}`;
   let html = splice(current, META_START, META_END, metaRegion,
     (h) => h.replace(/(\n)(<link rel="stylesheet")/, `$1${metaRegion}\n$2`), file);
