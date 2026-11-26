@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>FP8 throughput across parts — arch.hw.gaema.ai</title>
 <meta name="description" content="Published peak 8-bit float throughput across thirteen parts, split into vector and matrix-engine charts, with dense and sparse figures separated and the accumulate format stated.">
+<!-- page-meta:start -->
+<link rel="canonical" href="https://arch.hw.gaema.ai/formats/fp8/">
+<!-- page-meta:end -->
 <link rel="stylesheet" href="../../assets/theme.css">
 <link rel="stylesheet" href="../../assets/app.css">
 <script src="../../assets/theme.js"></script>
@@ -25,13 +28,63 @@
     <p id="page-lede">Vector and matrix-engine throughput for this operand, on the parts whose vendors publish a rate for it.</p>
   </div>
 
+  <!-- page-static:start -->
   <noscript>
-    <p class="load-error"><strong>This page needs JavaScript.</strong>
-    The tables and the bars are both built in the browser from the same data
-    module the rest of the site reads, so with scripting off there is nothing to
-    show. There is no tracking here and no third-party code &mdash; everything is
-    served from this domain.</p>
+    <p class="load-error"><strong>The charts need JavaScript.</strong> The bars are drawn in the browser from the same data module as the tables below, so with scripting off only the tables are shown. There is no tracking here and no third-party code &mdash; everything is served from this domain.</p>
   </noscript>
+  <div class="static-page" id="static-page">
+    <p>Two encodings, E4M3 and E5M2, and the vendors who publish a rate publish one rate for both — AMD names the pair in the row label, Tenstorrent names neither. Both rows of the format table therefore point here, because there is one published number and it belongs to both of them.</p>
+    <section class="block">
+    <h2>Vector throughput — FP8</h2>
+    <p class="lede">No part on this site publishes a FP8 rate for this class.</p>
+    <div class="scroll-x"><table class="matrix">
+      <thead><tr><th>Part</th><th>Vendor</th><th>Operand, as the vendor names it</th><th>Accumulates into</th><th>Basis</th><th>Peak</th><th>Source</th></tr></thead>
+      <tbody>
+        <tr><th>Radeon AI PRO R9700</th><td>AMD</td><td colspan="5">—  no vector rate published</td></tr>
+        <tr><th>Radeon 610M (gfx1036)</th><td>AMD</td><td colspan="5">∅  no hardware path</td></tr>
+        <tr><th>Arc Pro B50</th><td>Intel</td><td colspan="5">—  no vector rate published</td></tr>
+        <tr><th>Arc Pro B70</th><td>Intel</td><td colspan="5">—  no vector rate published</td></tr>
+        <tr><th>Arc A370M</th><td>Intel</td><td colspan="5">∅  no hardware path</td></tr>
+        <tr><th>Arc Graphics 140V</th><td>Intel</td><td colspan="5">—  no vector rate published</td></tr>
+        <tr><th>RTX PRO 6000 Blackwell</th><td>NVIDIA</td><td colspan="5">—  no vector rate published</td></tr>
+        <tr><th>GeForce RTX 5090</th><td>NVIDIA</td><td colspan="5">—  no vector rate published</td></tr>
+        <tr><th>DGX Spark</th><td>NVIDIA</td><td colspan="5">—  no vector rate published</td></tr>
+        <tr><th>Wormhole n150d</th><td>Tenstorrent</td><td colspan="5">—  no vector rate published</td></tr>
+        <tr><th>Wormhole n300d</th><td>Tenstorrent</td><td colspan="5">—  no vector rate published</td></tr>
+        <tr><th>Blackhole p150a</th><td>Tenstorrent</td><td colspan="5">—  no vector rate published</td></tr>
+        <tr><th>Blackhole p300c</th><td>Tenstorrent</td><td colspan="5">—  no vector rate published</td></tr>
+      </tbody>
+    </table></div>
+    </section>
+    <section class="block">
+    <h2>Systolic throughput — FP8</h2>
+    <p class="lede">Peak FP8 rate on the matrix engine. A unit of work here is one multiply-add per cell of the matrix array per clock, on a matrix multiply only.</p>
+    <div class="scroll-x"><table class="matrix">
+      <thead><tr><th>Part</th><th>Vendor</th><th>Operand, as the vendor names it</th><th>Accumulates into</th><th>Basis</th><th>Peak</th><th>Source</th></tr></thead>
+      <tbody>
+        <tr><th>Radeon AI PRO R9700</th><td>AMD</td><td>Peak 8-bit Precision (FP8 Matrix) Performance (E5M2, E4M3)</td><td>FP32</td><td>dense</td><td>383 TFLOPS</td><td><a href="https://www.amd.com/en/products/graphics/workstations/radeon-ai-pro/ai-9000-series/amd-radeon-ai-pro-r9700.html" rel="noopener">AMD — Radeon AI PRO R9700 specifications</a> <small>· vendor-published</small></td></tr>
+        <tr><td colspan="7">AMD quotes 383 TFLOPS for both 8-bit float encodings together. Twice the FP16 matrix quote is 2 × 191 = 382. Twice the unrounded FP16 matrix product is 2 × 64 × 1,024 × 2.92 GHz = 382.73 TFLOPS.</td></tr>
+        <tr><th>Radeon AI PRO R9700</th><td>AMD</td><td>Peak 8-bit Precision (FP8 Matrix) Performance with Structured Sparsity (E5M2, E4M3)</td><td>FP32</td><td>2:4 sparse</td><td>766 TFLOPS</td><td><a href="https://www.amd.com/en/products/graphics/workstations/radeon-ai-pro/ai-9000-series/amd-radeon-ai-pro-r9700.html" rel="noopener">AMD — Radeon AI PRO R9700 specifications</a> <small>· vendor-published</small></td></tr>
+        <tr><td colspan="7">AMD quotes 766 TFLOPS. The dense FP8 quote doubled is 2 × 383 = 766.</td></tr>
+        <tr><th>Radeon 610M (gfx1036)</th><td>AMD</td><td colspan="5">∅  no hardware path</td></tr>
+        <tr><th>Arc Pro B50</th><td>Intel</td><td colspan="5">∅  not a matrix operand — convert</td></tr>
+        <tr><th>Arc Pro B70</th><td>Intel</td><td colspan="5">∅  not a matrix operand — convert</td></tr>
+        <tr><th>Arc A370M</th><td>Intel</td><td colspan="5">∅  no hardware path</td></tr>
+        <tr><th>Arc Graphics 140V</th><td>Intel</td><td colspan="5">∅  not a matrix operand — convert</td></tr>
+        <tr><th>RTX PRO 6000 Blackwell</th><td>NVIDIA</td><td colspan="5">—  matrix operand, no rate published</td></tr>
+        <tr><th>GeForce RTX 5090</th><td>NVIDIA</td><td colspan="5">—  matrix operand, no rate published</td></tr>
+        <tr><th>DGX Spark</th><td>NVIDIA</td><td colspan="5">—  matrix operand, no rate published</td></tr>
+        <tr><th>Wormhole n150d</th><td>Tenstorrent</td><td>FP8 — the encoding is not named</td><td>—</td><td>dense</td><td>262 TFLOPS</td><td><a href="../../tenstorrent/n150d/">on this site</a> <small>· already on this site's page for the part</small></td></tr>
+        <tr><td colspan="7">72 Tensix enabled at the 1 GHz AI clock. Tenstorrent does not publish a per-tile rate, and this figure does not land on a round one.</td></tr>
+        <tr><th>Wormhole n300d</th><td>Tenstorrent</td><td>FP8 — the encoding is not named</td><td>—</td><td>dense</td><td>466 TFLOPS</td><td><a href="../../tenstorrent/n300d/">on this site</a> <small>· already on this site's page for the part</small></td></tr>
+        <tr><td colspan="7">128 Tensix across the card's two ASICs at the 1 GHz AI clock. Whole-card, not per ASIC.</td></tr>
+        <tr><th>Blackhole p150a</th><td>Tenstorrent</td><td colspan="5">∅  not a matrix operand — convert</td></tr>
+        <tr><th>Blackhole p300c</th><td>Tenstorrent</td><td colspan="5">∅  not a matrix operand — convert</td></tr>
+      </tbody>
+    </table></div>
+    </section>
+  </div>
+  <!-- page-static:end -->
 
   <div id="view"></div>
 </main>

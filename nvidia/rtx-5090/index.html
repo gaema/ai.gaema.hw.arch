@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>NVIDIA GeForce RTX 5090 — GPU architecture explorer</title>
 <meta name="description" content="Interactive block diagram of the NVIDIA GeForce RTX 5090: GB202, 170 SMs, 21,760 CUDA cores, 680 Tensor Cores, 32 GB GDDR7.">
+<!-- page-meta:start -->
+<link rel="canonical" href="https://arch.hw.gaema.ai/nvidia/rtx-5090/">
+<!-- page-meta:end -->
 <link rel="stylesheet" href="../../assets/theme.css">
 <link rel="stylesheet" href="../../assets/app.css">
 <script src="../../assets/theme.js"></script>
@@ -23,13 +26,46 @@
   <div class="sku-head" id="sku-head"></div>
   <dl class="spec-grid" id="headline"></dl>
 
+  <!-- page-static:start -->
   <noscript>
-    <p class="load-error"><strong>This site needs JavaScript.</strong>
-    The die map and the hierarchy are both built in the browser from the same
-    data module, so with scripting off this page has nothing to show. There is
-    no tracking here and no third-party code &mdash; everything is served from
-    this domain.</p>
+    <p class="load-error"><strong>The diagrams need JavaScript.</strong> The die map and the hierarchy are built in the browser from the same data module as the spec card below, so with scripting off only the card is shown. There is no tracking here and no third-party code &mdash; everything is served from this domain.</p>
   </noscript>
+  <div class="static-page" id="static-page">
+    <h1>GeForce RTX 5090</h1>
+    <p>NVIDIA · Blackwell · GB202</p>
+    <p>The consumer GB202: 170 of 192 SMs, 21,760 CUDA cores, and 32 GB of GDDR7 on the same 512-bit bus as its workstation sibling.</p>
+    <dl class="spec-grid">
+      <div><dt>Architecture</dt><dd>Blackwell</dd></div>
+      <div><dt>Die</dt><dd>GB202</dd></div>
+      <div><dt>Process node</dt><dd>TSMC 4N</dd></div>
+      <div><dt>Transistors</dt><dd>92.2 B</dd></div>
+      <div><dt>Die area</dt><dd>~750 mm²</dd></div>
+      <div><dt>Execution unit</dt><dd>Streaming Multiprocessor (SM)</dd></div>
+      <div><dt>Units enabled</dt><dd>170 of 192</dd></div>
+      <div><dt>Matrix engines</dt><dd>680 Tensor Cores (5th gen, 4 per SM)</dd></div>
+      <div><dt>On-chip memory</dt><dd>96 MB L2 — of the die's 128 MB</dd></div>
+      <div><dt>Memory</dt><dd>32 GB GDDR7</dd></div>
+      <div><dt>Memory bus</dt><dd>512-bit</dd></div>
+      <div><dt>Memory bandwidth</dt><dd>1,792 GB/s</dd></div>
+      <div><dt>Board power</dt><dd>575 W</dd></div>
+      <div><dt>Cooling</dt><dd>Active — dual flow-through on the Founders Edition</dd></div>
+      <div><dt>Host interface</dt><dd>PCIe 5.0 ×16</dd></div>
+      <div><dt>Scale-out link</dt><dd>None — PCIe only</dd></div>
+    </dl>
+    <h2 class="section-h sub">Blackwell specifics</h2>
+    <dl class="spec-grid">
+      <div><dt>CUDA cores</dt><dd>21,760</dd></div>
+      <div><dt>RT Cores</dt><dd>170 (4th gen)</dd></div>
+      <div><dt>GPCs enabled</dt><dd>11 of 12</dd></div>
+      <div><dt>TPCs enabled</dt><dd>85 of 96</dd></div>
+      <div><dt>Memory controllers</dt><dd>16 × 32-bit</dd></div>
+      <div><dt>Base clock</dt><dd>2.01 GHz</dd></div>
+      <div><dt>Boost clock</dt><dd>2.41 GHz</dd></div>
+    </dl>
+    <p class="note">The GPC array below is drawn as the full 12-GPC GB202. This card enables 170 of the die's 192 SMs; no particular SM here is marked off.</p>
+    <div class="sources"><h2>Sources</h2><ul><li><a href="https://www.nvidia.com/en-us/geforce/graphics-cards/50-series/rtx-5090/" rel="noopener">NVIDIA — GeForce RTX 5090</a></li><li><a href="https://www.techpowerup.com/331657/nvidia-gb202-blackwell-die-exposed-shows-the-massive-24-576-cuda-core-configuration" rel="noopener">TechPowerUp — GB202 die shot: 24,576 CUDA cores at 128 per SM</a></li><li><a href="https://chipsandcheese.com/p/blackwell-nvidias-massive-gpu" rel="noopener">Chips and Cheese — Blackwell: NVIDIA's massive GPU</a></li><li><a href="https://videocardz.com/newz/nvidia-reveals-die-sizes-for-gb200-blackwell-gpus-gb202-is-750mm%C2%B2-features-92-2b-transistors" rel="noopener">VideoCardz — NVIDIA reveals Blackwell die sizes: GB202 is 750 mm², 92.2 B transistors</a></li></ul></div>
+  </div>
+  <!-- page-static:end -->
 
   <section class="diemap" id="diemap"></section>
 

@@ -14,11 +14,16 @@
 //   * an absence the silicon has no path for is drawn differently from an
 //     absence nobody published a number for.
 import { loadAll, pageHref } from "../data/index.js";
-import { ARCH, SKU_ARCH } from "../data/_dtypes.js";
 import {
   FORMATS, FORMAT_ORDER, FIGURES, UNSTATED, BANDWIDTH, BANDWIDTH_UNIT,
   CLASSES, SPARSITY, SRC_CLASS,
 } from "../data/_throughput.js";
+import {
+  fmtNum, accFor, levelFor, gapText, throughputTitle, throughputLede,
+  THROUGHPUT_HEAD, BANDWIDTH_HEAD, UNSTATED_HEAD, BANDWIDTH_LEDE, UNSTATED_LEDE,
+} from "./compare-rows.js";
+
+export { fmtNum };
 
 const el = (tag, cls, text) => {
   const n = document.createElement(tag);
@@ -40,12 +45,6 @@ function fail(err) {
     + (err && err.message ? err.message : String(err))));
   box.append(p);
 }
-
-// Keep a fractional digit below four figures: rounding 104.88 to 105 in the bar
-// while the basis line under it shows the arithmetic that gives 104.88 makes the
-// page disagree with itself.
-export const fmtNum = (v) =>
-  v.toLocaleString("en-US", { maximumFractionDigits: v >= 1000 ? 0 : 2 });
 
 // A source cell. `site` points at the part's own page here, which lists where
 // the figure came from; `vendor` points at the vendor; `derived` shows its
@@ -69,33 +68,6 @@ function srcCell(src, sku) {
     td.append(el("small", "src-cls", " · " + SRC_CLASS.vendor));
   }
   return td;
-}
-
-// What the architecture behind this part accumulates a given operand into.
-// The rate is quoted for the OPERAND; the accumulate is a separate axis and
-// this is where it comes from — never from the figure itself.
-function accFor(skuId, format) {
-  const arch = ARCH[SKU_ARCH[skuId]];
-  if (!arch) return null;
-  const levels = FORMATS[format].rows.map((r) => arch.dtypes[r] || { level: "none" });
-  const matrix = levels.find((d) => d.level === "matrix");
-  if (matrix) return matrix.acc;
-  return null;
-}
-
-// The strongest support level the architecture has for this format, across the
-// rows the format covers. This is what separates "no hardware path" from
-// "supported, rate unpublished".
-function levelFor(skuId, format) {
-  const arch = ARCH[SKU_ARCH[skuId]];
-  if (!arch) return "none";
-  const rank = { none: 0, convert: 1, vector: 2, matrix: 3 };
-  let best = "none";
-  for (const r of FORMATS[format].rows) {
-    const d = arch.dtypes[r] || { level: "none" };
-    if (rank[d.level] > rank[best]) best = d.level;
-  }
-  return best;
 }
 
 // ---------------------------------------------------------------------------
@@ -159,11 +131,8 @@ function throughputBlock(skus, cls, formats, headingPrefix) {
       (b) => figs.some((f) => f.sparsity === b));
 
     const s = section(
-      `${headingPrefix}${CLASSES[cls].label} — ${FORMATS[fk].label}`,
-      figs.length
-        ? `Peak ${FORMATS[fk].label} rate on the ${cls === "vector" ? "general-purpose lanes" : "matrix engine"}. `
-          + `A unit of work here is ${CLASSES[cls].unitWork}.`
-        : `No part on this site publishes a ${FORMATS[fk].label} rate for this class.`);
+      throughputTitle(cls, fk, headingPrefix),
+      throughputLede(cls, fk, figs.length > 0));
 
     // One chart per basis. Never one chart across two.
     for (const b of bases) {
@@ -195,16 +164,7 @@ function throughputBlock(skus, cls, formats, headingPrefix) {
         const tr = el("tr", "is-empty");
         tr.append(el("th", null, sku.name));
         tr.append(el("td", null, sku.vendor));
-        const td = el("td", "gap");
-        if (lvl === "none") {
-          td.textContent = "∅  no hardware path";
-        } else if (cls === "systolic" && lvl !== "matrix") {
-          td.textContent = "∅  not a matrix operand — " + lvl;
-        } else if (cls === "vector") {
-          td.textContent = "—  no vector rate published";
-        } else {
-          td.textContent = "—  matrix operand, no rate published";
-        }
+        const td = el("td", "gap", gapText(cls, lvl));
         td.colSpan = 5;
         tr.append(td);
         trs.push(tr);
@@ -228,10 +188,7 @@ function throughputBlock(skus, cls, formats, headingPrefix) {
         trs.push(nt);
       }
     }
-    s.append(table(
-      ["Part", "Vendor", "Operand, as the vendor names it", "Accumulates into",
-       "Basis", "Peak", "Source"],
-      trs));
+    s.append(table(THROUGHPUT_HEAD, trs));
     out.push(s);
   }
   return out;
@@ -240,17 +197,7 @@ function throughputBlock(skus, cls, formats, headingPrefix) {
 // ---------------------------------------------------------------------------
 function bandwidthView(skus) {
   const byId = new Map(skus.map((s) => [s.id, s]));
-  const s = section(
-    "Memory bandwidth",
-    "Eleven of the thirteen parts publish a GB/s figure, and that rate sets the "
-    + "floor on time per token in a memory-bound decode: every weight is read "
-    + "once per token, so this figure divides into the model size to give the "
-    + "fastest a part can go regardless of its arithmetic. Eight figures are a "
-    + "whole card. Two of these cards are two ASICs and their vendor quotes the "
-    + "figure per ASIC — those bars say so, and are not combined into a card "
-    + "figure the vendor does not claim. One figure is system memory shared with "
-    + "the CPU. The Radeon 610M publishes none, and Arc 140V publishes up to "
-    + "LPDDR5X 8533 MT/s rather than a GB/s, so neither is a bar here.");
+  const s = section("Memory bandwidth", BANDWIDTH_LEDE);
 
   const rows = BANDWIDTH.map((b) => {
     const sku = byId.get(b.sku);
@@ -283,7 +230,7 @@ function bandwidthView(skus) {
     nt.append(ntd);
     trs.push(nt);
   }
-  s.append(table(["Part", "Vendor", "Memory", "Scope", "Peak bandwidth", "Source"], trs));
+  s.append(table(BANDWIDTH_HEAD, trs));
   return [s];
 }
 
@@ -291,12 +238,7 @@ function bandwidthView(skus) {
 function unstatedBlock(skus) {
   if (!UNSTATED.length) return [];
   const byId = new Map(skus.map((s) => [s.id, s]));
-  const s = section(
-    "Quoted with no stated basis",
-    "A vendor headline figure that names no operand format, no accumulate width "
-    + "and no sparsity basis cannot be reconstructed, so it is not drawn as a "
-    + "bar beside figures that can be. It is quoted here instead, with what the "
-    + "vendor does and does not say about it.");
+  const s = section("Quoted with no stated basis", UNSTATED_LEDE);
   const trs = [];
   for (const u of UNSTATED) {
     const sku = byId.get(u.sku);
@@ -312,7 +254,7 @@ function unstatedBlock(skus) {
     nt.append(ntd);
     trs.push(nt);
   }
-  s.append(table(["Part", "As printed", "Figure", "Source"], trs));
+  s.append(table(UNSTATED_HEAD, trs));
   return [s];
 }
 
@@ -366,6 +308,9 @@ loadAll().then((skus) => {
   const format = document.body.dataset.format || "";
   const root = document.getElementById("view");
   if (!root) return;
+  // The HTML ships the same tables as plain markup for readers without
+  // scripting (written by tools/gen-static.mjs); the built view replaces it.
+  document.getElementById("static-page")?.remove();
 
   if (format) {
     const f = FORMATS[format];

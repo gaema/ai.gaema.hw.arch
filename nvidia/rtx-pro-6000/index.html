@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>NVIDIA RTX PRO 6000 Blackwell — GPU architecture explorer</title>
 <meta name="description" content="Interactive block diagram of the NVIDIA RTX PRO 6000 Blackwell: GB202, 188 SMs, 24,064 CUDA cores, 752 Tensor Cores, 96 GB GDDR7.">
+<!-- page-meta:start -->
+<link rel="canonical" href="https://arch.hw.gaema.ai/nvidia/rtx-pro-6000/">
+<!-- page-meta:end -->
 <link rel="stylesheet" href="../../assets/theme.css">
 <link rel="stylesheet" href="../../assets/app.css">
 <script src="../../assets/theme.js"></script>
@@ -23,13 +26,45 @@
   <div class="sku-head" id="sku-head"></div>
   <dl class="spec-grid" id="headline"></dl>
 
+  <!-- page-static:start -->
   <noscript>
-    <p class="load-error"><strong>This site needs JavaScript.</strong>
-    The die map and the hierarchy are both built in the browser from the same
-    data module, so with scripting off this page has nothing to show. There is
-    no tracking here and no third-party code &mdash; everything is served from
-    this domain.</p>
+    <p class="load-error"><strong>The diagrams need JavaScript.</strong> The die map and the hierarchy are built in the browser from the same data module as the spec card below, so with scripting off only the card is shown. There is no tracking here and no third-party code &mdash; everything is served from this domain.</p>
   </noscript>
+  <div class="static-page" id="static-page">
+    <h1>RTX PRO 6000 Blackwell</h1>
+    <p>NVIDIA · Blackwell · GB202</p>
+    <p>The largest shipping GB202: 188 of 192 SMs enabled, 24,064 CUDA cores, 752 fifth-generation Tensor Cores, and 96 GB of GDDR7. This page is the 600 W Workstation Edition — the Max-Q and Server cards are separate products in the same family and their figures are not mixed in here.</p>
+    <dl class="spec-grid">
+      <div><dt>Architecture</dt><dd>Blackwell</dd></div>
+      <div><dt>Die</dt><dd>GB202</dd></div>
+      <div><dt>Process node</dt><dd>TSMC 4N</dd></div>
+      <div><dt>Transistors</dt><dd>92.2 B</dd></div>
+      <div><dt>Die area</dt><dd>~750 mm²</dd></div>
+      <div><dt>Execution unit</dt><dd>Streaming Multiprocessor (SM)</dd></div>
+      <div><dt>Units enabled</dt><dd>188 of 192</dd></div>
+      <div><dt>Matrix engines</dt><dd>752 Tensor Cores (5th gen, 4 per SM)</dd></div>
+      <div><dt>On-chip memory</dt><dd>128 MB L2 — the full GB202 cache</dd></div>
+      <div><dt>Memory</dt><dd>96 GB GDDR7 ECC</dd></div>
+      <div><dt>Memory bus</dt><dd>512-bit</dd></div>
+      <div><dt>Memory bandwidth</dt><dd>1,792 GB/s</dd></div>
+      <div><dt>Board power</dt><dd>600 W</dd></div>
+      <div><dt>Cooling</dt><dd>Active blower — this page is the 600 W Workstation Edition; Max-Q is 300 W and Server Edition is passive</dd></div>
+      <div><dt>Host interface</dt><dd>PCIe 5.0 ×16</dd></div>
+      <div><dt>Scale-out link</dt><dd>None — PCIe only</dd></div>
+    </dl>
+    <h2 class="section-h sub">Blackwell specifics</h2>
+    <dl class="spec-grid">
+      <div><dt>CUDA cores</dt><dd>24,064</dd></div>
+      <div><dt>RT Cores</dt><dd>188 (4th gen)</dd></div>
+      <div><dt>GPCs enabled</dt><dd>12 of 12</dd></div>
+      <div><dt>TPCs enabled</dt><dd>94 of 96</dd></div>
+      <div><dt>Memory controllers</dt><dd>16 × 32-bit</dd></div>
+      <div><dt>FP32</dt><dd>125 TFLOPS</dd></div>
+    </dl>
+    <p class="note">The GPC array below is drawn as the full 12-GPC GB202. This card enables 188 of the die's 192 SMs; no particular SM here is marked off.</p>
+    <div class="sources"><h2>Sources</h2><ul><li><a href="https://www.nvidia.com/en-us/products/workstations/professional-desktop-gpus/rtx-pro-6000/" rel="noopener">NVIDIA — RTX PRO 6000 Blackwell Workstation Edition</a></li><li><a href="https://www.nvidia.com/content/dam/en-zz/Solutions/design-visualization/quadro-product-literature/NVIDIA-RTX-Blackwell-PRO-GPU-Architecture-v1.0.pdf" rel="noopener">NVIDIA — RTX Blackwell PRO GPU architecture whitepaper (PDF)</a></li><li><a href="https://www.tomshardware.com/pc-components/gpus/nvidia-rtx-pro-6000-blackwell-gpu-spotted-with-24-064-cuda-cores-96gb-gddr7-and-600w-11-percent-more-cores-than-rtx-5090" rel="noopener">Tom's Hardware — RTX PRO 6000 Blackwell: 24,064 CUDA cores, 96 GB, 600 W</a></li><li><a href="https://www.techpowerup.com/331657/nvidia-gb202-blackwell-die-exposed-shows-the-massive-24-576-cuda-core-configuration" rel="noopener">TechPowerUp — GB202 die shot: 24,576 CUDA cores at 128 per SM</a></li></ul></div>
+  </div>
+  <!-- page-static:end -->
 
   <section class="diemap" id="diemap"></section>
 

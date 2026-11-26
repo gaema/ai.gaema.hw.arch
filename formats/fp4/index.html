@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>4-bit float throughput across parts — arch.hw.gaema.ai</title>
 <meta name="description" content="Published peak 4-bit float throughput across thirteen parts. Both figures a vendor publishes with a stated basis are 2:4-sparse by the vendor's own footnote, and are charted as such.">
+<!-- page-meta:start -->
+<link rel="canonical" href="https://arch.hw.gaema.ai/formats/fp4/">
+<!-- page-meta:end -->
 <link rel="stylesheet" href="../../assets/theme.css">
 <link rel="stylesheet" href="../../assets/app.css">
 <script src="../../assets/theme.js"></script>
@@ -25,13 +28,60 @@
     <p id="page-lede">Vector and matrix-engine throughput for this operand, on the parts whose vendors publish a rate for it.</p>
   </div>
 
+  <!-- page-static:start -->
   <noscript>
-    <p class="load-error"><strong>This page needs JavaScript.</strong>
-    The tables and the bars are both built in the browser from the same data
-    module the rest of the site reads, so with scripting off there is nothing to
-    show. There is no tracking here and no third-party code &mdash; everything is
-    served from this domain.</p>
+    <p class="load-error"><strong>The charts need JavaScript.</strong> The bars are drawn in the browser from the same data module as the tables below, so with scripting off only the tables are shown. There is no tracking here and no third-party code &mdash; everything is served from this domain.</p>
   </noscript>
+  <div class="static-page" id="static-page">
+    <p>Only one architecture here has a 4-bit FLOAT matrix path, and its published rates are the largest numbers on this site. They are also the most easily misread: both figures NVIDIA publishes with a basis are 2:4-SPARSE, by its own footnote, so the dense chart on this page is empty and the sparse one is not. NVIDIA quotes a single 4-bit-float rate and does not break it out by encoding, so both the FP4 E2M1 and the NVFP4 rows of the format table point here.</p>
+    <section class="block">
+    <h2>Vector throughput — 4-bit float</h2>
+    <p class="lede">No part on this site publishes a 4-bit float rate for this class.</p>
+    <div class="scroll-x"><table class="matrix">
+      <thead><tr><th>Part</th><th>Vendor</th><th>Operand, as the vendor names it</th><th>Accumulates into</th><th>Basis</th><th>Peak</th><th>Source</th></tr></thead>
+      <tbody>
+        <tr><th>Radeon AI PRO R9700</th><td>AMD</td><td colspan="5">∅  no hardware path</td></tr>
+        <tr><th>Radeon 610M (gfx1036)</th><td>AMD</td><td colspan="5">∅  no hardware path</td></tr>
+        <tr><th>Arc Pro B50</th><td>Intel</td><td colspan="5">—  no vector rate published</td></tr>
+        <tr><th>Arc Pro B70</th><td>Intel</td><td colspan="5">—  no vector rate published</td></tr>
+        <tr><th>Arc A370M</th><td>Intel</td><td colspan="5">∅  no hardware path</td></tr>
+        <tr><th>Arc Graphics 140V</th><td>Intel</td><td colspan="5">—  no vector rate published</td></tr>
+        <tr><th>RTX PRO 6000 Blackwell</th><td>NVIDIA</td><td colspan="5">—  no vector rate published</td></tr>
+        <tr><th>GeForce RTX 5090</th><td>NVIDIA</td><td colspan="5">—  no vector rate published</td></tr>
+        <tr><th>DGX Spark</th><td>NVIDIA</td><td colspan="5">—  no vector rate published</td></tr>
+        <tr><th>Wormhole n150d</th><td>Tenstorrent</td><td colspan="5">∅  no hardware path</td></tr>
+        <tr><th>Wormhole n300d</th><td>Tenstorrent</td><td colspan="5">∅  no hardware path</td></tr>
+        <tr><th>Blackhole p150a</th><td>Tenstorrent</td><td colspan="5">∅  no hardware path</td></tr>
+        <tr><th>Blackhole p300c</th><td>Tenstorrent</td><td colspan="5">∅  no hardware path</td></tr>
+      </tbody>
+    </table></div>
+    </section>
+    <section class="block">
+    <h2>Systolic throughput — 4-bit float</h2>
+    <p class="lede">Peak 4-bit float rate on the matrix engine. A unit of work here is one multiply-add per cell of the matrix array per clock, on a matrix multiply only.</p>
+    <div class="scroll-x"><table class="matrix">
+      <thead><tr><th>Part</th><th>Vendor</th><th>Operand, as the vendor names it</th><th>Accumulates into</th><th>Basis</th><th>Peak</th><th>Source</th></tr></thead>
+      <tbody>
+        <tr><th>Radeon AI PRO R9700</th><td>AMD</td><td colspan="5">∅  no hardware path</td></tr>
+        <tr><th>Radeon 610M (gfx1036)</th><td>AMD</td><td colspan="5">∅  no hardware path</td></tr>
+        <tr><th>Arc Pro B50</th><td>Intel</td><td colspan="5">∅  not a matrix operand — convert</td></tr>
+        <tr><th>Arc Pro B70</th><td>Intel</td><td colspan="5">∅  not a matrix operand — convert</td></tr>
+        <tr><th>Arc A370M</th><td>Intel</td><td colspan="5">∅  no hardware path</td></tr>
+        <tr><th>Arc Graphics 140V</th><td>Intel</td><td colspan="5">∅  not a matrix operand — convert</td></tr>
+        <tr><th>RTX PRO 6000 Blackwell</th><td>NVIDIA</td><td>AI Performance — 4000 TOPS, footnoted “Theoretical FP4 TOPS using sparsity”</td><td>FP32</td><td>2:4 sparse</td><td>4,000 TOPS</td><td><a href="https://www.nvidia.com/en-us/products/workstations/professional-desktop-gpus/rtx-pro-6000/" rel="noopener">NVIDIA — RTX PRO 6000 Blackwell Workstation Edition</a> <small>· vendor-published</small></td></tr>
+        <tr><td colspan="7">2:4 sparse, by NVIDIA's own footnote. No clock is published for this part, so the figure names none; the dense rate is not published either.</td></tr>
+        <tr><th>GeForce RTX 5090</th><td>NVIDIA</td><td colspan="5">—  matrix operand, no rate published</td></tr>
+        <tr><th>DGX Spark</th><td>NVIDIA</td><td>Tensor Performance — Up to 1 PFLOP FP4, footnoted “Theoretical FP4 TOPS using the sparsity feature”</td><td>FP32</td><td>2:4 sparse</td><td>1,000 TFLOPS</td><td><a href="https://www.nvidia.com/en-us/products/workstations/dgx-spark/" rel="noopener">NVIDIA — DGX Spark specifications</a> <small>· vendor-published</small></td></tr>
+        <tr><td colspan="7">2:4 sparse, by NVIDIA's own footnote — the headline petaFLOP is not a dense number. No clock is published, and neither is the dense rate.</td></tr>
+        <tr><th>Wormhole n150d</th><td>Tenstorrent</td><td colspan="5">∅  no hardware path</td></tr>
+        <tr><th>Wormhole n300d</th><td>Tenstorrent</td><td colspan="5">∅  no hardware path</td></tr>
+        <tr><th>Blackhole p150a</th><td>Tenstorrent</td><td colspan="5">∅  no hardware path</td></tr>
+        <tr><th>Blackhole p300c</th><td>Tenstorrent</td><td colspan="5">∅  no hardware path</td></tr>
+      </tbody>
+    </table></div>
+    </section>
+  </div>
+  <!-- page-static:end -->
 
   <div id="view"></div>
 </main>

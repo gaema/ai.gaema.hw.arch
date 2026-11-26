@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Matrix-engine throughput across parts — arch.hw.gaema.ai</title>
 <meta name="description" content="Published peak matrix-engine (systolic) throughput for thirteen parts, by operand format, with dense and sparse figures kept on separate charts and every peak's basis stated.">
+<!-- page-meta:start -->
+<link rel="canonical" href="https://arch.hw.gaema.ai/compare/matrix-throughput/">
+<!-- page-meta:end -->
 <link rel="stylesheet" href="../../assets/theme.css">
 <link rel="stylesheet" href="../../assets/app.css">
 <script src="../../assets/theme.js"></script>
@@ -34,13 +37,156 @@
     </p>
   </div>
 
+  <!-- page-static:start -->
   <noscript>
-    <p class="load-error"><strong>This page needs JavaScript.</strong>
-    The tables and the bars are both built in the browser from the same data
-    module the rest of the site reads, so with scripting off there is nothing to
-    show. There is no tracking here and no third-party code &mdash; everything is
-    served from this domain.</p>
+    <p class="load-error"><strong>The charts need JavaScript.</strong> The bars are drawn in the browser from the same data module as the tables below, so with scripting off only the tables are shown. There is no tracking here and no third-party code &mdash; everything is served from this domain.</p>
   </noscript>
+  <div class="static-page" id="static-page">
+    <section class="block">
+    <h2>Systolic throughput — 4-bit float</h2>
+    <p class="lede">Peak 4-bit float rate on the matrix engine. A unit of work here is one multiply-add per cell of the matrix array per clock, on a matrix multiply only.</p>
+    <div class="scroll-x"><table class="matrix">
+      <thead><tr><th>Part</th><th>Vendor</th><th>Operand, as the vendor names it</th><th>Accumulates into</th><th>Basis</th><th>Peak</th><th>Source</th></tr></thead>
+      <tbody>
+        <tr><th>Radeon AI PRO R9700</th><td>AMD</td><td colspan="5">∅  no hardware path</td></tr>
+        <tr><th>Radeon 610M (gfx1036)</th><td>AMD</td><td colspan="5">∅  no hardware path</td></tr>
+        <tr><th>Arc Pro B50</th><td>Intel</td><td colspan="5">∅  not a matrix operand — convert</td></tr>
+        <tr><th>Arc Pro B70</th><td>Intel</td><td colspan="5">∅  not a matrix operand — convert</td></tr>
+        <tr><th>Arc A370M</th><td>Intel</td><td colspan="5">∅  no hardware path</td></tr>
+        <tr><th>Arc Graphics 140V</th><td>Intel</td><td colspan="5">∅  not a matrix operand — convert</td></tr>
+        <tr><th>RTX PRO 6000 Blackwell</th><td>NVIDIA</td><td>AI Performance — 4000 TOPS, footnoted “Theoretical FP4 TOPS using sparsity”</td><td>FP32</td><td>2:4 sparse</td><td>4,000 TOPS</td><td><a href="https://www.nvidia.com/en-us/products/workstations/professional-desktop-gpus/rtx-pro-6000/" rel="noopener">NVIDIA — RTX PRO 6000 Blackwell Workstation Edition</a> <small>· vendor-published</small></td></tr>
+        <tr><td colspan="7">2:4 sparse, by NVIDIA's own footnote. No clock is published for this part, so the figure names none; the dense rate is not published either.</td></tr>
+        <tr><th>GeForce RTX 5090</th><td>NVIDIA</td><td colspan="5">—  matrix operand, no rate published</td></tr>
+        <tr><th>DGX Spark</th><td>NVIDIA</td><td>Tensor Performance — Up to 1 PFLOP FP4, footnoted “Theoretical FP4 TOPS using the sparsity feature”</td><td>FP32</td><td>2:4 sparse</td><td>1,000 TFLOPS</td><td><a href="https://www.nvidia.com/en-us/products/workstations/dgx-spark/" rel="noopener">NVIDIA — DGX Spark specifications</a> <small>· vendor-published</small></td></tr>
+        <tr><td colspan="7">2:4 sparse, by NVIDIA's own footnote — the headline petaFLOP is not a dense number. No clock is published, and neither is the dense rate.</td></tr>
+        <tr><th>Wormhole n150d</th><td>Tenstorrent</td><td colspan="5">∅  no hardware path</td></tr>
+        <tr><th>Wormhole n300d</th><td>Tenstorrent</td><td colspan="5">∅  no hardware path</td></tr>
+        <tr><th>Blackhole p150a</th><td>Tenstorrent</td><td colspan="5">∅  no hardware path</td></tr>
+        <tr><th>Blackhole p300c</th><td>Tenstorrent</td><td colspan="5">∅  no hardware path</td></tr>
+      </tbody>
+    </table></div>
+    </section>
+    <section class="block">
+    <h2>Systolic throughput — block float 8</h2>
+    <p class="lede">Peak block float 8 rate on the matrix engine. A unit of work here is one multiply-add per cell of the matrix array per clock, on a matrix multiply only.</p>
+    <div class="scroll-x"><table class="matrix">
+      <thead><tr><th>Part</th><th>Vendor</th><th>Operand, as the vendor names it</th><th>Accumulates into</th><th>Basis</th><th>Peak</th><th>Source</th></tr></thead>
+      <tbody>
+        <tr><th>Radeon AI PRO R9700</th><td>AMD</td><td colspan="5">∅  no hardware path</td></tr>
+        <tr><th>Radeon 610M (gfx1036)</th><td>AMD</td><td colspan="5">∅  no hardware path</td></tr>
+        <tr><th>Arc Pro B50</th><td>Intel</td><td colspan="5">∅  no hardware path</td></tr>
+        <tr><th>Arc Pro B70</th><td>Intel</td><td colspan="5">∅  no hardware path</td></tr>
+        <tr><th>Arc A370M</th><td>Intel</td><td colspan="5">∅  no hardware path</td></tr>
+        <tr><th>Arc Graphics 140V</th><td>Intel</td><td colspan="5">∅  no hardware path</td></tr>
+        <tr><th>RTX PRO 6000 Blackwell</th><td>NVIDIA</td><td colspan="5">∅  no hardware path</td></tr>
+        <tr><th>GeForce RTX 5090</th><td>NVIDIA</td><td colspan="5">∅  no hardware path</td></tr>
+        <tr><th>DGX Spark</th><td>NVIDIA</td><td colspan="5">∅  no hardware path</td></tr>
+        <tr><th>Wormhole n150d</th><td>Tenstorrent</td><td>BLOCKFP8 — block float</td><td>FP16 / FP32</td><td>dense</td><td>148 TFLOPS</td><td><a href="../../tenstorrent/n150d/">on this site</a> <small>· already on this site's page for the part</small></td></tr>
+        <tr><td colspan="7">Block float, the vendor's BLOCKFP8 row: a shared exponent across a block, distinct from the FP8 figure on the same card. 72 Tensix at the 1 GHz AI clock, which puts it within half a percent of 2,048 FLOP per tile per clock.</td></tr>
+        <tr><th>Wormhole n300d</th><td>Tenstorrent</td><td>BLOCKFP8 — block float</td><td>FP16 / FP32</td><td>dense</td><td>262 TFLOPS</td><td><a href="../../tenstorrent/n300d/">on this site</a> <small>· already on this site's page for the part</small></td></tr>
+        <tr><td colspan="7">Block float, the vendor's BLOCKFP8 row, distinct from the FP8 row on the same card. 128 Tensix across two ASICs at the 1 GHz AI clock. Whole-card.</td></tr>
+        <tr><th>Blackhole p150a</th><td>Tenstorrent</td><td>TeraFLOPS (BLOCKFP8) — 664, block float</td><td>FP16 / FP32</td><td>dense</td><td>664 TFLOPS</td><td><a href="https://tenstorrent.com/hardware/blackhole" rel="noopener">Tenstorrent — Blackhole cards</a> <small>· vendor-published</small></td></tr>
+        <tr><td colspan="7">Block float, the vendor's BLOCKFP8 row, which is the matrix rate published for this card. FP8 is a separate format. 120 Tensix at the 1.35 GHz AI clock, which puts it within a tenth of a percent of 4,096 FLOP per tile per clock.</td></tr>
+        <tr><th>Blackhole p300c</th><td>Tenstorrent</td><td colspan="5">—  matrix operand, no rate published</td></tr>
+      </tbody>
+    </table></div>
+    </section>
+    <section class="block">
+    <h2>Systolic throughput — FP8</h2>
+    <p class="lede">Peak FP8 rate on the matrix engine. A unit of work here is one multiply-add per cell of the matrix array per clock, on a matrix multiply only.</p>
+    <div class="scroll-x"><table class="matrix">
+      <thead><tr><th>Part</th><th>Vendor</th><th>Operand, as the vendor names it</th><th>Accumulates into</th><th>Basis</th><th>Peak</th><th>Source</th></tr></thead>
+      <tbody>
+        <tr><th>Radeon AI PRO R9700</th><td>AMD</td><td>Peak 8-bit Precision (FP8 Matrix) Performance (E5M2, E4M3)</td><td>FP32</td><td>dense</td><td>383 TFLOPS</td><td><a href="https://www.amd.com/en/products/graphics/workstations/radeon-ai-pro/ai-9000-series/amd-radeon-ai-pro-r9700.html" rel="noopener">AMD — Radeon AI PRO R9700 specifications</a> <small>· vendor-published</small></td></tr>
+        <tr><td colspan="7">AMD quotes 383 TFLOPS for both 8-bit float encodings together. Twice the FP16 matrix quote is 2 × 191 = 382. Twice the unrounded FP16 matrix product is 2 × 64 × 1,024 × 2.92 GHz = 382.73 TFLOPS.</td></tr>
+        <tr><th>Radeon AI PRO R9700</th><td>AMD</td><td>Peak 8-bit Precision (FP8 Matrix) Performance with Structured Sparsity (E5M2, E4M3)</td><td>FP32</td><td>2:4 sparse</td><td>766 TFLOPS</td><td><a href="https://www.amd.com/en/products/graphics/workstations/radeon-ai-pro/ai-9000-series/amd-radeon-ai-pro-r9700.html" rel="noopener">AMD — Radeon AI PRO R9700 specifications</a> <small>· vendor-published</small></td></tr>
+        <tr><td colspan="7">AMD quotes 766 TFLOPS. The dense FP8 quote doubled is 2 × 383 = 766.</td></tr>
+        <tr><th>Radeon 610M (gfx1036)</th><td>AMD</td><td colspan="5">∅  no hardware path</td></tr>
+        <tr><th>Arc Pro B50</th><td>Intel</td><td colspan="5">∅  not a matrix operand — convert</td></tr>
+        <tr><th>Arc Pro B70</th><td>Intel</td><td colspan="5">∅  not a matrix operand — convert</td></tr>
+        <tr><th>Arc A370M</th><td>Intel</td><td colspan="5">∅  no hardware path</td></tr>
+        <tr><th>Arc Graphics 140V</th><td>Intel</td><td colspan="5">∅  not a matrix operand — convert</td></tr>
+        <tr><th>RTX PRO 6000 Blackwell</th><td>NVIDIA</td><td colspan="5">—  matrix operand, no rate published</td></tr>
+        <tr><th>GeForce RTX 5090</th><td>NVIDIA</td><td colspan="5">—  matrix operand, no rate published</td></tr>
+        <tr><th>DGX Spark</th><td>NVIDIA</td><td colspan="5">—  matrix operand, no rate published</td></tr>
+        <tr><th>Wormhole n150d</th><td>Tenstorrent</td><td>FP8 — the encoding is not named</td><td>—</td><td>dense</td><td>262 TFLOPS</td><td><a href="../../tenstorrent/n150d/">on this site</a> <small>· already on this site's page for the part</small></td></tr>
+        <tr><td colspan="7">72 Tensix enabled at the 1 GHz AI clock. Tenstorrent does not publish a per-tile rate, and this figure does not land on a round one.</td></tr>
+        <tr><th>Wormhole n300d</th><td>Tenstorrent</td><td>FP8 — the encoding is not named</td><td>—</td><td>dense</td><td>466 TFLOPS</td><td><a href="../../tenstorrent/n300d/">on this site</a> <small>· already on this site's page for the part</small></td></tr>
+        <tr><td colspan="7">128 Tensix across the card's two ASICs at the 1 GHz AI clock. Whole-card, not per ASIC.</td></tr>
+        <tr><th>Blackhole p150a</th><td>Tenstorrent</td><td colspan="5">∅  not a matrix operand — convert</td></tr>
+        <tr><th>Blackhole p300c</th><td>Tenstorrent</td><td colspan="5">∅  not a matrix operand — convert</td></tr>
+      </tbody>
+    </table></div>
+    </section>
+    <section class="block">
+    <h2>Systolic throughput — INT8</h2>
+    <p class="lede">Peak INT8 rate on the matrix engine. A unit of work here is one multiply-add per cell of the matrix array per clock, on a matrix multiply only.</p>
+    <div class="scroll-x"><table class="matrix">
+      <thead><tr><th>Part</th><th>Vendor</th><th>Operand, as the vendor names it</th><th>Accumulates into</th><th>Basis</th><th>Peak</th><th>Source</th></tr></thead>
+      <tbody>
+        <tr><th>Radeon AI PRO R9700</th><td>AMD</td><td>Peak 8-bit Precision (INT8 Matrix) Performance</td><td>INT32</td><td>dense</td><td>383 TOPS</td><td><a href="https://www.amd.com/en/products/graphics/workstations/radeon-ai-pro/ai-9000-series/amd-radeon-ai-pro-r9700.html" rel="noopener">AMD — Radeon AI PRO R9700 specifications</a> <small>· vendor-published</small></td></tr>
+        <tr><td colspan="7">AMD quotes 383 TOPS. 64 × 2,048 × 2.92 GHz = 382.73 TOPS, from 64 compute units and a boost of up to 2,920 MHz on the same page.</td></tr>
+        <tr><th>Radeon AI PRO R9700</th><td>AMD</td><td>Peak 8-bit Precision (INT8 Matrix) Performance with Structured Sparsity</td><td>INT32</td><td>2:4 sparse</td><td>766 TOPS</td><td><a href="https://www.amd.com/en/products/graphics/workstations/radeon-ai-pro/ai-9000-series/amd-radeon-ai-pro-r9700.html" rel="noopener">AMD — Radeon AI PRO R9700 specifications</a> <small>· vendor-published</small></td></tr>
+        <tr><td colspan="7">AMD quotes 766 TOPS. The dense INT8 quote doubled is 2 × 383 = 766.</td></tr>
+        <tr><th>Radeon 610M (gfx1036)</th><td>AMD</td><td colspan="5">∅  not a matrix operand — vector</td></tr>
+        <tr><th>Arc Pro B50</th><td>Intel</td><td>INT8</td><td>INT32</td><td>dense</td><td>170 TOPS</td><td><a href="https://www.intel.com/content/www/us/en/products/sku/242615/intel-arc-pro-b50-graphics/specifications.html" rel="noopener">Intel — Arc Pro B50 specifications (SKU 242615)</a> <small>· vendor-published</small></td></tr>
+        <tr><td colspan="7">Intel prints 170 TOPS at 2,600 MHz max dynamic frequency, with 128 XMX engines. That rate sits within a quarter of a percent of 4,096 ops per Xe-core per clock, the same per-core rate the B70 reconstructs exactly.</td></tr>
+        <tr><th>Arc Pro B70</th><td>Intel</td><td>INT8</td><td>INT32</td><td>dense</td><td>367 TOPS</td><td><a href="https://www.intel.com/content/www/us/en/products/sku/245797/intel-arc-pro-b70-graphics/specifications.html" rel="noopener">Intel — Arc Pro B70 specifications (SKU 245797)</a> <small>· vendor-published</small></td></tr>
+        <tr><td colspan="7">Intel prints 367 TOPS. 32 × 4,096 × 2.8 GHz = 367 TOPS, at the 2,800 MHz max dynamic frequency.</td></tr>
+        <tr><th>Arc A370M</th><td>Intel</td><td colspan="5">—  matrix operand, no rate published</td></tr>
+        <tr><th>Arc Graphics 140V</th><td>Intel</td><td colspan="5">—  matrix operand, no rate published</td></tr>
+        <tr><th>RTX PRO 6000 Blackwell</th><td>NVIDIA</td><td colspan="5">—  matrix operand, no rate published</td></tr>
+        <tr><th>GeForce RTX 5090</th><td>NVIDIA</td><td colspan="5">—  matrix operand, no rate published</td></tr>
+        <tr><th>DGX Spark</th><td>NVIDIA</td><td colspan="5">—  matrix operand, no rate published</td></tr>
+        <tr><th>Wormhole n150d</th><td>Tenstorrent</td><td colspan="5">—  matrix operand, no rate published</td></tr>
+        <tr><th>Wormhole n300d</th><td>Tenstorrent</td><td colspan="5">—  matrix operand, no rate published</td></tr>
+        <tr><th>Blackhole p150a</th><td>Tenstorrent</td><td colspan="5">—  matrix operand, no rate published</td></tr>
+        <tr><th>Blackhole p300c</th><td>Tenstorrent</td><td colspan="5">—  matrix operand, no rate published</td></tr>
+      </tbody>
+    </table></div>
+    </section>
+    <section class="block">
+    <h2>Systolic throughput — FP16</h2>
+    <p class="lede">Peak FP16 rate on the matrix engine. A unit of work here is one multiply-add per cell of the matrix array per clock, on a matrix multiply only.</p>
+    <div class="scroll-x"><table class="matrix">
+      <thead><tr><th>Part</th><th>Vendor</th><th>Operand, as the vendor names it</th><th>Accumulates into</th><th>Basis</th><th>Peak</th><th>Source</th></tr></thead>
+      <tbody>
+        <tr><th>Radeon AI PRO R9700</th><td>AMD</td><td>Peak Half Precision (FP16 Matrix) Performance</td><td>FP16 / FP32</td><td>dense</td><td>191 TFLOPS</td><td><a href="https://www.amd.com/en/products/graphics/workstations/radeon-ai-pro/ai-9000-series/amd-radeon-ai-pro-r9700.html" rel="noopener">AMD — Radeon AI PRO R9700 specifications</a> <small>· vendor-published</small></td></tr>
+        <tr><td colspan="7">AMD quotes 191 TFLOPS. 64 × 1,024 × 2.92 GHz = 191.37 TFLOPS, from 64 compute units and a boost of up to 2,920 MHz on the same page.</td></tr>
+        <tr><th>Radeon AI PRO R9700</th><td>AMD</td><td>Peak Half Precision (FP16 Matrix) Performance with Structured Sparsity</td><td>FP16 / FP32</td><td>2:4 sparse</td><td>383 TFLOPS</td><td><a href="https://www.amd.com/en/products/graphics/workstations/radeon-ai-pro/ai-9000-series/amd-radeon-ai-pro-r9700.html" rel="noopener">AMD — Radeon AI PRO R9700 specifications</a> <small>· vendor-published</small></td></tr>
+        <tr><td colspan="7">AMD quotes 383 TFLOPS. Twice the dense FP16 matrix quote is 2 × 191 = 382. Twice the unrounded dense product is 2 × 64 × 1,024 × 2.92 GHz = 382.73 TFLOPS.</td></tr>
+        <tr><th>Radeon 610M (gfx1036)</th><td>AMD</td><td colspan="5">∅  not a matrix operand — vector</td></tr>
+        <tr><th>Arc Pro B50</th><td>Intel</td><td colspan="5">—  matrix operand, no rate published</td></tr>
+        <tr><th>Arc Pro B70</th><td>Intel</td><td colspan="5">—  matrix operand, no rate published</td></tr>
+        <tr><th>Arc A370M</th><td>Intel</td><td colspan="5">—  matrix operand, no rate published</td></tr>
+        <tr><th>Arc Graphics 140V</th><td>Intel</td><td colspan="5">—  matrix operand, no rate published</td></tr>
+        <tr><th>RTX PRO 6000 Blackwell</th><td>NVIDIA</td><td colspan="5">—  matrix operand, no rate published</td></tr>
+        <tr><th>GeForce RTX 5090</th><td>NVIDIA</td><td colspan="5">—  matrix operand, no rate published</td></tr>
+        <tr><th>DGX Spark</th><td>NVIDIA</td><td colspan="5">—  matrix operand, no rate published</td></tr>
+        <tr><th>Wormhole n150d</th><td>Tenstorrent</td><td>FP16</td><td>FP16 / FP32</td><td>dense</td><td>74 TFLOPS</td><td><a href="../../tenstorrent/n150d/">on this site</a> <small>· already on this site's page for the part</small></td></tr>
+        <tr><td colspan="7">72 Tensix at the 1 GHz AI clock — half the block-float rate on the same engines.</td></tr>
+        <tr><th>Wormhole n300d</th><td>Tenstorrent</td><td>FP16</td><td>FP16 / FP32</td><td>dense</td><td>131 TFLOPS</td><td><a href="../../tenstorrent/n300d/">on this site</a> <small>· already on this site's page for the part</small></td></tr>
+        <tr><td colspan="7">128 Tensix across two ASICs at the 1 GHz AI clock. Whole-card.</td></tr>
+        <tr><th>Blackhole p150a</th><td>Tenstorrent</td><td colspan="5">—  matrix operand, no rate published</td></tr>
+        <tr><th>Blackhole p300c</th><td>Tenstorrent</td><td colspan="5">—  matrix operand, no rate published</td></tr>
+      </tbody>
+    </table></div>
+    </section>
+    <section class="block">
+    <h2>Quoted with no stated basis</h2>
+    <p class="lede">A vendor headline figure that names no operand format, no accumulate width and no sparsity basis cannot be reconstructed, so it is not drawn as a bar beside figures that can be. It is quoted here instead, with what the vendor does and does not say about it.</p>
+    <div class="scroll-x"><table class="matrix">
+      <thead><tr><th>Part</th><th>As printed</th><th>Figure</th><th>Source</th></tr></thead>
+      <tbody>
+        <tr><th>GeForce RTX 5090</th><td>Tensor Cores (AI) — 5th Generation, 3352 AI TOPS</td><td>3,352 AI TOPS</td><td><a href="https://www.nvidia.com/en-us/geforce/graphics-cards/50-series/rtx-5090/" rel="noopener">NVIDIA — GeForce RTX 5090 specifications</a> <small>· vendor-published</small></td></tr>
+        <tr><td colspan="4">NVIDIA's GeForce specification page carries no footnote defining AI TOPS: it names no operand format, no accumulate width and no sparsity basis. The professional part on the same die publishes its comparable figure as “Theoretical FP4 TOPS using sparsity”, but that footnote is on the other page and is not this one's.</td></tr>
+        <tr><th>Arc Graphics 140V</th><td>Xe2 GPU — “delivering more than 60 tera-operations per second (TOPS)”</td><td>60 TOPS (vendor floor)</td><td><a href="https://download.intel.com/newsroom/2024/client-computing/Lunar-Lake-Architecture-Fact-Sheet.pdf" rel="noopener">Intel — Lunar Lake architecture fact sheet (newsroom, June 2024)</a> <small>· vendor-published</small></td></tr>
+        <tr><td colspan="4">Intel's Lunar Lake architecture fact sheet attributes this to the Xe2 GPU of the platform generally, and names no operand format, no accumulate width, no sparsity basis and no clock. It is quoted as a vendor floor (“more than 60”), not drawn as a bar: a figure nobody can reconstruct cannot be compared with one that can.</td></tr>
+      </tbody>
+    </table></div>
+    </section>
+  </div>
+  <!-- page-static:end -->
 
   <div id="view"></div>
 </main>

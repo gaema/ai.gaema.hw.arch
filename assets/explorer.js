@@ -225,6 +225,9 @@ function renderHeadline() {
 const id = document.body.dataset.sku;
 load(id).then((sku) => {
   SKU = sku;
+  // The HTML ships the spec card as plain markup for readers without
+  // scripting (written by tools/gen-static.mjs); the built page replaces it.
+  document.getElementById("static-page")?.remove();
   renderHeadline();
   // The die map hands a hierarchy path back; jumping there scrolls the
   // explorer into view so the click visibly lands somewhere.

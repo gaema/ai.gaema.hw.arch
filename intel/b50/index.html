@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Intel Arc Pro B50 — GPU architecture explorer</title>
 <meta name="description" content="Interactive block diagram of the Intel Arc Pro B50: Xe2 Battlemage, BMG-G21, 16 Xe-cores, 128 XMX engines, 16 GB GDDR6 in 70 W.">
+<!-- page-meta:start -->
+<link rel="canonical" href="https://arch.hw.gaema.ai/intel/b50/">
+<!-- page-meta:end -->
 <link rel="stylesheet" href="../../assets/theme.css">
 <link rel="stylesheet" href="../../assets/app.css">
 <script src="../../assets/theme.js"></script>
@@ -23,13 +26,48 @@
   <div class="sku-head" id="sku-head"></div>
   <dl class="spec-grid" id="headline"></dl>
 
+  <!-- page-static:start -->
   <noscript>
-    <p class="load-error"><strong>This site needs JavaScript.</strong>
-    The die map and the hierarchy are both built in the browser from the same
-    data module, so with scripting off this page has nothing to show. There is
-    no tracking here and no third-party code &mdash; everything is served from
-    this domain.</p>
+    <p class="load-error"><strong>The diagrams need JavaScript.</strong> The die map and the hierarchy are built in the browser from the same data module as the spec card below, so with scripting off only the card is shown. There is no tracking here and no third-party code &mdash; everything is served from this domain.</p>
   </noscript>
+  <div class="static-page" id="static-page">
+    <h1>Arc Pro B50</h1>
+    <p>Intel · Xe2 (Battlemage) · BMG-G21</p>
+    <p>The small half of the Battlemage professional line: 16 Xe-cores and 16 GB of GDDR6 inside 70 W, on a half-height card with no power connector at all — the same Xe-core as the B70, at half the width.</p>
+    <dl class="spec-grid">
+      <div><dt>Architecture</dt><dd>Xe2 “Battlemage”</dd></div>
+      <div><dt>Die</dt><dd>BMG-G21</dd></div>
+      <div><dt>Process node</dt><dd>TSMC N5</dd></div>
+      <div><dt>Transistors</dt><dd>19.6 B</dd></div>
+      <div><dt>Die area</dt><dd>272 mm²</dd></div>
+      <div><dt>Execution unit</dt><dd>Xe-core</dd></div>
+      <div><dt>Units enabled</dt><dd>16 of 20 on the die</dd></div>
+      <div><dt>Matrix engines</dt><dd>128 XMX engines (8 per Xe-core)</dd></div>
+      <div><dt>On-chip memory</dt><dd>18 MiB L2</dd></div>
+      <div><dt>Memory</dt><dd>16 GB GDDR6</dd></div>
+      <div><dt>Memory bus</dt><dd>128-bit</dd></div>
+      <div><dt>Memory bandwidth</dt><dd>224 GB/s</dd></div>
+      <div><dt>Board power</dt><dd>70 W — no power connector required</dd></div>
+      <div><dt>Cooling</dt><dd>Active — single blower, dual slot, half height and half length</dd></div>
+      <div><dt>Host interface</dt><dd>PCIe 5.0 ×16 mechanical, ×8 electrical</dd></div>
+      <div><dt>Scale-out link</dt><dd>None — PCIe only</dd></div>
+    </dl>
+    <h2 class="section-h sub">Xe2 (Battlemage) specifics</h2>
+    <dl class="spec-grid">
+      <div><dt>Render slices</dt><dd>5 on the die</dd></div>
+      <div><dt>Graphics clock</dt><dd>1,700 MHz</dd></div>
+      <div><dt>Vector engines</dt><dd>128 (8 per Xe-core)</dd></div>
+      <div><dt>Ray tracing units</dt><dd>16</dd></div>
+      <div><dt>Max dynamic frequency</dt><dd>2,600 MHz</dd></div>
+      <div><dt>FP32</dt><dd>10.65 TFLOPS</dd></div>
+      <div><dt>INT8</dt><dd>170 TOPS</dd></div>
+      <div><dt>Media</dt><dd>AV1, HEVC, H.264, VP9 — full encode and decode</dd></div>
+      <div><dt>Outputs</dt><dd>4 × mini-DisplayPort 2.1</dd></div>
+      <div><dt>Dimensions</dt><dd>168 × 69 mm, dual slot</dd></div>
+    </dl>
+    <div class="sources"><h2>Sources</h2><ul><li><a href="https://download.intel.com/newsroom/2025/client-computing/Intel-Arc-Pro-B50-Data-Sheet.pdf" rel="noopener">Intel — Arc Pro B50 GPU data sheet (PDF)</a></li><li><a href="https://www.intel.com/content/www/us/en/products/sku/242615/intel-arc-pro-b50-graphics/specifications.html" rel="noopener">Intel — Arc Pro B50 product specifications</a></li><li><a href="https://www.storagereview.com/review/intel-arc-pro-b50-gpu-review-an-affordable-low-power-workstation-gpu" rel="noopener">StorageReview — Arc Pro B50 review</a></li><li><a href="https://www.pugetsystems.com/labs/articles/intel-arc-pro-b50-review/" rel="noopener">Puget Systems — Arc Pro B50 review</a></li><li><a href="https://chipsandcheese.com/p/intels-battlemage-architecture" rel="noopener">Chips and Cheese — Intel's Battlemage architecture</a></li></ul></div>
+  </div>
+  <!-- page-static:end -->
 
   <section class="diemap" id="diemap"></section>
 

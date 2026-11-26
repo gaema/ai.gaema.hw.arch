@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Vector throughput across parts — arch.hw.gaema.ai</title>
 <meta name="description" content="Published peak vector (general-purpose lane) throughput for thirteen parts, with each peak's lane count and clock stated so a reader can reconstruct it.">
+<!-- page-meta:start -->
+<link rel="canonical" href="https://arch.hw.gaema.ai/compare/vector-throughput/">
+<!-- page-meta:end -->
 <link rel="stylesheet" href="../../assets/theme.css">
 <link rel="stylesheet" href="../../assets/app.css">
 <script src="../../assets/theme.js"></script>
@@ -32,13 +35,64 @@
     </p>
   </div>
 
+  <!-- page-static:start -->
   <noscript>
-    <p class="load-error"><strong>This page needs JavaScript.</strong>
-    The tables and the bars are both built in the browser from the same data
-    module the rest of the site reads, so with scripting off there is nothing to
-    show. There is no tracking here and no third-party code &mdash; everything is
-    served from this domain.</p>
+    <p class="load-error"><strong>The charts need JavaScript.</strong> The bars are drawn in the browser from the same data module as the tables below, so with scripting off only the tables are shown. There is no tracking here and no third-party code &mdash; everything is served from this domain.</p>
   </noscript>
+  <div class="static-page" id="static-page">
+    <section class="block">
+    <h2>Vector throughput — FP16</h2>
+    <p class="lede">Peak FP16 rate on the general-purpose lanes. A unit of work here is one multiply-add per lane per clock, on any shape of problem.</p>
+    <div class="scroll-x"><table class="matrix">
+      <thead><tr><th>Part</th><th>Vendor</th><th>Operand, as the vendor names it</th><th>Accumulates into</th><th>Basis</th><th>Peak</th><th>Source</th></tr></thead>
+      <tbody>
+        <tr><th>Radeon AI PRO R9700</th><td>AMD</td><td>Peak Half Precision (FP16 Vector) Performance</td><td>FP16 / FP32</td><td>dense</td><td>47.8 TFLOPS</td><td><a href="https://www.amd.com/en/products/graphics/workstations/radeon-ai-pro/ai-9000-series/amd-radeon-ai-pro-r9700.html" rel="noopener">AMD — Radeon AI PRO R9700 specifications</a> <small>· vendor-published</small></td></tr>
+        <tr><td colspan="7">AMD prints 47.8 TFLOPS for the FP16 vector rate, the same figure as the FP32 vector rate on this page.</td></tr>
+        <tr><th>Radeon 610M (gfx1036)</th><td>AMD</td><td colspan="5">—  no vector rate published</td></tr>
+        <tr><th>Arc Pro B50</th><td>Intel</td><td colspan="5">—  no vector rate published</td></tr>
+        <tr><th>Arc Pro B70</th><td>Intel</td><td colspan="5">—  no vector rate published</td></tr>
+        <tr><th>Arc A370M</th><td>Intel</td><td colspan="5">—  no vector rate published</td></tr>
+        <tr><th>Arc Graphics 140V</th><td>Intel</td><td colspan="5">—  no vector rate published</td></tr>
+        <tr><th>RTX PRO 6000 Blackwell</th><td>NVIDIA</td><td colspan="5">—  no vector rate published</td></tr>
+        <tr><th>GeForce RTX 5090</th><td>NVIDIA</td><td colspan="5">—  no vector rate published</td></tr>
+        <tr><th>DGX Spark</th><td>NVIDIA</td><td colspan="5">—  no vector rate published</td></tr>
+        <tr><th>Wormhole n150d</th><td>Tenstorrent</td><td colspan="5">—  no vector rate published</td></tr>
+        <tr><th>Wormhole n300d</th><td>Tenstorrent</td><td colspan="5">—  no vector rate published</td></tr>
+        <tr><th>Blackhole p150a</th><td>Tenstorrent</td><td colspan="5">—  no vector rate published</td></tr>
+        <tr><th>Blackhole p300c</th><td>Tenstorrent</td><td colspan="5">—  no vector rate published</td></tr>
+      </tbody>
+    </table></div>
+    </section>
+    <section class="block">
+    <h2>Vector throughput — FP32</h2>
+    <p class="lede">Peak FP32 rate on the general-purpose lanes. A unit of work here is one multiply-add per lane per clock, on any shape of problem.</p>
+    <div class="scroll-x"><table class="matrix">
+      <thead><tr><th>Part</th><th>Vendor</th><th>Operand, as the vendor names it</th><th>Accumulates into</th><th>Basis</th><th>Peak</th><th>Source</th></tr></thead>
+      <tbody>
+        <tr><th>Radeon AI PRO R9700</th><td>AMD</td><td>Peak Single Precision (FP32 Vector) Performance</td><td>vector lanes</td><td>dense</td><td>47.8 TFLOPS</td><td><a href="https://www.amd.com/en/products/graphics/workstations/radeon-ai-pro/ai-9000-series/amd-radeon-ai-pro-r9700.html" rel="noopener">AMD — Radeon AI PRO R9700 specifications</a> <small>· vendor-published</small></td></tr>
+        <tr><td colspan="7">AMD quotes 47.8 TFLOPS. 4,096 × 2 × 2 × 2.92 GHz = 47.84 TFLOPS, from 4,096 stream processors, dual-issue, and a boost of up to 2,920 MHz on the same page.</td></tr>
+        <tr><th>Radeon 610M (gfx1036)</th><td>AMD</td><td colspan="5">—  no vector rate published</td></tr>
+        <tr><th>Arc Pro B50</th><td>Intel</td><td>FP32</td><td>vector lanes</td><td>dense</td><td>10.65 TFLOPS</td><td><a href="https://www.intel.com/content/www/us/en/products/sku/242615/intel-arc-pro-b50-graphics/specifications.html" rel="noopener">Intel — Arc Pro B50 specifications (SKU 242615)</a> <small>· vendor-published</small></td></tr>
+        <tr><td colspan="7">Intel prints 10.65 TFLOPS at a graphics max dynamic frequency of 2,600 MHz. 16 × 256 × 2.6 GHz = 10.65 TFLOPS.</td></tr>
+        <tr><th>Arc Pro B70</th><td>Intel</td><td>FP32</td><td>vector lanes</td><td>dense</td><td>22.94 TFLOPS</td><td><a href="https://www.intel.com/content/www/us/en/products/sku/245797/intel-arc-pro-b70-graphics/specifications.html" rel="noopener">Intel — Arc Pro B70 specifications (SKU 245797)</a> <small>· vendor-published</small></td></tr>
+        <tr><td colspan="7">Intel prints 22.94 TFLOPS at a graphics max dynamic frequency of 2,800 MHz. 32 × 256 × 2.8 GHz = 22.94 TFLOPS. The graphics clock on the same page is 2,280 MHz and is not this peak.</td></tr>
+        <tr><th>Arc A370M</th><td>Intel</td><td colspan="5">—  no vector rate published</td></tr>
+        <tr><th>Arc Graphics 140V</th><td>Intel</td><td colspan="5">—  no vector rate published</td></tr>
+        <tr><th>RTX PRO 6000 Blackwell</th><td>NVIDIA</td><td>Single-Precision Performance — 125 TFLOPS</td><td>vector lanes</td><td>dense</td><td>125 TFLOPS</td><td><a href="https://www.nvidia.com/en-us/products/workstations/professional-desktop-gpus/rtx-pro-6000/" rel="noopener">NVIDIA — RTX PRO 6000 Blackwell Workstation Edition</a> <small>· vendor-published</small></td></tr>
+        <tr><td colspan="7">NVIDIA publishes no boost clock for this part on the specification page, so the figure names no clock.</td></tr>
+        <tr><th>GeForce RTX 5090</th><td>NVIDIA</td><td>FP32</td><td>vector lanes</td><td>dense</td><td>104.88 TFLOPS</td><td><a href="https://www.nvidia.com/en-us/geforce/graphics-cards/50-series/rtx-5090/" rel="noopener">NVIDIA — GeForce RTX 5090 specifications</a> <small>· 21,760 × 2 × 2.41 GHz = 104.88 TFLOPS — derived from vendor figures, arithmetic shown</small></td></tr>
+        <tr><td colspan="7">21,760 × 2 × 2.41 GHz = 104.88 TFLOPS. NVIDIA prints 21,760 CUDA cores and a 2.41 GHz boost on the specification page and does not print an FP32 rate, so the bar is this product.</td></tr>
+        <tr><th>DGX Spark</th><td>NVIDIA</td><td>FP32</td><td>vector lanes</td><td>dense</td><td>31 TFLOPS</td><td><a href="../../nvidia/dgx-spark/">on this site</a> <small>· already on this site's page for the part</small></td></tr>
+        <tr><td colspan="7">No GPU clock is published for GB10, so the figure names none.</td></tr>
+        <tr><th>Wormhole n150d</th><td>Tenstorrent</td><td colspan="5">—  no vector rate published</td></tr>
+        <tr><th>Wormhole n300d</th><td>Tenstorrent</td><td colspan="5">—  no vector rate published</td></tr>
+        <tr><th>Blackhole p150a</th><td>Tenstorrent</td><td colspan="5">—  no vector rate published</td></tr>
+        <tr><th>Blackhole p300c</th><td>Tenstorrent</td><td colspan="5">—  no vector rate published</td></tr>
+      </tbody>
+    </table></div>
+    </section>
+  </div>
+  <!-- page-static:end -->
 
   <div id="view"></div>
 </main>

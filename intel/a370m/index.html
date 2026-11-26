@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Intel Arc A370M — GPU architecture explorer</title>
 <meta name="description" content="Interactive block diagram of the Intel Arc A370M: Xe-HPG Alchemist DG2-128, 8 Xe-cores, 64 DPAS matrix engines, 4 GB GDDR6 at 112 GB/s.">
+<!-- page-meta:start -->
+<link rel="canonical" href="https://arch.hw.gaema.ai/intel/a370m/">
+<!-- page-meta:end -->
 <link rel="stylesheet" href="../../assets/theme.css">
 <link rel="stylesheet" href="../../assets/app.css">
 <script src="../../assets/theme.js"></script>
@@ -23,13 +26,44 @@
   <div class="sku-head" id="sku-head"></div>
   <dl class="spec-grid" id="headline"></dl>
 
+  <!-- page-static:start -->
   <noscript>
-    <p class="load-error"><strong>This site needs JavaScript.</strong>
-    The die map and the hierarchy are both built in the browser from the same
-    data module, so with scripting off this page has nothing to show. There is
-    no tracking here and no third-party code &mdash; everything is served from
-    this domain.</p>
+    <p class="load-error"><strong>The diagrams need JavaScript.</strong> The die map and the hierarchy are built in the browser from the same data module as the spec card below, so with scripting off only the card is shown. There is no tracking here and no third-party code &mdash; everything is served from this domain.</p>
   </noscript>
+  <div class="static-page" id="static-page">
+    <h1>Arc A370M</h1>
+    <p>Intel · Xe-HPG (Alchemist) · DG2-128</p>
+    <p>The smallest first-generation Arc: 8 Xe-cores and 4 GB of GDDR6 across a 64-bit bus — the same DPAS matrix path as the bigger Alchemist cards, at an eighth of the memory width.</p>
+    <dl class="spec-grid">
+      <div><dt>Architecture</dt><dd>Xe-HPG (Alchemist)</dd></div>
+      <div><dt>Die</dt><dd>DG2-128 (ACM-G11)</dd></div>
+      <div><dt>Process node</dt><dd>—</dd></div>
+      <div><dt>Transistors</dt><dd>—</dd></div>
+      <div><dt>Die area</dt><dd>—</dd></div>
+      <div><dt>Execution unit</dt><dd>Xe-core (16 EUs)</dd></div>
+      <div><dt>Units enabled</dt><dd>8 Xe-cores / 128 execution units</dd></div>
+      <div><dt>Matrix engines</dt><dd>64 matrix engines (8 per Xe-core), DPAS path</dd></div>
+      <div><dt>On-chip memory</dt><dd>192 KB L1/SLM per Xe-core · L2 not published</dd></div>
+      <div><dt>Memory</dt><dd>4 GB GDDR6</dd></div>
+      <div><dt>Memory bus</dt><dd>64-bit</dd></div>
+      <div><dt>Memory bandwidth</dt><dd>112 GB/s</dd></div>
+      <div><dt>Board power</dt><dd>35–50 W TGP (platform-defined)</dd></div>
+      <div><dt>Cooling</dt><dd>— (cooled by the laptop design)</dd></div>
+      <div><dt>Host interface</dt><dd>PCIe 4.0 ×8</dd></div>
+      <div><dt>Scale-out link</dt><dd>None — PCIe only</dd></div>
+    </dl>
+    <h2 class="section-h sub">Xe-HPG (Alchemist) specifics</h2>
+    <dl class="spec-grid">
+      <div><dt>Execution units</dt><dd>128 (8 Xe-cores × 16 units each)</dd></div>
+      <div><dt>Sub-group (DPAS)</dt><dd>SIMD8 — matrix ops require sub-group size 8 on this generation</dd></div>
+      <div><dt>Graphics clock</dt><dd>up to 1,550 MHz (published maximum)</dd></div>
+      <div><dt>Memory speed</dt><dd>14 Gbps</dd></div>
+      <div><dt>Host link bandwidth</dt><dd>~16 GB/s per direction (PCIe 4.0 ×8 nominal)</dd></div>
+      <div><dt>Launch price</dt><dd>—</dd></div>
+    </dl>
+    <div class="sources"><h2>Sources</h2><ul><li><a href="https://www.intel.com/content/www/us/en/products/sku/228342/specifications.html" rel="noopener">Intel — Arc A370M product specifications (SKU 228342)</a></li><li><a href="https://registry.khronos.org/OpenCL/extensions/intel/cl_intel_subgroup_matrix_multiply_accumulate.html" rel="noopener">Khronos — cl_intel_subgroup_matrix_multiply_accumulate (the DPAS instruction surface)</a></li></ul></div>
+  </div>
+  <!-- page-static:end -->
 
   <section class="diemap" id="diemap"></section>
 

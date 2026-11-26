@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>block float 8 throughput across parts — arch.hw.gaema.ai</title>
 <meta name="description" content="Published peak block-float-8 throughput across thirteen parts. BFP means block float, the format Tenstorrent prints as BLOCKFP8, which is a different format from FP8. Three architectures have no hardware path for it at all, which is a different empty cell from an unpublished rate.">
+<!-- page-meta:start -->
+<link rel="canonical" href="https://arch.hw.gaema.ai/formats/bfp8/">
+<!-- page-meta:end -->
 <link rel="stylesheet" href="../../assets/theme.css">
 <link rel="stylesheet" href="../../assets/app.css">
 <script src="../../assets/theme.js"></script>
@@ -25,13 +28,61 @@
     <p id="page-lede">Vector and matrix-engine throughput for this operand, on the parts whose vendors publish a rate for it.</p>
   </div>
 
+  <!-- page-static:start -->
   <noscript>
-    <p class="load-error"><strong>This page needs JavaScript.</strong>
-    The tables and the bars are both built in the browser from the same data
-    module the rest of the site reads, so with scripting off there is nothing to
-    show. There is no tracking here and no third-party code &mdash; everything is
-    served from this domain.</p>
+    <p class="load-error"><strong>The charts need JavaScript.</strong> The bars are drawn in the browser from the same data module as the tables below, so with scripting off only the tables are shown. There is no tracking here and no third-party code &mdash; everything is served from this domain.</p>
   </noscript>
+  <div class="static-page" id="static-page">
+    <p>Block float, abbreviated BFP. A block of values shares one exponent, and Tenstorrent prints the 8-bit form as BLOCKFP8. It is a different format from FP8, which has its own page. It is also the only format on this site where the empty cells mean something stronger than “unpublished”. Of the five architectures that own a matrix engine, only Tensix takes it, so this page compares three Tenstorrent cards against the rest of the parts' genuine absences rather than three unknowns.</p>
+    <section class="block">
+    <h2>Vector throughput — block float 8</h2>
+    <p class="lede">No part on this site publishes a block float 8 rate for this class.</p>
+    <div class="scroll-x"><table class="matrix">
+      <thead><tr><th>Part</th><th>Vendor</th><th>Operand, as the vendor names it</th><th>Accumulates into</th><th>Basis</th><th>Peak</th><th>Source</th></tr></thead>
+      <tbody>
+        <tr><th>Radeon AI PRO R9700</th><td>AMD</td><td colspan="5">∅  no hardware path</td></tr>
+        <tr><th>Radeon 610M (gfx1036)</th><td>AMD</td><td colspan="5">∅  no hardware path</td></tr>
+        <tr><th>Arc Pro B50</th><td>Intel</td><td colspan="5">∅  no hardware path</td></tr>
+        <tr><th>Arc Pro B70</th><td>Intel</td><td colspan="5">∅  no hardware path</td></tr>
+        <tr><th>Arc A370M</th><td>Intel</td><td colspan="5">∅  no hardware path</td></tr>
+        <tr><th>Arc Graphics 140V</th><td>Intel</td><td colspan="5">∅  no hardware path</td></tr>
+        <tr><th>RTX PRO 6000 Blackwell</th><td>NVIDIA</td><td colspan="5">∅  no hardware path</td></tr>
+        <tr><th>GeForce RTX 5090</th><td>NVIDIA</td><td colspan="5">∅  no hardware path</td></tr>
+        <tr><th>DGX Spark</th><td>NVIDIA</td><td colspan="5">∅  no hardware path</td></tr>
+        <tr><th>Wormhole n150d</th><td>Tenstorrent</td><td colspan="5">—  no vector rate published</td></tr>
+        <tr><th>Wormhole n300d</th><td>Tenstorrent</td><td colspan="5">—  no vector rate published</td></tr>
+        <tr><th>Blackhole p150a</th><td>Tenstorrent</td><td colspan="5">—  no vector rate published</td></tr>
+        <tr><th>Blackhole p300c</th><td>Tenstorrent</td><td colspan="5">—  no vector rate published</td></tr>
+      </tbody>
+    </table></div>
+    </section>
+    <section class="block">
+    <h2>Systolic throughput — block float 8</h2>
+    <p class="lede">Peak block float 8 rate on the matrix engine. A unit of work here is one multiply-add per cell of the matrix array per clock, on a matrix multiply only.</p>
+    <div class="scroll-x"><table class="matrix">
+      <thead><tr><th>Part</th><th>Vendor</th><th>Operand, as the vendor names it</th><th>Accumulates into</th><th>Basis</th><th>Peak</th><th>Source</th></tr></thead>
+      <tbody>
+        <tr><th>Radeon AI PRO R9700</th><td>AMD</td><td colspan="5">∅  no hardware path</td></tr>
+        <tr><th>Radeon 610M (gfx1036)</th><td>AMD</td><td colspan="5">∅  no hardware path</td></tr>
+        <tr><th>Arc Pro B50</th><td>Intel</td><td colspan="5">∅  no hardware path</td></tr>
+        <tr><th>Arc Pro B70</th><td>Intel</td><td colspan="5">∅  no hardware path</td></tr>
+        <tr><th>Arc A370M</th><td>Intel</td><td colspan="5">∅  no hardware path</td></tr>
+        <tr><th>Arc Graphics 140V</th><td>Intel</td><td colspan="5">∅  no hardware path</td></tr>
+        <tr><th>RTX PRO 6000 Blackwell</th><td>NVIDIA</td><td colspan="5">∅  no hardware path</td></tr>
+        <tr><th>GeForce RTX 5090</th><td>NVIDIA</td><td colspan="5">∅  no hardware path</td></tr>
+        <tr><th>DGX Spark</th><td>NVIDIA</td><td colspan="5">∅  no hardware path</td></tr>
+        <tr><th>Wormhole n150d</th><td>Tenstorrent</td><td>BLOCKFP8 — block float</td><td>FP16 / FP32</td><td>dense</td><td>148 TFLOPS</td><td><a href="../../tenstorrent/n150d/">on this site</a> <small>· already on this site's page for the part</small></td></tr>
+        <tr><td colspan="7">Block float, the vendor's BLOCKFP8 row: a shared exponent across a block, distinct from the FP8 figure on the same card. 72 Tensix at the 1 GHz AI clock, which puts it within half a percent of 2,048 FLOP per tile per clock.</td></tr>
+        <tr><th>Wormhole n300d</th><td>Tenstorrent</td><td>BLOCKFP8 — block float</td><td>FP16 / FP32</td><td>dense</td><td>262 TFLOPS</td><td><a href="../../tenstorrent/n300d/">on this site</a> <small>· already on this site's page for the part</small></td></tr>
+        <tr><td colspan="7">Block float, the vendor's BLOCKFP8 row, distinct from the FP8 row on the same card. 128 Tensix across two ASICs at the 1 GHz AI clock. Whole-card.</td></tr>
+        <tr><th>Blackhole p150a</th><td>Tenstorrent</td><td>TeraFLOPS (BLOCKFP8) — 664, block float</td><td>FP16 / FP32</td><td>dense</td><td>664 TFLOPS</td><td><a href="https://tenstorrent.com/hardware/blackhole" rel="noopener">Tenstorrent — Blackhole cards</a> <small>· vendor-published</small></td></tr>
+        <tr><td colspan="7">Block float, the vendor's BLOCKFP8 row, which is the matrix rate published for this card. FP8 is a separate format. 120 Tensix at the 1.35 GHz AI clock, which puts it within a tenth of a percent of 4,096 FLOP per tile per clock.</td></tr>
+        <tr><th>Blackhole p300c</th><td>Tenstorrent</td><td colspan="5">—  matrix operand, no rate published</td></tr>
+      </tbody>
+    </table></div>
+    </section>
+  </div>
+  <!-- page-static:end -->
 
   <div id="view"></div>
 </main>

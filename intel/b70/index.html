@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Intel Arc Pro B70 — GPU architecture explorer</title>
 <meta name="description" content="Interactive block diagram of the Intel Arc Pro B70: Xe2 Battlemage, 32 Xe-cores, 256 XMX engines, 32 GB GDDR6.">
+<!-- page-meta:start -->
+<link rel="canonical" href="https://arch.hw.gaema.ai/intel/b70/">
+<!-- page-meta:end -->
 <link rel="stylesheet" href="../../assets/theme.css">
 <link rel="stylesheet" href="../../assets/app.css">
 <script src="../../assets/theme.js"></script>
@@ -23,13 +26,47 @@
   <div class="sku-head" id="sku-head"></div>
   <dl class="spec-grid" id="headline"></dl>
 
+  <!-- page-static:start -->
   <noscript>
-    <p class="load-error"><strong>This site needs JavaScript.</strong>
-    The die map and the hierarchy are both built in the browser from the same
-    data module, so with scripting off this page has nothing to show. There is
-    no tracking here and no third-party code &mdash; everything is served from
-    this domain.</p>
+    <p class="load-error"><strong>The diagrams need JavaScript.</strong> The die map and the hierarchy are built in the browser from the same data module as the spec card below, so with scripting off only the card is shown. There is no tracking here and no third-party code &mdash; everything is served from this domain.</p>
   </noscript>
+  <div class="static-page" id="static-page">
+    <h1>Arc Pro B70</h1>
+    <p>Intel · Xe2 (Battlemage) · BMG-G31</p>
+    <p>The largest discrete Xe2 part: 32 Xe-cores, 256 XMX engines and 32 GB of GDDR6, at 367 INT8 TOPS.</p>
+    <dl class="spec-grid">
+      <div><dt>Architecture</dt><dd>Xe2 “Battlemage”</dd></div>
+      <div><dt>Die</dt><dd>BMG-G31</dd></div>
+      <div><dt>Process node</dt><dd>TSMC N5</dd></div>
+      <div><dt>Transistors</dt><dd>27.7 B</dd></div>
+      <div><dt>Die area</dt><dd>368 mm²</dd></div>
+      <div><dt>Execution unit</dt><dd>Xe-core</dd></div>
+      <div><dt>Units enabled</dt><dd>32 of 32 — full die</dd></div>
+      <div><dt>Matrix engines</dt><dd>256 XMX engines (8 per Xe-core)</dd></div>
+      <div><dt>On-chip memory</dt><dd>24 MiB L2</dd></div>
+      <div><dt>Memory</dt><dd>32 GB GDDR6</dd></div>
+      <div><dt>Memory bus</dt><dd>256-bit</dd></div>
+      <div><dt>Memory bandwidth</dt><dd>608 GB/s</dd></div>
+      <div><dt>Board power</dt><dd>230 W reference (160–290 W partner)</dd></div>
+      <div><dt>Cooling</dt><dd>Active or passive — partner designs vary (ASRock and Sparkle both ship fanless 32 GB models)</dd></div>
+      <div><dt>Host interface</dt><dd>PCIe 5.0 ×16</dd></div>
+      <div><dt>Scale-out link</dt><dd>None — PCIe only</dd></div>
+    </dl>
+    <h2 class="section-h sub">Xe2 (Battlemage) specifics</h2>
+    <dl class="spec-grid">
+      <div><dt>Render slices</dt><dd>8</dd></div>
+      <div><dt>Vector engines</dt><dd>256 (8 per Xe-core)</dd></div>
+      <div><dt>Ray tracing units</dt><dd>32</dd></div>
+      <div><dt>Graphics clock</dt><dd>2,280 MHz</dd></div>
+      <div><dt>Max dynamic frequency</dt><dd>2,800 MHz</dd></div>
+      <div><dt>Memory speed</dt><dd>19 Gbps (608 × 8 / 256 = 19)</dd></div>
+      <div><dt>FP32</dt><dd>22.94 TFLOPS</dd></div>
+      <div><dt>INT8</dt><dd>367 TOPS</dd></div>
+      <div><dt>Launch price</dt><dd>$949</dd></div>
+    </dl>
+    <div class="sources"><h2>Sources</h2><ul><li><a href="https://www.intel.com/content/www/us/en/products/sku/245797/intel-arc-pro-b70-graphics/specifications.html" rel="noopener">Intel — Arc Pro B70 product specifications</a></li><li><a href="https://www.techpowerup.com/347703/intel-announces-arc-pro-b70-and-arc-pro-b65-gpus-maxes-out-xe2-battlemage-architecture" rel="noopener">TechPowerUp — Intel announces Arc Pro B70 and B65</a></li><li><a href="https://www.tomshardware.com/pc-components/gpus/intel-arc-pro-b70-and-arc-pro-b65-gpus-bring-32gb-of-ram-to-ai-and-pro-apps-bigger-battlemage-finally-arrives-but-its-not-for-gaming" rel="noopener">Tom's Hardware — Arc Pro B70 and B65 bring 32 GB to AI and pro apps</a></li><li><a href="https://chipsandcheese.com/p/intels-battlemage-architecture" rel="noopener">Chips and Cheese — Intel's Battlemage architecture</a></li><li><a href="https://videocardz.com/newz/intel-big-battlemage-bmg-g31-said-to-feature-27-7b-transistors-48-fewer-than-amd-navi-48" rel="noopener">VideoCardz — BMG-G31 said to feature 27.7 B transistors</a></li><li><a href="https://www.igorslab.de/en/intel-arc-pro-b70-review-teardown-topology-material-tests-workstation-ai-benchmarks/" rel="noopener">igor'sLAB — Arc Pro B70 review: teardown, topology, material tests</a></li></ul></div>
+  </div>
+  <!-- page-static:end -->
 
   <section class="diemap" id="diemap"></section>
 

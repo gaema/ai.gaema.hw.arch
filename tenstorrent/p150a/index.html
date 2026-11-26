@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Tenstorrent Blackhole p150a — accelerator architecture explorer</title>
 <meta name="description" content="Interactive block diagram of the Tenstorrent Blackhole p150a: 120 Tensix tiles, five RISC-V cores and 1.5 MB SRAM each, 32 GB GDDR6.">
+<!-- page-meta:start -->
+<link rel="canonical" href="https://arch.hw.gaema.ai/tenstorrent/p150a/">
+<!-- page-meta:end -->
 <link rel="stylesheet" href="../../assets/theme.css">
 <link rel="stylesheet" href="../../assets/app.css">
 <script src="../../assets/theme.js"></script>
@@ -23,13 +26,46 @@
   <div class="sku-head" id="sku-head"></div>
   <dl class="spec-grid" id="headline"></dl>
 
+  <!-- page-static:start -->
   <noscript>
-    <p class="load-error"><strong>This site needs JavaScript.</strong>
-    The die map and the hierarchy are both built in the browser from the same
-    data module, so with scripting off this page has nothing to show. There is
-    no tracking here and no third-party code &mdash; everything is served from
-    this domain.</p>
+    <p class="load-error"><strong>The diagrams need JavaScript.</strong> The die map and the hierarchy are built in the browser from the same data module as the spec card below, so with scripting off only the card is shown. There is no tracking here and no third-party code &mdash; everything is served from this domain.</p>
   </noscript>
+  <div class="static-page" id="static-page">
+    <h1>Blackhole p150a</h1>
+    <p>Tenstorrent · Blackhole · Blackhole ASIC</p>
+    <p>A grid of 120 independent Tensix tiles, each with five RISC-V cores and 1.5 MB of software-managed SRAM — no warp scheduler, no cache hierarchy, and four QSFP-DD ports to bolt cards together.</p>
+    <dl class="spec-grid">
+      <div><dt>Architecture</dt><dd>Blackhole</dd></div>
+      <div><dt>Die</dt><dd>Blackhole ASIC × 1</dd></div>
+      <div><dt>Process node</dt><dd>6 nm</dd></div>
+      <div><dt>Transistors</dt><dd>—</dd></div>
+      <div><dt>Die area</dt><dd>—</dd></div>
+      <div><dt>Execution unit</dt><dd>Tensix tile</dd></div>
+      <div><dt>Units enabled</dt><dd>120 of 140</dd></div>
+      <div><dt>Matrix engines</dt><dd>120 (1 per Tensix tile)</dd></div>
+      <div><dt>On-chip memory</dt><dd>180 MB SRAM — 1.5 MB per tile, software-managed, no cache hierarchy</dd></div>
+      <div><dt>Memory</dt><dd>32 GB GDDR6</dd></div>
+      <div><dt>Memory bus</dt><dd>256-bit — 8 channels at 16 GT/s</dd></div>
+      <div><dt>Memory bandwidth</dt><dd>512 GB/s</dd></div>
+      <div><dt>Board power</dt><dd>300 W</dd></div>
+      <div><dt>Cooling</dt><dd>Active</dd></div>
+      <div><dt>Host interface</dt><dd>PCIe 5.0 ×16</dd></div>
+      <div><dt>Scale-out link</dt><dd>4 × QSFP-DD 800G</dd></div>
+    </dl>
+    <h2 class="section-h sub">Blackhole specifics</h2>
+    <dl class="spec-grid">
+      <div><dt>ASICs on card</dt><dd>1</dd></div>
+      <div><dt>Baby RISC-V per tile</dt><dd>5 (RV32IM, 1.35 GHz)</dd></div>
+      <div><dt>Big RISC-V cores</dt><dd>16 (SiFive X280)</dd></div>
+      <div><dt>Ethernet tiles</dt><dd>14 on the die, 12 available on this card</dd></div>
+      <div><dt>Ethernet rate</dt><dd>400 GbE per tile · 800 GbE per port</dd></div>
+      <div><dt>Board Ethernet</dt><dd>4 × QSFP-DD 800G — 8 of the 12 cabled, because the live PCIe ×16 tile consumes the SerDes of the other 4</dd></div>
+      <div><dt>PCIe tiles</dt><dd>2 on the die, each ×16-capable — one used, one idle</dd></div>
+      <div><dt>Block float (BLOCKFP8)</dt><dd>664 TFLOPS</dd></div>
+    </dl>
+    <div class="sources"><h2>Sources</h2><ul><li><a href="https://tenstorrent.com/hardware/blackhole" rel="noopener">Tenstorrent — Blackhole cards</a></li><li><a href="https://docs.tenstorrent.com/aibs/blackhole/specifications.html" rel="noopener">Tenstorrent — Blackhole specifications and requirements</a></li><li><a href="https://www.theregister.com/2024/08/27/tenstorrent_ai_blackhole/" rel="noopener">The Register — Tenstorrent details its RISC-V packed Blackhole chips</a></li><li><a href="https://hc2024.hotchips.org/assets/program/conference/day1/88_HC2024.Tenstorrent.Jasmina.Davor.v7.pdf" rel="noopener">Tenstorrent — Blackhole &amp; TT-Metalium, Hot Chips 2024 (PDF)</a></li><li><a href="https://videocardz.com/newz/tenstorrent-downgrades-blackhole-p150-pcie-cards-specs-from-140-to-120-cores" rel="noopener">VideoCardz — Blackhole p150 revised from 140 to 120 cores</a></li><li><a href="https://github.com/tenstorrent/tt-isa-documentation/blob/main/BlackholeA0/README.md" rel="noopener">Tenstorrent — tt-isa-documentation, Blackhole A0 tile inventory</a></li></ul></div>
+  </div>
+  <!-- page-static:end -->
 
   <section class="diemap" id="diemap"></section>
 

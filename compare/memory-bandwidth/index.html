@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Memory bandwidth across parts — arch.hw.gaema.ai</title>
 <meta name="description" content="Published peak memory bandwidth for thirteen parts, with the scope of each figure stated — whole card, per ASIC, or shared with the CPU.">
+<!-- page-meta:start -->
+<link rel="canonical" href="https://arch.hw.gaema.ai/compare/memory-bandwidth/">
+<!-- page-meta:end -->
 <link rel="stylesheet" href="../../assets/theme.css">
 <link rel="stylesheet" href="../../assets/app.css">
 <script src="../../assets/theme.js"></script>
@@ -33,13 +36,44 @@
     </p>
   </div>
 
+  <!-- page-static:start -->
   <noscript>
-    <p class="load-error"><strong>This page needs JavaScript.</strong>
-    The table and the bars are both built in the browser from the same data
-    module the rest of the site reads, so with scripting off there is nothing to
-    show. There is no tracking here and no third-party code &mdash; everything is
-    served from this domain.</p>
+    <p class="load-error"><strong>The charts need JavaScript.</strong> The bars are drawn in the browser from the same data module as the tables below, so with scripting off only the tables are shown. There is no tracking here and no third-party code &mdash; everything is served from this domain.</p>
   </noscript>
+  <div class="static-page" id="static-page">
+    <section class="block">
+    <h2>Memory bandwidth</h2>
+    <p class="lede">Eleven of the thirteen parts publish a GB/s figure, and that rate sets the floor on time per token in a memory-bound decode: every weight is read once per token, so this figure divides into the model size to give the fastest a part can go regardless of its arithmetic. Eight figures are a whole card. Two of these cards are two ASICs and their vendor quotes the figure per ASIC — those bars say so, and are not combined into a card figure the vendor does not claim. One figure is system memory shared with the CPU. The Radeon 610M publishes none, and Arc 140V publishes up to LPDDR5X 8533 MT/s rather than a GB/s, so neither is a bar here.</p>
+    <div class="scroll-x"><table class="matrix">
+      <thead><tr><th>Part</th><th>Vendor</th><th>Memory</th><th>Scope</th><th>Peak bandwidth</th><th>Source</th></tr></thead>
+      <tbody>
+        <tr><th>Radeon AI PRO R9700</th><td>AMD</td><td>32 GB GDDR6</td><td>whole card</td><td>640 GB/s</td><td><a href="https://www.amd.com/en/products/graphics/workstations/radeon-ai-pro/ai-9000-series/amd-radeon-ai-pro-r9700.html" rel="noopener">AMD — Radeon AI PRO R9700 specifications</a> <small>· vendor-published</small></td></tr>
+        <tr><td colspan="6">AMD prints a 256-bit interface and 640 GB/s. That pair is 20 Gbps exactly: 640 × 8 / 256 = 20.</td></tr>
+        <tr><th>Arc Pro B50</th><td>Intel</td><td>16 GB GDDR6</td><td>whole card</td><td>224 GB/s</td><td><a href="https://www.intel.com/content/www/us/en/products/sku/242615/intel-arc-pro-b50-graphics/specifications.html" rel="noopener">Intel — Arc Pro B50 specifications (SKU 242615)</a> <small>· vendor-published</small></td></tr>
+        <tr><td colspan="6">Intel prints 128-bit, 14 Gbps and 224 GB/s. 128 × 14 / 8 = 224.</td></tr>
+        <tr><th>Arc Pro B70</th><td>Intel</td><td>32 GB GDDR6</td><td>whole card</td><td>608 GB/s</td><td><a href="https://www.intel.com/content/www/us/en/products/sku/245797/intel-arc-pro-b70-graphics/specifications.html" rel="noopener">Intel — Arc Pro B70 specifications (SKU 245797)</a> <small>· vendor-published</small></td></tr>
+        <tr><td colspan="6">Intel prints a 256-bit interface and 608 GB/s. That pair is 19 Gbps exactly: 608 × 8 / 256 = 19.</td></tr>
+        <tr><th>Arc A370M</th><td>Intel</td><td>4 GB GDDR6</td><td>whole card</td><td>112 GB/s</td><td><a href="https://www.intel.com/content/www/us/en/products/sku/228342/specifications.html" rel="noopener">Intel — Arc A370M product specifications (SKU 228342)</a> <small>· vendor-published</small></td></tr>
+        <tr><td colspan="6">64 × 14 / 8 = 112. The narrow bus is the point of this part: an eighth of the width the discrete Xe2 cards on this site run.</td></tr>
+        <tr><th>RTX PRO 6000 Blackwell</th><td>NVIDIA</td><td>96 GB GDDR7 ECC</td><td>whole card</td><td>1,792 GB/s</td><td><a href="https://www.nvidia.com/en-us/products/workstations/professional-desktop-gpus/rtx-pro-6000/" rel="noopener">NVIDIA — RTX PRO 6000 Blackwell Workstation Edition</a> <small>· vendor-published</small></td></tr>
+        <tr><td colspan="6">512-bit GDDR7 with ECC.</td></tr>
+        <tr><th>GeForce RTX 5090</th><td>NVIDIA</td><td>32 GB GDDR7</td><td>whole card</td><td>1,792 GB/s</td><td><a href="https://www.nvidia.com/en-us/geforce/graphics-cards/50-series/rtx-5090/" rel="noopener">NVIDIA — GeForce RTX 5090 specifications</a> <small>· vendor-published</small></td></tr>
+        <tr><td colspan="6">512-bit GDDR7.</td></tr>
+        <tr><th>DGX Spark</th><td>NVIDIA</td><td>128 GB LPDDR5X, unified with the CPU</td><td>shared with the CPU</td><td>273 GB/s</td><td><a href="../../nvidia/dgx-spark/">on this site</a> <small>· already on this site's page for the part</small></td></tr>
+        <tr><td colspan="6">256-bit LPDDR5X. This is system memory, not a frame buffer: the twenty Arm cores on the package are drawing from the same figure.</td></tr>
+        <tr><th>Wormhole n150d</th><td>Tenstorrent</td><td>12 GB GDDR6</td><td>whole card</td><td>288 GB/s</td><td><a href="../../tenstorrent/n150d/">on this site</a> <small>· already on this site's page for the part</small></td></tr>
+        <tr><td colspan="6">GDDR6, one ASIC on the card.</td></tr>
+        <tr><th>Wormhole n300d</th><td>Tenstorrent</td><td>24 GB GDDR6</td><td>per ASIC</td><td>288 GB/s</td><td><a href="../../tenstorrent/n300d/">on this site</a> <small>· already on this site's page for the part</small></td></tr>
+        <tr><td colspan="6">GDDR6. Tenstorrent quotes this per ASIC and the card carries two, each with its own pool — it is not one 576 GB/s pool and is not drawn as one.</td></tr>
+        <tr><th>Blackhole p150a</th><td>Tenstorrent</td><td>32 GB GDDR6</td><td>whole card</td><td>512 GB/s</td><td><a href="https://tenstorrent.com/hardware/blackhole" rel="noopener">Tenstorrent — Blackhole cards</a> <small>· vendor-published</small></td></tr>
+        <tr><td colspan="6">GDDR6, one ASIC on the card.</td></tr>
+        <tr><th>Blackhole p300c</th><td>Tenstorrent</td><td>64 GB GDDR6</td><td>per ASIC</td><td>512 GB/s</td><td><a href="../../tenstorrent/p300c/">on this site</a> <small>· already on this site's page for the part</small></td></tr>
+        <tr><td colspan="6">GDDR6, quoted per ASIC; the card carries two, each with its own pool.</td></tr>
+      </tbody>
+    </table></div>
+    </section>
+  </div>
+  <!-- page-static:end -->
 
   <div id="view"></div>
 </main>

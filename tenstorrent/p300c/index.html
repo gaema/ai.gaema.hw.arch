@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Tenstorrent Blackhole p300c — accelerator architecture explorer</title>
 <meta name="description" content="Interactive block diagram of the Tenstorrent Blackhole p300c: two Blackhole ASICs, 240 Tensix tiles, 64 GB GDDR6.">
+<!-- page-meta:start -->
+<link rel="canonical" href="https://arch.hw.gaema.ai/tenstorrent/p300c/">
+<!-- page-meta:end -->
 <link rel="stylesheet" href="../../assets/theme.css">
 <link rel="stylesheet" href="../../assets/app.css">
 <script src="../../assets/theme.js"></script>
@@ -23,13 +26,47 @@
   <div class="sku-head" id="sku-head"></div>
   <dl class="spec-grid" id="headline"></dl>
 
+  <!-- page-static:start -->
   <noscript>
-    <p class="load-error"><strong>This site needs JavaScript.</strong>
-    The die map and the hierarchy are both built in the browser from the same
-    data module, so with scripting off this page has nothing to show. There is
-    no tracking here and no third-party code &mdash; everything is served from
-    this domain.</p>
+    <p class="load-error"><strong>The diagrams need JavaScript.</strong> The die map and the hierarchy are built in the browser from the same data module as the spec card below, so with scripting off only the card is shown. There is no tracking here and no third-party code &mdash; everything is served from this domain.</p>
   </noscript>
+  <div class="static-page" id="static-page">
+    <h1>Blackhole p300c</h1>
+    <p>Tenstorrent · Blackhole · 2 × Blackhole ASIC</p>
+    <p>Two Blackhole ASICs on one liquid-cooled board — 240 Tensix tiles and 64 GB of GDDR6 at 600 W — joined by two Ethernet links routed across the PCB, not by a shared NOC. Each die fuses off a different one of its two PCIe tiles, so the pair are mirror images rather than copies. Off the card there are two Warp 400 connector positions and the p300c fits one. It is not sold on its own: it is the card inside TT-QuietBox 2.</p>
+    <dl class="spec-grid">
+      <div><dt>Architecture</dt><dd>Blackhole</dd></div>
+      <div><dt>Die</dt><dd>Blackhole ASIC × 2</dd></div>
+      <div><dt>Process node</dt><dd>6 nm</dd></div>
+      <div><dt>Transistors</dt><dd>—</dd></div>
+      <div><dt>Die area</dt><dd>—</dd></div>
+      <div><dt>Execution unit</dt><dd>Tensix tile</dd></div>
+      <div><dt>Units enabled</dt><dd>240 of 280 — 120 of 140 per ASIC</dd></div>
+      <div><dt>Matrix engines</dt><dd>240 (1 per Tensix tile)</dd></div>
+      <div><dt>On-chip memory</dt><dd>360 MB SRAM — 1.5 MB per tile, software-managed, no cache hierarchy</dd></div>
+      <div><dt>Memory</dt><dd>64 GB GDDR6 — 32 GB per ASIC</dd></div>
+      <div><dt>Memory bus</dt><dd>256-bit per ASIC — 8 channels at 16 GT/s</dd></div>
+      <div><dt>Memory bandwidth</dt><dd>1,024 GB/s board · 512 GB/s per ASIC</dd></div>
+      <div><dt>Board power</dt><dd>600 W TBP</dd></div>
+      <div><dt>Cooling</dt><dd>Liquid</dd></div>
+      <div><dt>Host interface</dt><dd>PCIe 5.0 ×16</dd></div>
+      <div><dt>Scale-out link</dt><dd>Warp 400 card-to-card — 2 positions, 1 populated per card so a pair mates offset; Samtec ARP6-series cable, no QSFP-DD cages</dd></div>
+    </dl>
+    <h2 class="section-h sub">Blackhole specifics</h2>
+    <dl class="spec-grid">
+      <div><dt>ASICs on card</dt><dd>2</dd></div>
+      <div><dt>Baby RISC-V per tile</dt><dd>5 (RV32IM, 1.35 GHz)</dd></div>
+      <div><dt>Big RISC-V cores</dt><dd>32 (16 per ASIC) — Tenstorrent's own p300c table still marks this “TBD”</dd></div>
+      <div><dt>Die-to-die link</dt><dd>2 Ethernet channels on the PCB — ch 3 ⇄ 8 and ch 2 ⇄ 9, no connector</dd></div>
+      <div><dt>Card-to-card ports</dt><dd>2 Warp 400 positions — each card fits the one its twin leaves empty, so the pair meet offset</dd></div>
+      <div><dt>Ethernet channels wired</dt><dd>6 of 12 per die — 2 to the die-to-die trace, 2 to each Warp position</dd></div>
+      <div><dt>PCIe tiles</dt><dd>2 per die, each ×16-capable — one used, one idle</dd></div>
+      <div><dt>PCIe mirroring</dt><dd>left die uses (2,0), right die uses (11,0)</dd></div>
+      <div><dt>Availability</dt><dd>not sold separately — ships in TT-QuietBox 2</dd></div>
+    </dl>
+    <div class="sources"><h2>Sources</h2><ul><li><a href="https://docs.tenstorrent.com/aibs/blackhole/p300.html" rel="noopener">Tenstorrent — Blackhole p300c card specifications</a></li><li><a href="https://tenstorrent.com/hardware/blackhole" rel="noopener">Tenstorrent — Blackhole cards</a></li><li><a href="https://hc2024.hotchips.org/assets/program/conference/day1/88_HC2024.Tenstorrent.Jasmina.Davor.v7.pdf" rel="noopener">Tenstorrent — Blackhole &amp; TT-Metalium, Hot Chips 2024 (PDF)</a></li><li><a href="https://github.com/tenstorrent/tt-isa-documentation/blob/main/BlackholeA0/README.md" rel="noopener">Tenstorrent — tt-isa-documentation, Blackhole A0 tile inventory</a></li><li><a href="https://github.com/tenstorrent/tt-metal/blob/main/tools/scaleout/board/board.cpp" rel="noopener">Tenstorrent — tt-metal, P300 board definition (Warp 400 + TRACE ports)</a></li><li><a href="https://github.com/tenstorrent/tt-metal/blob/main/tt_metal/third_party/umd/tests/cluster_descriptor_examples/blackhole_P300_both_mmio.yaml" rel="noopener">Tenstorrent — tt-umd, P300 cluster descriptor example</a></li></ul></div>
+  </div>
+  <!-- page-static:end -->
 
   <section class="diemap" id="diemap"></section>
 

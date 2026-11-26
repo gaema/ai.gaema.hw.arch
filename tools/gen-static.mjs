@@ -5,10 +5,18 @@
 //                replaces it with the full cards once it runs)
 //   sitemap.xml  every page with its own URL; redirect stubs are left out
 //   llms.txt     a short plain-text index of the site
+//   <page>/index.html, for every sitemap page but the home page:
+//                a canonical link (and a description if the shell has none)
+//                between the page-meta markers, and the page's content as
+//                plain HTML between the page-static markers -- a part's spec
+//                card, or a comparison page's tables. explorer.js and
+//                compare.js remove that block once they have built the page.
+//                On a shell with no markers yet, the block takes the place of
+//                the shell's <noscript> note.
 //
 // robots.txt is static and is not written here.
 //
-//   node tools/gen-static.mjs          rewrite the three files
+//   node tools/gen-static.mjs          rewrite the files
 //   node tools/gen-static.mjs --check  exit 1 if any of them is out of date
 //   node tools/gen-static.mjs --touch  also set every sitemap lastmod to today
 //
@@ -29,7 +37,20 @@ const CHECK = args.has("--check");
 const TOUCH = args.has("--touch");
 const TODAY = new Date().toISOString().slice(0, 10);
 
-const { loadAll, pageHref } = await import(pathToFileURL(join(ROOT, "data/index.js")).href);
+const META_START = "<!-- page-meta:start -->";
+const META_END = "<!-- page-meta:end -->";
+const BODY_START = "<!-- page-static:start -->";
+const BODY_END = "<!-- page-static:end -->";
+
+const mod = (rel) => import(pathToFileURL(join(ROOT, rel)).href);
+const { loadAll, pageHref, specRows } = await mod("data/index.js");
+const {
+  FORMATS, FORMAT_ORDER, FIGURES, UNSTATED, BANDWIDTH, BANDWIDTH_UNIT, SPARSITY, SRC_CLASS,
+} = await mod("data/_throughput.js");
+const {
+  fmtNum, accFor, levelFor, gapText, throughputTitle, throughputLede,
+  THROUGHPUT_HEAD, BANDWIDTH_HEAD, UNSTATED_HEAD, BANDWIDTH_LEDE, UNSTATED_LEDE,
+} = await mod("assets/compare-rows.js");
 const skus = await loadAll();
 
 const esc = (s) => String(s)
@@ -136,11 +157,196 @@ function llms() {
   return out.join("\n");
 }
 
+// ---------------------------------------------------------------------------
+// Deep pages: the same content the page scripts build, as plain HTML.
+
+const byId = new Map(skus.map((s) => [s.id, s]));
+const NOSCRIPT_TAIL = " There is no tracking here and no third-party code &mdash; everything is "
+  + "served from this domain.";
+
+const dl = (rows, id) => `    <dl class="spec-grid"${id ? ` id="${id}"` : ""}>\n`
+  + rows.map(([k, v]) => `      <div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join("\n")
+  + "\n    </dl>";
+
+// The spec card explorer.js renders: name, tagline, the spine, the
+// vendor-specific rows and the sources.
+function skuBlock(s) {
+  const out = [
+    `    <h1>${esc(s.name)}</h1>`,
+    `    <p>${esc(s.vendor)} · ${esc(subtitle(s))}</p>`,
+    `    <p>${esc(s.tagline)}</p>`,
+    dl(specRows(s)),
+  ];
+  if (s.extra && s.extra.length) {
+    out.push(`    <h2 class="section-h sub">${esc(s.arch)} specifics</h2>`, dl(s.extra));
+  }
+  if (s.dieNote) out.push(`    <p class="note">${esc(s.dieNote)}</p>`);
+  if (s.sources && s.sources.length) {
+    out.push(`    <div class="sources"><h2>Sources</h2><ul>`
+      + s.sources.map(([label, url]) => `<li><a href="${esc(url)}" rel="noopener">${esc(label)}</a></li>`).join("")
+      + `</ul></div>`);
+  }
+  return {
+    noscript: "<strong>The diagrams need JavaScript.</strong> The die map and the hierarchy "
+      + "are built in the browser from the same data module as the spec card below, so with "
+      + "scripting off only the card is shown." + NOSCRIPT_TAIL,
+    body: out.join("\n"),
+    description: firstSentence(s.tagline),
+  };
+}
+
+// The source cell compare.js draws, as text and a link.
+function srcHtml(src, sku, base) {
+  if (src.cls === "site") {
+    return `<a href="${esc(base + pageHref(sku))}">on this site</a> <small>· ${esc(SRC_CLASS.site)}</small>`;
+  }
+  const a = `<a href="${esc(src.href)}" rel="noopener">${esc(src.text)}</a>`;
+  if (src.cls === "derived") return `${a} <small>· ${esc(src.formula)} — ${esc(SRC_CLASS.derived)}</small>`;
+  return `${a} <small>· ${esc(SRC_CLASS.vendor)}</small>`;
+}
+
+const tr = (cells) => "        <tr>" + cells.join("") + "</tr>";
+const td = (html, attrs = "") => `<td${attrs}>${html}</td>`;
+
+function tableHtml(head, rows) {
+  return `    <div class="scroll-x"><table class="matrix">\n`
+    + `      <thead><tr>${head.map((h) => `<th>${esc(h)}</th>`).join("")}</tr></thead>\n`
+    + `      <tbody>\n${rows.join("\n")}\n      </tbody>\n    </table></div>`;
+}
+
+const sectionHtml = (title, lede, inner) => `    <section class="block">\n`
+  + `    <h2>${esc(title)}</h2>\n`
+  + (lede ? `    <p class="lede">${esc(lede)}</p>\n` : "")
+  + `${inner}\n    </section>`;
+
+// compare.js throughputBlock, without the bars (the table holds the same rows).
+function throughputHtml(cls, formats, base) {
+  return formats.map((fk) => {
+    const figs = FIGURES.filter((f) => f.cls === cls && f.format === fk);
+    const rows = [];
+    for (const sku of skus) {
+      const mine = figs.filter((f) => f.sku === sku.id);
+      const acc = accFor(sku.id, fk);
+      if (!mine.length) {
+        rows.push(tr([`<th>${esc(sku.name)}</th>`, td(esc(sku.vendor)),
+          td(esc(gapText(cls, levelFor(sku.id, fk))), ' colspan="5"')]));
+        continue;
+      }
+      for (const f of mine) {
+        rows.push(tr([`<th>${esc(sku.name)}</th>`, td(esc(sku.vendor)),
+          td(esc(f.quoted || FORMATS[fk].label)),
+          td(esc(acc || (cls === "vector" ? "vector lanes" : "—"))),
+          td(esc(SPARSITY[f.sparsity].label)),
+          td(esc(fmtNum(f.value) + " " + f.unit)),
+          td(srcHtml(f.src, sku, base))]));
+        rows.push(tr([td(esc(f.basis), ' colspan="7"')]));
+      }
+    }
+    return sectionHtml(throughputTitle(cls, fk), throughputLede(cls, fk, figs.length > 0),
+      tableHtml(THROUGHPUT_HEAD, rows));
+  });
+}
+
+function bandwidthHtml(base) {
+  const rows = [];
+  for (const b of BANDWIDTH) {
+    const sku = byId.get(b.sku);
+    rows.push(tr([`<th>${esc(sku.name)}</th>`, td(esc(sku.vendor)),
+      td(esc(sku.compare["Memory"] || "—")), td(esc(b.scope)),
+      td(esc(fmtNum(b.value) + " " + BANDWIDTH_UNIT)), td(srcHtml(b.src, sku, base))]));
+    rows.push(tr([td(esc(b.basis), ' colspan="6"')]));
+  }
+  return [sectionHtml("Memory bandwidth", BANDWIDTH_LEDE, tableHtml(BANDWIDTH_HEAD, rows))];
+}
+
+function unstatedHtml(base) {
+  if (!UNSTATED.length) return [];
+  const rows = [];
+  for (const u of UNSTATED) {
+    const sku = byId.get(u.sku);
+    rows.push(tr([`<th>${esc(sku.name)}</th>`, td(esc(u.quoted)),
+      td(esc(fmtNum(u.value) + " " + u.unit)), td(srcHtml(u.src, sku, base))]));
+    rows.push(tr([td(esc(u.why), ' colspan="4"')]));
+  }
+  return [sectionHtml("Quoted with no stated basis", UNSTATED_LEDE, tableHtml(UNSTATED_HEAD, rows))];
+}
+
+// The same branches as compare.js's entry point.
+function compareBlock(path, html, base) {
+  const view = (/<body[^>]*\sdata-view="([^"]*)"/.exec(html) || [])[1] || "";
+  const format = (/<body[^>]*\sdata-format="([^"]*)"/.exec(html) || [])[1] || "";
+  const parts = [];
+  let description = null;
+  if (format) {
+    const f = FORMATS[format];
+    if (!f) throw new Error(`${path}: unknown data-format "${format}"`);
+    parts.push(`    <p>${esc(f.lede)}</p>`);
+    parts.push(...throughputHtml("vector", [format], base), ...throughputHtml("systolic", [format], base));
+    description = firstSentence(f.lede);
+  } else if (view === "bandwidth") {
+    parts.push(...bandwidthHtml(base));
+  } else if (view === "vector" || view === "systolic") {
+    const present = FORMAT_ORDER.filter((k) => FIGURES.some((f) => f.cls === view && f.format === k));
+    parts.push(...throughputHtml(view, present, base));
+    if (view === "systolic") parts.push(...unstatedHtml(base));
+  } else {
+    throw new Error(`${path}: not a part page and names no data-view or data-format`);
+  }
+  return {
+    noscript: "<strong>The charts need JavaScript.</strong> The bars are drawn in the browser "
+      + "from the same data module as the tables below, so with scripting off only the tables "
+      + "are shown." + NOSCRIPT_TAIL,
+    body: parts.join("\n"),
+    description,
+  };
+}
+
+// Replace the text between two markers, or insert the marked region where
+// `fallback` says if the markers are not there yet.
+function splice(html, start, end, region, fallback, file) {
+  const a = html.indexOf(start);
+  const b = html.indexOf(end);
+  if (a >= 0 && b > a) return html.slice(0, a) + region + html.slice(b + end.length);
+  if (a >= 0 || b >= 0) throw new Error(`${file}: unpaired ${start} / ${end}`);
+  const out = fallback(html);
+  if (out === html) throw new Error(`${file}: no place to put ${start}`);
+  return out;
+}
+
+function deepPage(page, current) {
+  const file = page.path + "index.html";
+  const base = "../".repeat(page.path.split("/").filter(Boolean).length);
+  const sku = skus.find((s) => pageHref(s) === page.path);
+  const block = sku ? skuBlock(sku) : compareBlock(page.path, current, base);
+
+  // Head: canonical, plus a description only when the shell has none of its own.
+  const unmarked = current.replace(
+    new RegExp(`${META_START}[\\s\\S]*?${META_END}`), "");
+  const meta = [`<link rel="canonical" href="${esc(ORIGIN + page.path)}">`];
+  if (!/<meta name="description"/.test(unmarked)) {
+    if (!block.description) throw new Error(`${file}: no description in the shell and none in the registry`);
+    meta.push(`<meta name="description" content="${esc(block.description)}">`);
+  }
+  const metaRegion = `${META_START}\n${meta.join("\n")}\n${META_END}`;
+  let html = splice(current, META_START, META_END, metaRegion,
+    (h) => h.replace(/(\n)(<link rel="stylesheet")/, `$1${metaRegion}\n$2`), file);
+
+  // Body: the shell's noscript note plus the static content.
+  const bodyRegion = `${BODY_START}\n`
+    + `  <noscript>\n    <p class="load-error">${block.noscript}</p>\n  </noscript>\n`
+    + `  <div class="static-page" id="static-page">\n${block.body}\n  </div>\n  ${BODY_END}`;
+  html = splice(html, BODY_START, BODY_END, bodyRegion,
+    (h) => h.replace(/<noscript>[\s\S]*?<\/noscript>/, bodyRegion), file);
+  return [file, html];
+}
+
 const read = (f) => (existsSync(join(ROOT, f)) ? readFileSync(join(ROOT, f), "utf8") : "");
+const deep = [...skus.map((s) => all.find((p) => p.path === pageHref(s))), ...others];
 const outputs = {
   "index.html": indexHtml(read("index.html")),
   "sitemap.xml": sitemap(read("sitemap.xml")),
   "llms.txt": llms(),
+  ...Object.fromEntries(deep.map((p) => deepPage(p, read(p.path + "index.html")))),
 };
 
 let stale = 0;
@@ -159,5 +365,6 @@ if (CHECK) {
     console.error("run: node tools/gen-static.mjs");
     process.exit(1);
   }
-  console.log(`up to date: ${skus.length} cards, ${1 + skus.length + others.length} sitemap URLs`);
+  console.log(`up to date: ${skus.length} cards, ${1 + skus.length + others.length} sitemap URLs, `
+    + `${deep.length} page bodies`);
 }

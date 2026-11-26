@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Tenstorrent Wormhole n150d — accelerator architecture explorer</title>
 <meta name="description" content="Interactive block diagram of the Tenstorrent Wormhole n150d: 72 Tensix tiles, five RISC-V cores and 1.5 MB SRAM each, 12 GB GDDR6.">
+<!-- page-meta:start -->
+<link rel="canonical" href="https://arch.hw.gaema.ai/tenstorrent/n150d/">
+<!-- page-meta:end -->
 <link rel="stylesheet" href="../../assets/theme.css">
 <link rel="stylesheet" href="../../assets/app.css">
 <script src="../../assets/theme.js"></script>
@@ -23,13 +26,49 @@
   <div class="sku-head" id="sku-head"></div>
   <dl class="spec-grid" id="headline"></dl>
 
+  <!-- page-static:start -->
   <noscript>
-    <p class="load-error"><strong>This site needs JavaScript.</strong>
-    The die map and the hierarchy are both built in the browser from the same
-    data module, so with scripting off this page has nothing to show. There is
-    no tracking here and no third-party code &mdash; everything is served from
-    this domain.</p>
+    <p class="load-error"><strong>The diagrams need JavaScript.</strong> The die map and the hierarchy are built in the browser from the same data module as the spec card below, so with scripting off only the card is shown. There is no tracking here and no third-party code &mdash; everything is served from this domain.</p>
   </noscript>
+  <div class="static-page" id="static-page">
+    <h1>Wormhole n150d</h1>
+    <p>Tenstorrent · Wormhole · Wormhole ASIC</p>
+    <p>A grid of 72 independent Tensix tiles, each with five RISC-V cores and 1.5 MB of software-managed SRAM — no warp scheduler, no cache hierarchy, and two QSFP-DD ports plus two Warp 100 bridges to bolt cards together.</p>
+    <dl class="spec-grid">
+      <div><dt>Architecture</dt><dd>Wormhole B0</dd></div>
+      <div><dt>Die</dt><dd>Wormhole ASIC × 1</dd></div>
+      <div><dt>Process node</dt><dd>12 nm</dd></div>
+      <div><dt>Transistors</dt><dd>—</dd></div>
+      <div><dt>Die area</dt><dd>—</dd></div>
+      <div><dt>Execution unit</dt><dd>Tensix tile</dd></div>
+      <div><dt>Units enabled</dt><dd>72 of 80</dd></div>
+      <div><dt>Matrix engines</dt><dd>72 (1 per Tensix tile)</dd></div>
+      <div><dt>On-chip memory</dt><dd>108 MB SRAM — 1.5 MB per tile, software-managed, no cache hierarchy</dd></div>
+      <div><dt>Memory</dt><dd>12 GB GDDR6</dd></div>
+      <div><dt>Memory bus</dt><dd>192-bit — 6 channels at 12 GT/s</dd></div>
+      <div><dt>Memory bandwidth</dt><dd>288 GB/s</dd></div>
+      <div><dt>Board power</dt><dd>160 W TBP</dd></div>
+      <div><dt>Cooling</dt><dd>Active (axial fan)</dd></div>
+      <div><dt>Host interface</dt><dd>PCIe 4.0 ×16</dd></div>
+      <div><dt>Scale-out link</dt><dd>2 × Warp 100 + 2 × QSFP-DD 200G</dd></div>
+    </dl>
+    <h2 class="section-h sub">Wormhole specifics</h2>
+    <dl class="spec-grid">
+      <div><dt>ASICs on card</dt><dd>1</dd></div>
+      <div><dt>AI clock</dt><dd>1 GHz</dd></div>
+      <div><dt>Baby RISC-V per tile</dt><dd>5 (RV32IM, 1 GHz)</dd></div>
+      <div><dt>Big RISC-V cores</dt><dd>none</dd></div>
+      <div><dt>Ethernet tiles</dt><dd>16</dd></div>
+      <div><dt>Ethernet rate</dt><dd>100 GbE per tile · 200 GbE per port</dd></div>
+      <div><dt>Board Ethernet</dt><dd>2 × QSFP-DD 200G on channels 6,7 and 0,1 · Warp 100 port 1 on channels 14,15 · second Warp 100 connector on the card</dd></div>
+      <div><dt>PCIe tiles</dt><dd>1</dd></div>
+      <div><dt>FP8</dt><dd>262 TFLOPS</dd></div>
+      <div><dt>Block float (BLOCKFP8)</dt><dd>148 TFLOPS</dd></div>
+      <div><dt>FP16</dt><dd>74 TFLOPS</dd></div>
+    </dl>
+    <div class="sources"><h2>Sources</h2><ul><li><a href="https://docs.tenstorrent.com/aibs/wormhole/specifications.html" rel="noopener">Tenstorrent — Wormhole n150d / n300d specifications</a></li><li><a href="https://tenstorrent.com/hardware/wormhole" rel="noopener">Tenstorrent — Wormhole cards</a></li><li><a href="https://github.com/tenstorrent/tt-isa-documentation/blob/main/WormholeB0/README.md" rel="noopener">Tenstorrent — tt-isa-documentation, Wormhole B0 tile inventory</a></li><li><a href="https://github.com/tenstorrent/tt-isa-documentation/blob/main/WormholeB0/TensixTile/README.md" rel="noopener">Tenstorrent — tt-isa-documentation, Wormhole Tensix tile</a></li><li><a href="https://docs.tenstorrent.com/aibs/wormhole/warp100.html" rel="noopener">Tenstorrent — Warp 100 Bridge (two per card)</a></li><li><a href="https://github.com/tenstorrent/tt-metal/blob/main/tools/scaleout/board/board.cpp" rel="noopener">Tenstorrent — tt-metal, N150 board definition (QSFP-DD + Warp 100)</a></li><li><a href="https://github.com/tenstorrent/tt-metal/blob/main/tt_metal/soc_descriptors/wormhole_b0_80_arch.yaml" rel="noopener">Tenstorrent — tt-metal, Wormhole B0 SoC descriptor</a></li><li><a href="https://tenstorrent.com/vision/community-highlight-tenstorrent-wormhole-series-part-1-physicalities" rel="noopener">Tenstorrent — Community highlight, Wormhole physicalities (row harvest)</a></li><li><a href="https://riscv.epcc.ed.ac.uk/assets/files/hpcasia25/Tenstorrent.pdf" rel="noopener">EPCC — Tenstorrent at HPC Asia 2025 (12 nm, 80 Tensix, 16 × 100 GbE)</a></li></ul></div>
+  </div>
+  <!-- page-static:end -->
 
   <section class="diemap" id="diemap"></section>
 
