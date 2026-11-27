@@ -150,17 +150,25 @@ function llms() {
       + "published throughput, memory bandwidth and numeric formats of every part side by side. "
       + "Every figure comes from published specifications; no measurements of our own appear here.",
     "",
+    "The diagrams need JavaScript; every page also carries its spec rows or tables as plain HTML. "
+      + "Part of gaema (https://gaema.ai/llms.txt).",
+    "",
     "## Accelerators",
     "",
     ...skus.map((s) => `- [${s.vendor} ${s.name}](${ORIGIN}${pageHref(s)}): ${firstSentence(s.tagline)}`),
     "",
     "## Comparisons",
     "",
-    ...others.map((p) => `- [${p.title}](${ORIGIN}${p.path})`),
+    ...others.map((p) => {
+      const desc = firstSentence(shellDescription(read(p.path + "index.html")));
+      return `- [${capital(p.title)}](${ORIGIN}${p.path})` + (desc ? `: ${desc}` : "");
+    }),
     "",
   ];
   return out.join("\n");
 }
+
+const capital = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 
 // ---------------------------------------------------------------------------
 // Deep pages: the same content the page scripts build, as plain HTML.
